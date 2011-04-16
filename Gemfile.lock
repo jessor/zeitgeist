@@ -16,6 +16,8 @@ GEM
     builder (2.1.2)
     compass (0.10.6)
       haml (>= 3.0.4)
+    fileutils (0.7)
+      rmagick (>= 2.13.1)
     git (1.2.5)
     haml (3.0.25)
     http_router (0.5.4)
@@ -28,6 +30,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     mime-types (1.16)
+    navvy (0.3.2)
     padrino (0.9.23)
       padrino-admin (= 0.9.23)
       padrino-cache (= 0.9.23)
@@ -61,6 +64,7 @@ GEM
     rack-flash (0.1.1)
       rack
     rake (0.8.7)
+    rmagick (2.13.1)
     sinatra (1.2.3)
       rack (~> 1.1)
       tilt (>= 1.2.2, < 2.0)
@@ -82,7 +86,9 @@ DEPENDENCIES
   activerecord
   bcrypt-ruby
   compass
+  fileutils
   haml
+  navvy
   padrino
   rack-flash
   rake
