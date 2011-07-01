@@ -1,0 +1,5 @@
+*.db
+.livereload
+.sass-cache
+public/assets
+public/uploads

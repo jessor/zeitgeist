@@ -1,15 +1,16 @@
 source :rubygems
 
-gem 'rake'
-gem 'rack-flash'
-
-gem 'bcrypt-ruby', :require => "bcrypt"
-gem 'fileutils'
-gem 'compass'
-gem 'haml'
-gem 'activerecord', :require => "active_record"
-gem 'sqlite3-ruby', :require => "sqlite3"
-
-gem 'navvy'
-
-gem 'padrino'
+gem "sinatra"
+gem "shotgun"
+gem "haml"
+gem "sass"
+gem "rb-inotify"
+gem "livereload"
+gem "dm-core"
+gem "dm-validations"
+gem "dm-timestamps"
+gem "dm-migrations"
+gem "dm-sqlite-adapter"
+gem "dm-types"
+gem "mini_magick"
+gem "carrierwave-datamapper", :require => "carrierwave/datamapper"

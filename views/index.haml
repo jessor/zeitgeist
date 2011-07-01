@@ -1,0 +1,20 @@
+#content
+  %h2 Items ====
+  - if @items
+    %ul.items
+      - @items.each do |item|
+        %li
+          %a{ :href => "#{item.image}", :class => 'pirobox' }
+            %img{ :src => "#{item.image.thumbnail}", :width => '300px', :height => '300px' }
+            -#& "#{item.image.thumbnail.inspect}"
+  %div.clear
+  %h2 Create ====
+  %form{ :action => '/', :method => 'POST', :enctype => 'multipart/form-data' }
+    %label{ :for => 'image_upload' } Image Upload:
+    %input{ :type => 'file', :name => 'image_upload' }
+
+    %label{ :for => 'image_url' } Remote URL (images will be fetched, else it'll get embedded):
+    %input{ :type => 'text', :name => 'remote_url' }
+    
+    %input{ :type => 'submit', :value => 'upload!' }
+
