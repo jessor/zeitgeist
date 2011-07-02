@@ -1,15 +1,6 @@
+// meh normalize...
 article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
 audio[controls], canvas, video { display: inline-block; *display: inline; *zoom: 1; }
-
-::-moz-selection { background: #fe57a1; color: #fff; text-shadow: none; }
-::selection { background: #fe57a1; color: #fff; text-shadow: none; }
-
-a { color: #00e; }
-a:visited { color: #551a8b; }
-a:focus { outline: thin dotted; }
-
-a:hover, a:active { outline: 0; }
-
 abbr[title] { border-bottom: 1px dotted; }
 b, strong { font-weight: bold; }
 blockquote { margin: 1em 40px; }
@@ -25,11 +16,9 @@ small { font-size: 85%; }
 sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
 sup { top: -0.5em; }
 sub { bottom: -0.25em; }
-
 ul, ol { margin: 1em 0; padding: 0 0 0 40px; }
 dd { margin: 0 0 0 40px; }
 nav ul, nav ol { list-style: none; margin: 0; padding: 0; }
-
 form { margin: 0; }
 fieldset { border: 0; margin: 0; padding: 0; }
 legend { border: 0; *margin-left: -7px; padding: 0; }
@@ -50,17 +39,56 @@ $background: #272526; // brown
 $darkground: #141414; // dark gray
 $foreground: #eee; // white
 $border: #171717; // black
-$highlight: #E11A2D; // red
+$highlight: #e11a2d; // red
+$highlightnuance: #ea4d5d; // lighter red
+$higherlight: #f1848f; // light red
 
+@mixin rounded($rd) {
+    -webkit-border-radius: $rd;
+    -moz-border-radius: $rd;
+    border-radius: $rd;
+}
 
+@mixin boxshadow {
+    -webkit-box-shadow: 2px 2px 5px black, inset 2px 2px 5px black;
+    -moz-box-shadow: 2px 2px 5px black, inset 2px 2px 5px black;
+    box-shadow: 2px 2px 5px black, inset 2px 2px 5px black;
+}
+
+@mixin button {
+    background-color: $highlight;
+    color: #fff;
+    cursor: pointer;
+    border: 1px solid $highlight;
+    padding: 2px 5px;
+    width: auto;
+    background: -moz-linear-gradient(top, $highlight, $highlightnuance);
+    background: -webkit-gradient(linear, left top, left bottom,
+    color-stop(0, #e1001a), color-stop(1, $highlightnuance));
+    -webkit-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
+    -moz-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
+    box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
+    text-shadow: 1px 1px 3px #333;
+    font: italic bold 1em/1.2 Georgia, "Times New Roman ", Times, Cambria, "Nimbus Roman No9 L ", serif;
+}
+ 
 body {
     background: $background;
     color: $foreground;
     font-family: 'Helvetica', 'Arial';
 }
 
+a {
+    text-decoration: none;
+    color: $foreground;
+}
+
 #wrapper {
     margin: 20px;
+}
+
+img {
+    display: block;
 }
 
 .items li {
@@ -77,3 +105,78 @@ body {
     float: none;
     clear: both;
 }
+
+form#create {
+    background: $border;
+    border: 3px solid $darkground;
+    padding: 3px 0 0;
+    margin: 10px auto;
+    width: 520px;
+}
+
+form#tags {
+    padding-top: 5px;
+
+    input[type="submit"] {
+        margin-left: 10px;
+    }
+}
+
+fieldset {
+    border: none;
+    margin: 0;
+    padding: 10px 20px 25px;
+
+
+    label {
+        display: block;
+        cursor: pointer;
+        font-weight: bold;
+    }
+}
+
+input {
+    background-color: $foreground;
+    color: $darkground;
+    border: 1px solid $foreground;
+    padding: 4px 6px;
+    @include rounded(5px);
+    @include boxshadow;
+}
+
+input[type="submit"] {
+    @include button;
+    @include rounded(0);
+}
+
+input[type="submit"]:hover {
+    background: $highlight;
+    text-shadow: none;
+}
+
+form ol {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
+    li {
+        float: left;
+        padding: 10px;
+    }
+
+    li.last {
+        float: none;
+        clear: both;
+        text-align: right;
+    }
+
+}
+
+footer {
+    text-align: right;
+}
+
+// hawt
+::-moz-selection { background: $highlight; color: #fff; text-shadow: none; }
+::selection { background: $highlight; color: #fff; text-shadow: none; }
+

@@ -2,6 +2,7 @@ require 'rubygems'
 require 'sinatra'
 require 'haml'
 require 'sass'
+require 'rack-flash'
 require 'dm-core'
 require 'dm-validations'
 require 'dm-timestamps'
@@ -69,6 +70,7 @@ class Item
   property :mimetype,   String
   property :size,       Integer
   property :checksum,   String
+  property :dimensions, String
 
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
@@ -96,19 +98,25 @@ end
 
 post '/new' do
 
+  # we got ourselves an upload, sir
   if params['remote_url'].empty?
     tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
     mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
     checksum = Digest::MD5.file(tempfile).to_s # => 649d6151fbe0ffacbed9e627c01b29ad
     filesize = File.size(tempfile)
     filename = params['image_upload'][:filename]
+    if mimetype.split("/").first.eql? "image"
+      imgobj = MiniMagick::Image.open(tempfile)
+      dimensions = "#{imgobj["dimensions"].first}x#{imgobj["dimensions"].last}"
+    end
   end
 
   @item = Item.new(:image => params['image_upload'],
                    :mimetype => mimetype,
                    :checksum => checksum,
+                   :dimensions => dimensions,
                    :size => filesize,
-                   :name => params['name'],
+                   :name => filename,
                    :remote_image_url => params['remote_url']
                   )
 

@@ -1,31 +1,29 @@
 #content
 
-  %h2 Create ====
-  %form{ :action => '/new', :method => 'post', :enctype => 'multipart/form-data' }
-    %label{ :for => 'image_upload' } Image Upload:
-    %input{ :type => 'file', :name => 'image_upload' }
+  %form#create{ :action => '/new', :method => 'post', :enctype => 'multipart/form-data' }
+    %fieldset
+      %ol
+        %li
+          %label{ :for => 'image_upload' } Image Upload:
+          %input{ :type => 'file', :name => 'image_upload' }
+        %li
+          %label{ :for => 'image_url' } Remote URL (images will be fetched, else it'll get embedded):
+          %input{ :type => 'text', :name => 'remote_url', :size => 38 }
+        %li.last      
+          %input{ :type => 'submit', :value => 'upload!' }
 
-    %label{ :for => 'image_url' } Remote URL (images will be fetched, else it'll get embedded):
-    %input{ :type => 'text', :name => 'remote_url' }
-
-    %label{ :for => 'name' } Comment:
-    %input{ :type => 'text', :name => 'name' }
-    
-    %input{ :type => 'submit', :value => 'upload!' }
-
-  %h2 Items ====
   - if @items
     %ul.items
       - @items.each do |item|
         %li
-          %a{ :href => "#{item.image}", :class => 'pirobox' }
+          %a{ :href => "#{item.image}", :class => 'pirobox', :title => "#{item.name} at #{item.dimensions}" }
             %img{ :src => "#{item.image.thumbnail}", :width => '200px', :height => '200px' }
-          %br
-          Tags:
-          - item.tags.each do |tag|
-            & "#{tag.tagname}"
-          %form{ :action => "/edit/#{item.id}", :method => 'post' }
-            %input{ :type => 'text', :name => 'tag' }
+          #item-meta
+            Tags:
+            - item.tags.each do |tag|
+              & #{tag.tagname}
+          %form#tags{ :action => "/edit/#{item.id}", :method => 'post' }
+            %input{ :type => 'text', :name => 'tag', :size => 10 }
             %input{ :type => 'submit', :value => 'add' }
   %div.clear
 
