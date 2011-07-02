@@ -10,7 +10,8 @@ require 'dm-types'
 require 'carrierwave'
 require 'carrierwave/datamapper'
 require 'mini_magick'
-require 'securerandom'
+require 'filemagic'
+require 'digest/md5'
 
 #
 # Config
@@ -43,18 +44,17 @@ class ImageUploader < CarrierWave::Uploader::Base
     Time.now.strftime("%y%m%d%H%M%S")
   end
 
-  # z0mg so much fail
-  def filename
-    #"#{ze_time}_#{model.image.file.filename}"
-    "#{ze_time}.#{model.image.file.extension}" if original_filename
-  end
+  # z0mg so much fail... also: race conditions
+  #def filename
+    #"#{ze_time}.#{model.image.file.extension}" if original_filename
+  #end
 
   version :thumbnail do
-    process :resize_to_limit => [300, 300]
+    process :resize_to_fill => [200, 200] # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
     # lolwut
-    #def full_filename(for_file = model.image.file)
-      #"#{ze_time}_thumbnail_#{original_filename}" if original_filename
-    #end
+    # def full_filename(for_file = model.image.file)
+    #   "#{ze_time}_thumbnail_#{original_filename}" if original_filename
+    # end
   end
 end
 
@@ -62,16 +62,25 @@ class Item
   include DataMapper::Resource
 
   property :id,         Serial
-  property :source,     String
   property :type,       Enum[:image, :video, :audio, :link], :default => :image
-  property :name,       String
   property :image,      String, :auto_validation => false
+  property :source,     String
+  property :name,       String
+  property :mimetype,   String
+  property :size,       Integer
+  property :checksum,   String
 
   mount_uploader :image, ImageUploader
+  has n, :tags, :through => Resource
+end
 
-  #property :size,       Integer
-  #property :checksum,   String
-  #property :flagged,    Boolean
+class Tag
+  include DataMapper::Resource
+
+  property :id,         Serial
+  property :tagname,    String, :unique => true
+
+  has n, :items, :through => Resource
 end
 
 DataMapper.finalize
@@ -85,13 +94,44 @@ get '/' do
   haml :index
 end
 
-post '/' do
+post '/new' do
+
+  if params['remote_url'].empty?
+    tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
+    mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
+    checksum = Digest::MD5.file(tempfile).to_s # => 649d6151fbe0ffacbed9e627c01b29ad
+    filesize = File.size(tempfile)
+    filename = params['image_upload'][:filename]
+  end
+
   @item = Item.new(:image => params['image_upload'],
-                   :remote_image_url => params['remote_url'])
+                   :mimetype => mimetype,
+                   :checksum => checksum,
+                   :size => filesize,
+                   :name => params['name'],
+                   :remote_image_url => params['remote_url']
+                  )
 
   if @item.save
     redirect '/'
+  else
+    rais "#{@item.errors}"
   end
+end
+
+post '/edit/:id' do
+
+  item = Item.get(params[:id])
+
+  tag = Tag.first_or_create(:tagname => params[:tag])
+  item.tags << tag
+
+  if item.save and tag.save
+    redirect '/'
+  else
+    raise "#{item.errors} ===== #{tag.errors.inspect}"
+  end
+
 end
 
 get '/stylesheet.css' do
