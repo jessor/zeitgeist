@@ -1,3 +1,17 @@
-Image Gallery Thingy with a special drift... let's see where this goes
+Zeitgeist
+=========
 
+You don't need to know what this is just yet.
 Workcopy, alpha, do not touch ;)
+
+
+TODO
+----
+
+* error handling
+* handle different filetypes (e.g. paste soundcloud link, have embedded in item listing)
+* infinite scrolling
+* filter by tags
+* admin interface (bowtie?, wind?)
+* user models?
+* refactoring :D
