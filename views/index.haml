@@ -22,12 +22,13 @@
           - else
             %a{ :href => "#{item.source}" }
               %img{ :src => "/images/#{item.type}.png", :width => '200px', :height => '200px' }
-          #item-meta
-            Tags:
-            - item.tags.each do |tag|
-              & #{tag.tagname}
-          %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "tag-#{item.id}" }
+          .item-meta
+            Tagged:
+            %span{ :id => "tagsforitem-#{item.id}" } 
+              - item.tags.each do |tag|
+                & #{tag.tagname}
+          %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'tag', :size => 10 }
-            %input{ :type => 'submit', :value => 'add' }
+            %input.tagpush{ :type => 'submit', :value => 'add' }
   %div.clear
 

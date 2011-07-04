@@ -12,6 +12,7 @@ require 'carrierwave/datamapper'
 require 'mini_magick'
 require 'filemagic'
 require 'digest/md5'
+require 'json'
 
 #
 # Config
@@ -110,6 +111,19 @@ helpers do
       return 'video', 'youtube'
     end
   end
+
+  def is_ajax_request?
+    if respond_to? :content_type
+      if request.xhr?
+        true
+      else
+        false
+      end
+    else
+      false
+    end
+  end
+
 end
 
 #
@@ -188,15 +202,19 @@ end
 # add tags to items
 post '/edit/:id' do
   # get selected item object
-  item = Item.get(params[:id])
+  @item = Item.get(params[:id])
 
   # get or create tag object
   tag = Tag.first_or_create(:tagname => params[:tag])
   # create association
-  item.tags << tag
+  @item.tags << tag
 
-  if item.save and tag.save
-    redirect '/'
+  if @item.save and tag.save
+    if is_ajax_request?
+      haml :plain, :layout => false
+    else
+      redirect '/'
+    end
   else
     flash[:error] = "Error: #{@item.errors}"
   end

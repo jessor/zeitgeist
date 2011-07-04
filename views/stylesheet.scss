@@ -127,6 +127,13 @@ img {
     color: black;
 }
 
+.item-meta {
+    width: 200px;
+    margin: 10px 0;
+    overflow: hidden;
+    font-size: 80%;
+}
+
 form#create {
     background: $border;
     border: 3px solid $darkground;
