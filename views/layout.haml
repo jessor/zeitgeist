@@ -47,6 +47,12 @@
     #wrapper
       %h1
         #{settings.pagetitle}
+      %nav
+        %a{ :href => '/filter/video' } Video
+        |
+        %a{ :href => '/filter/audio' } Audio
+        |
+        %a{ :href => '/filter/image' } Images
       = yield
       %footer
         %a{ :href => '#wrapper'} &uarr;

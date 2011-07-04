@@ -48,7 +48,8 @@ class ImageUploader < CarrierWave::Uploader::Base
   end
 
   version :thumbnail do
-    process :resize_to_fill => [200, 200] # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
+    # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
+    process :resize_to_fill => [200, 200]
   end
 end
 
@@ -132,6 +133,11 @@ end
 
 get '/' do
   @items = Item.all.reverse
+  haml :index
+end
+
+get '/filter/:type' do
+  @items = Item.all(:type => params[:type])
   haml :index
 end
 
@@ -219,11 +225,6 @@ post '/edit/:id' do
     flash[:error] = "Error: #{@item.errors}"
   end
 end
-
-#error do
-  #'meh...' + env['sinatra.error'].message
-  #haml :'foo'
-#end
 
 # compile sass stylesheet
 get '/stylesheet.css' do

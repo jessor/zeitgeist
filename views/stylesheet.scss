@@ -56,6 +56,11 @@ $green: #2EE01A;
     box-shadow: 2px 2px 5px black, inset 2px 2px 5px black;
 }
 
+@mixin textshadow($c) {
+    text-shadow: 1px 1px 3px $c;
+    filter: dropshadow(color=$c, offx=1, offy=1);
+}
+
 @mixin button {
     background-color: $highlight;
     color: #fff;
@@ -77,6 +82,15 @@ body {
     background: $background;
     color: $foreground;
     font-family: 'Helvetica', 'Arial';
+}
+
+h1 {
+    text-align: center;
+    @include textshadow($border);
+}
+
+nav {
+    text-align: center;
 }
 
 a {
