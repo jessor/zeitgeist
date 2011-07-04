@@ -21,6 +21,12 @@ configure do
   set :pagetitle => '#woot zeitgeist'
   set :assetpath => './asset'
   set :haml, {:format => :html5}
+  set :raise_errors, false
+  set :show_exceptions, false
+  use Rack::Flash
+  enable :sessions
+  # http://stackoverflow.com/questions/5631862/problem-with-sinatra-and-session-variables-which-are-not-being-set/5677589#5677589
+  set :session_secret, "fixing this for shotgun"
 end
 
 #
@@ -45,17 +51,8 @@ class ImageUploader < CarrierWave::Uploader::Base
     Time.now.strftime("%y%m%d%H%M%S")
   end
 
-  # z0mg so much fail... also: race conditions
-  #def filename
-    #"#{ze_time}.#{model.image.file.extension}" if original_filename
-  #end
-
   version :thumbnail do
     process :resize_to_fill => [200, 200] # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
-    # lolwut
-    # def full_filename(for_file = model.image.file)
-    #   "#{ze_time}_thumbnail_#{original_filename}" if original_filename
-    # end
   end
 end
 
@@ -85,63 +82,97 @@ class Tag
   has n, :items, :through => Resource
 end
 
+class Downloaderror
+  include DataMapper::Resource
+
+  property :id,         Serial
+  property :source,     Text
+  property :code,       String
+end
+
 DataMapper.finalize
 DataMapper.auto_upgrade!
 
 #
 # Routes
 # 
+
 get '/' do
   @items = Item.all
   haml :index
 end
 
+# we got ourselves an upload, sir
 post '/new' do
-
-  # we got ourselves an upload, sir
+  # if it's an upload
   if params['remote_url'].empty?
     tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
     mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
     checksum = Digest::MD5.file(tempfile).to_s # => 649d6151fbe0ffacbed9e627c01b29ad
     filesize = File.size(tempfile)
     filename = params['image_upload'][:filename]
+    # if upload is an image 
     if mimetype.split("/").first.eql? "image"
       imgobj = MiniMagick::Image.open(tempfile)
       dimensions = "#{imgobj["dimensions"].first}x#{imgobj["dimensions"].last}"
     end
   end
 
-  @item = Item.new(:image => params['image_upload'],
-                   :mimetype => mimetype,
-                   :checksum => checksum,
-                   :dimensions => dimensions,
-                   :size => filesize,
-                   :name => filename,
-                   :remote_image_url => params['remote_url']
-                  )
-
-  if @item.save
+  # let's put it together
+  begin
+    @item = Item.new(:image => params['image_upload'],
+                     :mimetype => mimetype,
+                     :checksum => checksum,
+                     :dimensions => dimensions,
+                     :size => filesize,
+                     :name => filename,
+                     :remote_image_url => params['remote_url']
+                    )
+  # if there's a problem with the new object
+  rescue Exception => ex
+    @downloaderror = Downloaderror.new(:source => params['remote_url'],
+                       :code => ex.message 
+                      )
+    @downloaderror.save
+    flash[:error] = "Error: #{ex.message}"
     redirect '/'
+  # else put it in the database
   else
-    rais "#{@item.errors}"
+    begin
+      @item.save
+    # if there's a problem while saving
+    rescue
+      flash[:error] = "Error: #{@item.error}"
+    else
+      flash[:notice] = "New item added successfully."
+    end
+    redirect '/'
   end
 end
 
+# add tags to items
 post '/edit/:id' do
-
+  # get selected item object
   item = Item.get(params[:id])
 
+  # get or create tag object
   tag = Tag.first_or_create(:tagname => params[:tag])
+  # create association
   item.tags << tag
 
   if item.save and tag.save
     redirect '/'
   else
-    raise "#{item.errors} ===== #{tag.errors.inspect}"
+    flash[:error] = "Error: #{@item.errors}"
   end
-
 end
 
+#error do
+  #'meh...' + env['sinatra.error'].message
+  #haml :'foo'
+#end
+
+# compile sass stylesheet
 get '/stylesheet.css' do
   scss :stylesheet, :style => :compact
 end

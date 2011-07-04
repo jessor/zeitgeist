@@ -24,6 +24,14 @@
         });
       });
   %body
+    - if flash[:error]
+      #notification.error
+        %span
+          = flash[:error]
+    - if flash[:notice]
+      #notification.notice
+        %span
+          = flash[:notice]
     #wrapper
       %h1
         #{settings.pagetitle}

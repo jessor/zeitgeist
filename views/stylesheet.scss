@@ -42,6 +42,7 @@ $border: #171717; // black
 $highlight: #e11a2d; // red
 $highlightnuance: #ea4d5d; // lighter red
 $higherlight: #f1848f; // light red
+$green: #2EE01A;
 
 @mixin rounded($rd) {
     -webkit-border-radius: $rd;
@@ -104,6 +105,26 @@ img {
 .clear {
     float: none;
     clear: both;
+}
+
+#notification {
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 5px;
+}
+
+.error {
+    background: $highlight;
+    color: white;
+}
+    
+.notice {
+    background: $green;
+    color: black;
 }
 
 form#create {

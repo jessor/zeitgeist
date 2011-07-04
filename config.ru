@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'bundler'
 require 'sinatra'
-require 'zeitgeist'
+require './zeitgeist.rb'
 
 Bundler.require
 set :run => false
