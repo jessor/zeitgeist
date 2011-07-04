@@ -46,10 +46,6 @@ class ImageUploader < CarrierWave::Uploader::Base
     %w(jpg jpeg gif png)
   end
 
-  def ze_time
-    Time.now.strftime("%y%m%d%H%M%S")
-  end
-
   version :thumbnail do
     process :resize_to_fill => [200, 200] # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
   end
@@ -127,6 +123,11 @@ end
 
 # we got ourselves an upload, sir
 post '/new' do
+
+  # prevent file collisions the hacky way
+  unless params['image_upload'][:filename].empty?
+    params['image_upload'][:filename] = "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist_#{params['image_upload'][:filename]}"
+  end
 
   # if it's an upload
   if params['remote_url'].empty?
