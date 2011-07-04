@@ -136,8 +136,13 @@ get '/' do
   haml :index
 end
 
-get '/filter/:type' do
+get '/filter/by/type/:type' do
   @items = Item.all(:type => params[:type])
+  haml :index
+end
+
+get '/filter/by/tag/:tag' do
+  @items = Item.all(Item.tags.tagname => params[:tag])
   haml :index
 end
 

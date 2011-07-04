@@ -46,13 +46,13 @@
         %div#dump
     #wrapper
       %h1
-        #{settings.pagetitle}
+        %a{ :href => '/' } #{settings.pagetitle}
       %nav
-        %a{ :href => '/filter/video' } Video
+        %a{ :href => '/filter/by/type/video' } Video
         |
-        %a{ :href => '/filter/audio' } Audio
+        %a{ :href => '/filter/by/type/audio' } Audio
         |
-        %a{ :href => '/filter/image' } Images
+        %a{ :href => '/filter/by/type/image' } Images
       = yield
       %footer
         %a{ :href => '#wrapper'} &uarr;
