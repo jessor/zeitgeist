@@ -124,13 +124,13 @@ end
 # we got ourselves an upload, sir
 post '/new' do
 
-  # prevent file collisions the hacky way
-  unless params['image_upload'][:filename].empty?
-    params['image_upload'][:filename] = "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist_#{params['image_upload'][:filename]}"
-  end
 
   # if it's an upload
   if params['remote_url'].empty?
+    # prevent file collisions the hacky way
+    unless params['image_upload'][:filename].empty?
+      params['image_upload'][:filename] = "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist_#{params['image_upload'][:filename]}"
+    end
     tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
     mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
     checksum = Digest::MD5.file(tempfile).to_s # => 649d6151fbe0ffacbed9e627c01b29ad

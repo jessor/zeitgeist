@@ -26,7 +26,7 @@
             Tags:
             - item.tags.each do |tag|
               & #{tag.tagname}
-          %form#tags{ :action => "/edit/#{item.id}", :method => 'post' }
+          %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "tag-#{item.id}" }
             %input{ :type => 'text', :name => 'tag', :size => 10 }
             %input{ :type => 'submit', :value => 'add' }
   %div.clear
