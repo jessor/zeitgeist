@@ -24,7 +24,7 @@
               %img{ :src => "/images/#{item.type}.png", :width => '200px', :height => '200px' }
           .item-meta
             Tagged:
-            %span{ :id => "tagsforitem-#{item.id}" } 
+            %span{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
               - item.tags.each do |tag|
                 & #{tag.tagname}
           %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
