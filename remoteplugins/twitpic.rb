@@ -1,20 +1,18 @@
 
-module RemotePlugins 
-
-  class Twitpic < RemotePlugin
+module Sinatra::ZeitgeistRemote
+  class Plugins::Twitpic < Plugin
     PATTERN = %r{http://twitpic\.com/[^/]+/?(full/?)?}
 
-    def initialize(url)
-      if not url.rindex '/full'
-        url.gsub!(%r{(/?)$}, '/full')
+    def orig_url
+      if not @orig_url.rindex '/full'
+        @orig_url.gsub!(%r{(/?)$}, '/full')
       end
-      super(url)
+      super
     end
 
-    def img_url
+    def url
       search 'img[3]/@src' 
     end
   end
-
 end
 
