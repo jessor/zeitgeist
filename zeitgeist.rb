@@ -19,6 +19,7 @@ require 'json'
 #
 configure do
   set :pagetitle => '#woot zeitgeist'
+  set :pagedesc => 'media collected by irc nerds'
   set :assetpath => './asset'
   set :haml, {:format => :html5}
   set :raise_errors, false
@@ -245,6 +246,11 @@ post '/edit/:id' do
   else
     redirect '/'
   end
+end
+
+get '/feed' do
+  @items = Item.all.reverse
+  builder :itemfeed
 end
 
 # compile sass stylesheet

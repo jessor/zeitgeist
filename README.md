@@ -24,8 +24,6 @@ Dev Env
 TODO
 ----
 
-* collisions (file rename)
-* error handling
 * handle different filetypes (e.g. paste soundcloud link, have embedded in item listing)
 * infinite scrolling
 * filter by tags
