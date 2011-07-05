@@ -158,7 +158,6 @@ post '/new' do
     # prevent file collisions the hacky way
     unless params['image_upload'][:filename].empty?
       params['image_upload'][:filename] = "#{fileprefix}_#{params['image_upload'][:filename]}"
-      raise params['image_upload'][:filename]
     end
     tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
     mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
