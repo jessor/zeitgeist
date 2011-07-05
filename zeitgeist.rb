@@ -215,21 +215,30 @@ post '/edit/:id' do
   @item = Item.get(params[:id])
 
   # strip leading/preceding whitespace and html tags
-  newtag = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
+  newtags = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
 
-  # get or create tag object
-  tag = Tag.first_or_create(:tagname => newtag)
-  # create association
-  @item.tags << tag
-
-  if @item.save and tag.save
-    if is_ajax_request?
-      haml :plain, :layout => false
-    else
-      redirect '/'
+  newtags.split(',').each do |newtag|
+    newtag.strip!
+    # get or create tag object
+    tag = Tag.first_or_create(:tagname => newtag)
+    # (try to) save tag
+    if not tag.save
+      flash[:error] = "Error: #{tag.errors}"
+      break
     end
-  else
+    # create association
+    @item.tags << tag
+  end
+
+  # save item with new tags
+  if not @item.save
     flash[:error] = "Error: #{@item.errors}"
+  end
+
+  if is_ajax_request?
+    haml :plain, :layout => false
+  else
+    redirect '/'
   end
 end
 
