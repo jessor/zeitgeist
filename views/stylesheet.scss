@@ -170,6 +170,10 @@ img {
     margin: 10px 0;
     overflow: hidden;
     font-size: 80%;
+
+    a.taglink {
+        color: $white;
+    }
 }
 
 form#create {
