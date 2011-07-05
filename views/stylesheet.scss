@@ -37,12 +37,14 @@ input:invalid, textarea:invalid { background-color: #f0dddd; }
 
 $background: #272526; // brown
 $darkground: #141414; // dark gray
-$foreground: #eee; // white
+$white: #eee; // white
 $border: #171717; // black
 $highlight: #e11a2d; // red
 $highlightnuance: #ea4d5d; // lighter red
 $higherlight: #f1848f; // light red
 $green: #2EE01A;
+$blue: #1A91E0;
+$lightblue: #1AE0CC;
 
 @mixin rounded($rd) {
     -webkit-border-radius: $rd;
@@ -93,7 +95,7 @@ $green: #2EE01A;
  
 body {
     background: $background;
-    color: $foreground;
+    color: $white;
     font-family: 'Helvetica', 'Arial';
 }
 
@@ -102,13 +104,22 @@ h1 {
     @include textshadow($border);
 }
 
+h1 a {
+    color: $white;
+}
+
 nav {
     text-align: center;
 }
 
 a {
     text-decoration: none;
-    color: $foreground;
+    color: $blue;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: $white;
 }
 
 #wrapper {
@@ -191,9 +202,9 @@ fieldset {
 }
 
 input {
-    background-color: $foreground;
+    background-color: $white;
     color: $darkground;
-    border: 1px solid $foreground;
+    border: 1px solid $white;
     padding: 4px 6px;
     @include rounded(5px);
     @include boxshadow;
@@ -241,7 +252,7 @@ footer {
     @include rotate(45deg);
     span {
         background: black;
-        color: white;
+        color: $white;
         font-size: 14px;
         left: 0;
         padding: 5px 0;
