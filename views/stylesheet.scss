@@ -61,6 +61,19 @@ $green: #2EE01A;
     filter: dropshadow(color=$c, offx=1, offy=1);
 }
 
+@mixin rotate($deg) {
+    -moz-transform: rotate(#{$deg});
+    -o-transform: rotate(#{$deg});
+    -webkit-transform: rotate(#{$deg});
+}
+
+@mixin transition ($value) {
+    -moz-transition: $value;
+    -o-transition: $value;
+    -webkit-transition: $value;
+    transition: $value;
+}
+
 @mixin button {
     background-color: $highlight;
     color: #fff;
@@ -217,6 +230,37 @@ form ol {
 footer {
     text-align: right;
 }
+
+#github {
+    right: -65px;
+    height: 30px;
+    top: 40px;
+    position: absolute;
+    text-decoration: none;
+    width: 250px;
+    @include rotate(45deg);
+    span {
+        background: black;
+        color: white;
+        font-size: 14px;
+        left: 0;
+        padding: 5px 0;
+        position: absolute;
+        text-align: center;
+        width: 250px;
+        @include boxshadow;
+    }
+}
+
+@media all and (-webkit-transform-3d) {
+    #github {
+        span {
+        opacity: 1 !important;
+        -webkit-backface-visibility: hidden;
+        }
+    }
+}   
+
 
 // hawt
 ::-moz-selection { background: $highlight; color: #fff; text-shadow: none; }
