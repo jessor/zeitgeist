@@ -141,12 +141,12 @@ get '/' do
 end
 
 get '/filter/by/type/:type' do
-  @items = Item.all(:type => params[:type])
+  @items = Item.all(:type => params[:type]).reverse
   haml :index
 end
 
 get '/filter/by/tag/:tag' do
-  @items = Item.all(Item.tags.tagname => params[:tag])
+  @items = Item.all(Item.tags.tagname => params[:tag]).reverse
   haml :index
 end
 
