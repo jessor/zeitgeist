@@ -33,7 +33,7 @@ textarea { overflow: auto; vertical-align: top; }
 input:valid, textarea:valid {  }
 input:invalid, textarea:invalid { background-color: #f0dddd; }
 
-@import "pirobox";
+@import "fancybox";
 
 $background: #272526; // brown
 $darkground: #141414; // dark gray
@@ -256,6 +256,7 @@ footer {
 }
 
 #github {
+    display: none;
     right: -65px;
     height: 30px;
     top: 40px;

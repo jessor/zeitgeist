@@ -8,13 +8,13 @@ jQuery(function(){
         'monochrome':   false
     });
 
-    $().piroBox({
-        my_speed:   100, //animation speed
-        bg_alpha:   0.8, //background opacity
-        slideShow:  'false', // true == slideshow on, false == slideshow off
-        close_all:  '.piro_close' // add class .piro_overlay(with comma)if you want overlay click close piroBox
+    $("a.fancy").fancybox({
+        'transitionIn':     'fade',
+        'transitionOut':    'fade',
+        'speedIn':          600, 
+        'speedOut':         200
     });
-
+        
     $('.taglist').expander({
         collapseTimer:  5000,
         slicePoint:     200,

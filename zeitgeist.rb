@@ -126,7 +126,7 @@ helpers do
   end
 
   def fileprefix
-    "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist"
+    "#{Time.now.strftime("%y%m%d%H%M%S")}_zeitgeist"
   end
 
 end
