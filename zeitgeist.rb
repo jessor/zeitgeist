@@ -201,7 +201,7 @@ post '/new' do
                        :code => ex.message 
                       )
     @downloaderror.save
-    flash[:error] = "Error: #{ex.message}"
+    flash[:error] = "#{ex.message}"
     redirect '/'
   # else put it in the database
   else
@@ -210,7 +210,7 @@ post '/new' do
       @item.save
     # if there's a problem while saving
     rescue Exception => ex
-      flash[:error] = "Error: #{ex.message}"
+      flash[:error] = "#{ex.message}"
     else
       flash[:notice] = "New item added successfully."
     end
@@ -233,7 +233,7 @@ post '/edit/:id' do
     tag = Tag.first_or_create(:tagname => newtag)
     # (try to) save tag
     if not tag.save
-      flash[:error] = "Error: #{tag.errors}"
+      flash[:error] = "#{tag.errors}"
       break
     end
     # create association
@@ -242,7 +242,7 @@ post '/edit/:id' do
 
   # save item with new tags
   if not @item.save
-    flash[:error] = "Error: #{@item.errors}"
+    flash[:error] = "#{@item.errors}"
   end
 
   if is_ajax_request?

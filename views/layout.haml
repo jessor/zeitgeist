@@ -5,7 +5,6 @@
       &= @title || settings.pagetitle
     %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
     %script{ :src => '/js/jquery.min.js' }
-    %script{ :src => '/js/jquery.pirobox.min.js' }
     %script{ :src => '/js/jquery.noisy.min.js' }
     %script{ :src => '/js/jquery.form.min.js' }
     %script{ :src => '/js/jquery.expander.min.js' }
@@ -16,12 +15,16 @@
 
   %body
     - if flash[:error]
-      #notification.error
-        %span
+      %div{ :class => 'error message' }
+        %h3
+          Something went seriously wrong
+        %p
           = flash[:error]
     - if flash[:notice]
-      #notification.notice
-        %span
+      %div{ :class => 'success message' }
+        %h3
+          Epic win
+        %p
           = flash[:notice]
         %div#dump
     %header
