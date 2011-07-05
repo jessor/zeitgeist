@@ -99,6 +99,14 @@ body {
     font-family: 'Helvetica', 'Arial';
 }
 
+header {
+    margin-top: 0;
+}
+
+header.dragged {
+    margin-top: 100px;
+}
+
 header img {
     margin: 0 auto;
 }
@@ -166,6 +174,8 @@ img {
     _position: absolute;
     text-shadow: 0 1px 0 rgba(0,0,0,.5);
     -webkit-animation: animate-bg 5s linear infinite;
+    top: 0;
+    left: 0;
 }
 
 .info {
