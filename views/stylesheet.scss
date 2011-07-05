@@ -58,6 +58,13 @@ $lightblue: #1AE0CC;
     box-shadow: 2px 2px 5px black, inset 2px 2px 5px black;
 }
 
+@mixin hovershadow($color) {
+    box-shadow: 0 0 10px 2px $color;
+    -moz-box-shadow: 0 0 10px 2px $color;
+    -webkit-box-shadow: 0 0 10px 2px $color;
+    -webkit-transition: -webkit-box-shadow 0.2s ease-out;
+}
+
 @mixin textshadow($c) {
     text-shadow: 1px 1px 3px $c;
     filter: dropshadow(color=$c, offx=1, offy=1);
@@ -150,6 +157,10 @@ img {
     margin: 10px;
     padding: 10px;
     border: 3px solid $darkground;
+}
+
+.items li img:hover {
+    @include hovershadow($blue);
 }
 
 .clear {
