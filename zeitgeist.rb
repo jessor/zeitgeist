@@ -175,6 +175,12 @@ post '/new' do
 
   # let's put it together
   begin
+    if type == 'image' and dupe = Item.first(:checksum => checksum)
+      raise "We got this already, sir. See <a href='/#{settings.assetpath}/#{dupe.name}'>#{dupe.name}</a>."
+    elsif type != 'image' and dupe = Item.first(:source => params['remote_url'])
+      raise "We got this already, sir. See <a href='#{dupe.source}'>#{dupe.source}</a>."
+    end
+      
     @item = Item.new(:image => params['image_upload'],
                      :source => params['remote_url'],
                      :mimetype => mimetype,
