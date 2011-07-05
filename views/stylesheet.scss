@@ -92,11 +92,15 @@ $lightblue: #1AE0CC;
     text-shadow: 1px 1px 3px #333;
     font: italic bold 1em/1.2 Georgia, "Times New Roman ", Times, Cambria, "Nimbus Roman No9 L ", serif;
 }
- 
+
 body {
     background: $background;
     color: $white;
     font-family: 'Helvetica', 'Arial';
+}
+
+header img {
+    margin: 0 auto;
 }
 
 h1 {

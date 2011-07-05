@@ -125,6 +125,10 @@ helpers do
     end
   end
 
+  def fileprefix
+    "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist"
+  end
+
 end
 
 #
@@ -153,7 +157,8 @@ post '/new' do
   if params['remote_url'].empty?
     # prevent file collisions the hacky way
     unless params['image_upload'][:filename].empty?
-      params['image_upload'][:filename] = "#{Time.now.strftime("%y%m%d%H%M%S")}_zeigeist_#{params['image_upload'][:filename]}"
+      params['image_upload'][:filename] = "#{fileprefix}_#{params['image_upload'][:filename]}"
+      raise params['image_upload'][:filename]
     end
     tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
     mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary

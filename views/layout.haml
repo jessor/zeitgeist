@@ -21,9 +21,11 @@
         %span
           = flash[:notice]
         %div#dump
+    %header
+      %a{ :href => '/' }
+        %img{ :src => '/images/logo.png', :alt => 'logo' }
+
     #wrapper
-      %h1
-        %a{ :href => '/' } #{settings.pagetitle}
       %nav
         %a{ :href => '/filter/by/type/video' } Video
         |
