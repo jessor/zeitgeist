@@ -149,7 +149,6 @@ end
 # we got ourselves an upload, sir
 post '/new' do
 
-
   # if it's an upload
   if params['remote_url'].empty?
     # prevent file collisions the hacky way
@@ -215,8 +214,11 @@ post '/edit/:id' do
   # get selected item object
   @item = Item.get(params[:id])
 
+  # strip leading/preceding whitespace and html tags
+  newtag = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
+
   # get or create tag object
-  tag = Tag.first_or_create(:tagname => params[:tag])
+  tag = Tag.first_or_create(:tagname => newtag)
   # create association
   @item.tags << tag
 
