@@ -65,6 +65,7 @@ class Item
   property :size,       Integer
   property :checksum,   String
   property :dimensions, String
+  property :created_at, DateTime
 
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
