@@ -47,6 +47,17 @@ jQuery(function(){
         });
         return false;
     });
+
+    $("a.embed").click(function() {
+        $.fancybox({
+            'href':     '/embed',
+            ajax: {
+                      type:   "POST",
+                      data:   'url=' + this.href + '&provider=' + this.rel
+            }
+        });
+        return false;
+    });
         
     // limit default tag list length on index view
     $('.taglist').expander({

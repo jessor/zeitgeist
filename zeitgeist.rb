@@ -16,6 +16,8 @@ require 'digest/md5'
 require 'json'
 require 'uri'
 require 'yaml'
+#require 'xmlsimple'
+require 'oembed'
 
 require './remote.rb'
 
@@ -132,6 +134,13 @@ helpers do
     end
   end
 
+  def custom_provider(provider)
+    case
+    when provider =~ /soundcloud/i
+      return OEmbed::Provider.new('http://soundcloud.com/oembed')
+    end
+  end
+
 end
 
 #
@@ -151,6 +160,19 @@ end
 get '/filter/by/tag/:tag' do
   @items = Item.all(Item.tags.tagname => params[:tag]).reverse
   haml :index
+end
+
+post '/embed' do
+  if OEmbed::Providers::constants.index(params['provider'])
+    provider = OEmbed::Providers::const_get(params['provider'])
+    puts provider.inspect
+  else
+    provider = custom_provider(params['provider'])
+  end
+  @resource = provider.get(params['url'])
+  if is_ajax_request?
+    haml :embed, :layout => false
+  end
 end
 
 post '/search' do

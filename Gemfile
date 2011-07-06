@@ -17,4 +17,4 @@ gem "mini_magick"
 gem "carrierwave-datamapper", :require => "carrierwave/datamapper"
 gem "ruby-filemagic"
 gem "mechanize"
-
+gem "ruby-oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
