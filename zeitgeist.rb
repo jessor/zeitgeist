@@ -169,7 +169,7 @@ post '/new' do
   # remote upload
   elsif params[:remote_url] and params[:remote_url] =~ /^http[s]?:\/\//
     source = params[:remote_url]
-    if source =~ /^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+\//
+    if source =~ /^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+/
       type = 'audio'
     elsif source =~ /^http[s]?:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9]+/
       type = 'video'
