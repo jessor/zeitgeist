@@ -15,6 +15,7 @@ require 'filemagic'
 require 'digest/md5'
 require 'json'
 require 'uri'
+require 'yaml'
 
 require './remote.rb'
 
@@ -22,17 +23,16 @@ require './remote.rb'
 # Config
 #
 configure do
-  set :pagetitle => '#woot zeitgeist'
-  set :pagedesc => 'media collected by irc nerds'
-  set :assetpath => './asset'
+  yaml = YAML.load_file('config.yaml')
+  yaml.each_pair do |key, value|
+    set(key.to_sym, value)
+  end
+
   set :haml, {:format => :html5}
   set :raise_errors, false
   set :show_exceptions, false
   use Rack::Flash
   enable :sessions
-  # http://stackoverflow.com/questions/5631862/problem-with-sinatra-and-session-variables-which-are-not-being-set/5677589#5677589
-  set :session_secret, "fixing this for shotgun"
-
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
 end
 
