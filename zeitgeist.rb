@@ -154,6 +154,21 @@ post '/search' do
   end
 end
 
+get '/item/:id' do
+  @item = Item.get(params[:id])
+  if not @item
+    error = "no item found with id #{params[:id]}"
+  end
+
+  if is_ajax_request?
+    if error
+      {:error => error}.to_json
+    else
+      {:item => @item, :tags => @item.tags}.to_json
+    end
+  end
+end
+
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
@@ -269,13 +284,16 @@ post '/new' do
   if is_ajax_request?
     if @item
       item = @item.to_json
+      tags = @item.tags.to_json
     else
       item = nil
+      tags = nil
     end
     {
       :error => error, 
       :notice => notice,
-      :item => item
+      :item => item,
+      :tags => tags
     }.to_json
   else
     flash[:error] = error
@@ -288,31 +306,39 @@ end
 post '/edit/:id' do
   # get selected item object
   @item = Item.get(params[:id])
+  if @item
+    # strip leading/preceding whitespace and html tags
+    newtags = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
 
-  # strip leading/preceding whitespace and html tags
-  newtags = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
-
-  newtags.split(',').each do |newtag|
-    newtag.strip!
-    # get or create tag object
-    tag = Tag.first_or_create(:tagname => newtag)
-    # (try to) save tag
-    if not tag.save
-      flash[:error] = "#{tag.errors}"
-      break
+    newtags.split(',').each do |newtag|
+      newtag.strip!
+      # get or create tag object
+      tag = Tag.first_or_create(:tagname => newtag)
+      # (try to) save tag
+      if not tag.save
+        error = "#{tag.errors}"
+        break
+      end
+      # create association
+      @item.tags << tag
     end
-    # create association
-    @item.tags << tag
-  end
 
-  # save item with new tags
-  if not @item.save
-    flash[:error] = "#{@item.errors}"
+    # save item with new tags
+    if not @item.save
+      error = "#{@item.errors}" 
+    end
+  else
+    error = "no item found with id #{params[:id]}"
   end
 
   if is_ajax_request?
-    haml :plain, :layout => false
+    if error
+      {:error => error}.to_json
+    else
+      {:tags => @item.tags}.to_json
+    end
   else
+    flash[:error] = error 
     redirect '/'
   end
 end
