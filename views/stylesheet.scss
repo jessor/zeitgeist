@@ -77,22 +77,6 @@ $lightblue: #1AE0CC;
     transition: $value;
 }
 
-@mixin button {
-    background-color: $highlight;
-    color: #fff;
-    cursor: pointer;
-    border: 1px solid $highlight;
-    padding: 2px 5px;
-    width: auto;
-    background: -moz-linear-gradient(top, $highlight, $highlightnuance);
-    background: -webkit-gradient(linear, left top, left bottom,
-    color-stop(0, #e1001a), color-stop(1, $highlightnuance));
-    -webkit-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
-    -moz-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
-    box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;
-    text-shadow: 1px 1px 3px #333;
-    font: italic bold 1em/1.2 Georgia, "Times New Roman ", Times, Cambria, "Nimbus Roman No9 L ", serif;
-}
 
 body {
     background: $background;
@@ -294,21 +278,20 @@ form#create {
 form#tags {
     padding-top: 5px;
 
-    input[type="submit"] {
-        margin-left: 10px;
+    input.tagpush {
+        margin-left: 10px !important;
     }
 }
 
 fieldset {
     border: none;
     margin: 0;
-    padding: 10px 20px 25px;
-
+    padding: 10px;
 
     label {
         display: block;
         cursor: pointer;
-        font-weight: bold;
+        padding-bottom: 5px;
     }
 }
 
@@ -316,19 +299,40 @@ input {
     background-color: $white;
     color: $darkground;
     border: 1px solid $white;
-    padding: 4px 6px;
+    padding: 2px 4px;
     @include rounded(5px);
-    @include boxshadow;
+    /*@include boxshadow;*/
+}
+
+input:focus {
+    @include hovershadow($highlight);
 }
 
 input[type="submit"] {
-    @include button;
-    @include rounded(0);
+    background-color: $highlight;
+    color: #fff;
+    cursor: pointer;
+    padding: 2px 8px;
+    width: auto;
+    background: -moz-linear-gradient(top, $highlight, $highlightnuance);
+    background: -webkit-gradient(linear, left top, left bottom,
+    color-stop(0, #e1001a), color-stop(1, $highlightnuance));
+    border: 1px solid $darkground;
+    /*-webkit-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
+    /*-moz-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
+    /*box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
+    text-shadow: 1px 1px 3px #333;
+    /*font-style: italic;*/
+    /*font-weight: bold;*/
+    /*font-family: Georgia, "Times New Roman", Times, Cambria, Serif;*/
+    /*font-size: 80%;*/
+    @include rounded(5px);
 }
 
 input[type="submit"]:hover {
     background: $highlight;
-    text-shadow: none;
+    border: 1px solid $highlightnuance;
+    @include hovershadow($highlight);
 }
 
 form ol {

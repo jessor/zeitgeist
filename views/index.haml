@@ -4,13 +4,13 @@
     %fieldset
       %ol
         %li
-          %label{ :for => 'image_upload' } Image Upload:
+          %label{ :for => 'image_upload' } Upload an image (png|gif|jpeg):
           %input{ :type => 'file', :name => 'image_upload' }
         %li
-          %label{ :for => 'image_url' } Remote URL (images will be fetched, else it'll get embedded):
+          %label{ :for => 'image_url' } or enter a URL:
           %input{ :type => 'text', :name => 'remote_url', :size => 38 }
         %li.last      
-          %input{ :type => 'submit', :value => 'upload!' }
+          %input{ :type => 'submit', :value => 'make it so!' }
 
   - if @items
     %ul.items
@@ -32,6 +32,6 @@
                 %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' } #{tag.tagname}
           %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'tag', :size => 10 }
-            %input.tagpush{ :type => 'submit', :value => 'add' }
+            %input.tagpush{ :type => 'submit', :value => 'tag!' }
   %div.clear
 
