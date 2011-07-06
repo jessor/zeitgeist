@@ -68,15 +68,17 @@ jQuery(function(){
     });
 
     // search
-    function format(item) {
-        return item.tagname;
-    }
     $.ajaxSetup({ type: 'post' });
+    // hide submit button
     $('#searchsubmit').hide();
+    // hide default value on focus
     $('#searchquery').search();
+    // autocomplete
     $('#searchquery').autocomplete('/search', {
+        //matchContains:  true,
         width:          300,
         dataType:       'json',
+        // parse json response
         parse: function(data) {
             return $.map(data, function(row) {
                 return {
@@ -86,13 +88,12 @@ jQuery(function(){
                 }
             });
         },
+        // format items in autocomplete select box
         formatItem: function(item) {
-            return format(item);
+            return item.tagname;
         }
-        //multiple:       true,
-        //matchContains:  true,
     }).result(function(e, item) {
-        $("#content").append("<p>selected " + format(item) + "</p>");
+        $('#searchform').submit();
     });
 
     // Tag Form
