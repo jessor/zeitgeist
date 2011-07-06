@@ -146,9 +146,9 @@ get '/filter/by/tag/:tag' do
 end
 
 post '/embed' do
-  if OEmbed::Providers::constants.index(params['provider'])
-    provider = OEmbed::Providers::const_get(params['provider'])
-    puts provider.inspect
+  provider = params['provider'].capitalize
+  if OEmbed::Providers::const_defined? provider
+    provider = OEmbed::Providers::const_get(provider)
   else
     provider = custom_provider(params['provider'])
   end
