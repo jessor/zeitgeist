@@ -202,12 +202,26 @@ post '/new' do
       mimetype = mimetype.slice 0...mimetype.index(';')
       if settings.allowed_mime.include? mimetype
         type = 'image'
+        upload[:content_type] = mimetype
 
         # more meta information (only for image types!)
         checksum = Digest::MD5.file(upload[:tempfile].path).to_s
         filesize = File.size(upload[:tempfile].path) if not filesize
         img = MiniMagick::Image.open(upload[:tempfile].path)
         dimensions = img["dimensions"].join 'x' 
+
+        # if the file extension does not match 
+        # with the detected mimetype change it
+        ext = File.extname(upload[:filename])
+        mime_ext = '.' + mimetype.slice(mimetype.index('/')+1, mimetype.length)
+        if ext.empty? or ext != mime_ext
+          # strip existing extension:
+          upload[:filename].slice!(ext)
+
+          # append correct extension based on mimetype
+          upload[:filename] += mime_ext
+
+        end
       else
         error = "Image file with invalid mimetype: #{mimetype}!"
       end
