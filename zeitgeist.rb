@@ -1,25 +1,6 @@
-require 'rubygems'
-require 'sinatra'
-require 'haml'
-require 'sass'
-require 'rack-flash'
-require 'dm-core'
-require 'dm-validations'
-require 'dm-timestamps'
-require 'dm-migrations'
-require 'dm-serializer'
-require 'carrierwave'
-require 'carrierwave/datamapper'
-require 'mini_magick'
-require 'filemagic'
-require 'digest/md5'
-require 'json'
-require 'uri'
-require 'yaml'
-#require 'xmlsimple'
-require 'oembed'
-
-require './remote.rb'
+%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed ./remote.rb).each do |gem|
+  require gem
+end
 
 #
 # Config
