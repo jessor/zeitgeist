@@ -157,6 +157,7 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
+  notice = error = nil
   type = upload = source = filename = filesize = mimetype = checksum = dimensions = nil
   if params[:image_upload]
     filename = params['image_upload'][:filename]
@@ -247,10 +248,8 @@ post '/new' do
   end
 
   # upload error:
-  if error or not type
-    flash[:error] = error
-  else
-    flash[:notice] = "New item added successfully."
+  if type and not error
+    notice = "New item added successfully."
   end
 
   if is_ajax_request?
@@ -260,11 +259,13 @@ post '/new' do
       item = nil
     end
     {
-      :error => flash[:error], 
-      :notice => flash[:notice],
+      :error => error, 
+      :notice => notice,
       :item => item
     }.to_json
   else
+    flash[:error] = error
+    flash[:notice] = notice
     redirect '/'
   end
 end

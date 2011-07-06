@@ -92,18 +92,6 @@ class TestRemoteImage < Test::Unit::TestCase
     assert_raise(RemoteException) do
       remote = ImageDownloader.new('http://icann_wouldnt_be.that_stupid/')
     end
-=begin
-    begin
-      remote = RemoteImage.new(params[:remote_url])
-      puts remote.url # remote url, but maybe changed in case of redirect
-      puts remote.mime # image/{png/gif/jpg}
-      puts remote.tags # array of extracted tags
-      # puts remote.text # may include image description, alt-tag, etc.
-      puts remote.temp # local path to downloaded image
-    rescue RemoteImageException => e
-      puts "unable to download or verify image: #{e.message}!"
-    end
-=end
   end
 end
 
