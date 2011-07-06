@@ -255,15 +255,7 @@ post '/new' do
 
   if is_ajax_request?
     if @item
-      item = {
-        :id         => @item.id,
-        :url        => @item.image.to_s,
-        :type       => @item.type,
-        :name       => @item.name, 
-        :size       => @item.size, 
-        :mimetype   => @item.mimetype, 
-        :dimensions => @item.dimensions 
-      }
+      item = @item.to_json
     else
       item = nil
     end
