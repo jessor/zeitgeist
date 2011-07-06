@@ -14,6 +14,7 @@ jQuery(function(){
         });
     };
 
+    // add noise to body background
     $('body').noisy({
         'intensity':    1, 
         'size':         '200', 
@@ -22,13 +23,32 @@ jQuery(function(){
         'monochrome':   false
     });
 
+    // fancybox <3
     $("a.fancy").fancybox({
         'transitionIn':     'fade',
         'transitionOut':    'fade',
         'speedIn':          600, 
         'speedOut':         200
     });
+
+     $("a.youtube").click(function() {
+        $.fancybox({
+            'transitionIn':     'fade',
+            'transitionOut':    'fade',
+            'speedIn':          600, 
+            'speedOut':         200,
+            'width':            680,
+            'height':           495,
+            'href':             this.href.replace(new RegExp("watch\\?v=", "i"), 'v/'),
+            'type':             'swf',
+            'swf':              {
+                'allowfullscreen':  'true'
+            }
+        });
+        return false;
+    });
         
+    // limit default tag list length on index view
     $('.taglist').expander({
         collapseTimer:  5000,
         slicePoint:     200,
@@ -64,6 +84,7 @@ jQuery(function(){
         $("#content").append("<p>selected " + format(item) + "</p>");
     });
 
+    // Tag Form
     $('form.tag').submit(function() {
         var Id = $(this).attr("id")
         var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')

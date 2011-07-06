@@ -123,6 +123,15 @@ helpers do
     "#{Time.now.strftime("%y%m%d%H%M%S")}_zeitgeist"
   end
 
+  def classify_url(url)
+    case
+    when url.match(/^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+/)
+      return 'audio', 'soundcloud'
+    when url.match(/^http[s]?:\/\/www\.youtube\.com\/watch\?v=_?+[a-zA-Z0-9]+/)
+      return 'video', 'youtube'
+    end
+  end
+
 end
 
 #
@@ -169,10 +178,8 @@ post '/new' do
   # remote upload
   elsif params[:remote_url] and params[:remote_url] =~ /^http[s]?:\/\//
     source = params[:remote_url]
-    if source =~ /^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+/
-      type = 'audio'
-    elsif source =~ /^http[s]?:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9]+/
-      type = 'video'
+    if this_source = classify_url(source)
+      type, filename = this_source
     else
       begin
         downloader = Sinatra::ZeitgeistRemote::ImageDownloader.new(source)
