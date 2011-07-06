@@ -1,4 +1,6 @@
-// meh normalize...
+//
+// Normalize
+//
 article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
 audio[controls], canvas, video { display: inline-block; *display: inline; *zoom: 1; }
 abbr[title] { border-bottom: 1px dotted; }
@@ -33,8 +35,14 @@ textarea { overflow: auto; vertical-align: top; }
 input:valid, textarea:valid {  }
 input:invalid, textarea:invalid { background-color: #f0dddd; }
 
+//
+// Includes
+//
 @import "fancybox";
 
+//
+// Colors \o/
+//
 $background: #272526; // brown
 $darkground: #141414; // dark gray
 $white: #eee; // white
@@ -46,6 +54,9 @@ $green: #2EE01A;
 $blue: #1A91E0;
 $lightblue: #1AE0CC;
 
+//
+// Mixins
+//
 @mixin rounded($rd) {
     -webkit-border-radius: $rd;
     -moz-border-radius: $rd;
@@ -77,34 +88,60 @@ $lightblue: #1AE0CC;
     transition: $value;
 }
 
-
+//
+// General and Classes
+//
 body {
     background: $background;
     color: $white;
     font-family: 'Helvetica', 'Arial';
 }
 
-header {
-    margin-top: 0;
+a {
+    text-decoration: none;
+    color: $blue;
 }
 
-header.dragged {
-    margin-top: 100px;
-}
-
-header img {
-    margin: 0 auto;
-}
-
-h1 {
-    text-align: center;
-    @include textshadow($border);
-}
-
-h1 a {
+a:hover {
+    text-decoration: underline;
     color: $white;
 }
 
+#wrapper {
+    margin: 20px;
+}
+ .dragged {
+    margin-top: 100px;
+}
+
+::-moz-selection {
+    background: $highlight;
+    color: #fff;
+    text-shadow: none;
+}
+
+::selection {
+    background: $highlight;
+    color: #fff;
+    text-shadow: none;
+}
+
+//
+// Header
+//
+header {
+    margin-top: 0;
+    text-align: center;
+}
+
+nav {
+    text-align: center;
+    margin-bottom: 20px;
+}
+ 
+//
+// Search
+//
 #searchbox {
     margin: 20px auto;
     width: 400px;
@@ -122,63 +159,43 @@ h1 a {
     overflow: hidden;
     width: 190px !important;
     z-index: 99999;
+
+    ul {
+        width: 100%;
+        list-style-position: outside;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li {
+        margin: 0px;
+        padding: 2px 5px;
+        cursor: default;
+        display: block;
+        /*width: 100%;*/
+        line-height: 16px;
+        overflow: hidden;
+    }
+
+    .ac_loading {
+        background: white url('/images/indicator.gif') right center no-repeat;
+    }
+
+    .ac_odd {
+        /*background-color: #eee;*/
+    }
+
+    .ac_over {
+        /*background-color: #0A246A;*/
+        /*color: white;*/
+        text-decoration: underline;
+    }
 }
 
-.ac_results ul {
-    width: 100%;
-    list-style-position: outside;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.ac_results li {
-    margin: 0px;
-    padding: 2px 5px;
-    cursor: default;
-    display: block;
-    /*width: 100%;*/
-    line-height: 16px;
-    overflow: hidden;
-}
-
-.ac_loading {
-    background: white url('/images/indicator.gif') right center no-repeat;
-}
-
-.ac_odd {
-    /*background-color: #eee;*/
-}
-
-.ac_over {
-    /*background-color: #0A246A;*/
-    /*color: white;*/
-    text-decoration: underline;
-}
-
-nav {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-a {
-    text-decoration: none;
-    color: $blue;
-}
-
-a:hover {
-    text-decoration: underline;
-    color: $white;
-}
-
-#wrapper {
-    margin: 20px;
-}
-
-img {
-    display: block;
-}
-
+//
+// Item Lists
+//
 .items li {
     list-style-type: none;
     float: left;
@@ -187,73 +204,19 @@ img {
     margin: 10px;
     padding: 10px;
     border: 3px solid $darkground;
-}
 
-.items li img:hover {
-    @include hovershadow($blue);
+    img {
+        display: block;
+    }
+
+    img:hover {
+        @include hovershadow($blue);
+    }
 }
 
 .clear {
     float: none;
     clear: both;
-}
-
-.message {
-    background-image: -moz-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
-    background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
-    background-image: -ms-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
-    background-image: -o-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
-    background-image: repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
-    -moz-box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
-    -webkit-box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
-    box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
-    width: 100%;
-    border: 1px solid;
-    color: #fff;
-    padding: 15px;
-    position: fixed;
-    _position: absolute;
-    text-shadow: 0 1px 0 rgba(0,0,0,.5);
-    -webkit-animation: animate-bg 5s linear infinite;
-    top: 0;
-    left: 0;
-}
-
-.info {
-    background-color: #4ea5cd;
-    border-color: #3b8eb5;
-}
-
-.error {
-    background-color: #de4343;
-    border-color: #c43d3d;
-}
-
-.warning {
-    background-color: #eaaf51;
-    border-color: #d99a36;
-}
-
-.success {
-    background-color: #61b832;
-    border-color: #55a12c;
-}
-
-.message h3 {
-    margin: 0 0 5px 0;
-}
-
-.message p {
-    margin: 0;
-}
-
-@-webkit-keyframes animate-bg {
-    from {
-        background-position: 0 0;
-    }
-    to {
-        background-position: -100px 0;
-    }
 }
 
 .item-meta {
@@ -268,26 +231,30 @@ img {
     }
 }
 
-form#create {
-    background: $border;
-    border: 3px solid $darkground;
-    padding: 3px 0 0;
-    margin: 10px auto;
-    width: 520px;
-}
-
-form#tags {
-    padding-top: 5px;
-
-    input.tagpush {
-        margin-left: 10px !important;
-    }
-}
-
-fieldset {
-    border: none;
+//
+// Forms
+//
+form ol {
+    list-style-type: none;
     margin: 0;
-    padding: 10px;
+    padding: 0;
+
+    li {
+        float: left;
+        padding: 10px;
+    }
+
+    li.last {
+        float: none;
+        clear: both;
+        text-align: right;
+    }
+
+    fieldset {
+        border: none;
+        margin: 0;
+        padding: 10px;
+    }
 
     label {
         display: block;
@@ -319,14 +286,7 @@ input[type="submit"] {
     background: -webkit-gradient(linear, left top, left bottom,
     color-stop(0, #e1001a), color-stop(1, $highlightnuance));
     border: 1px solid $darkground;
-    /*-webkit-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
-    /*-moz-box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
-    /*box-shadow: 1px 0 0 $higherlight, -1px 0 0 $higherlight, 0 1px 0 $higherlight, 0 -1px 0 $higherlight, 0 5px 10px -5px #666;*/
     text-shadow: 1px 1px 3px #333;
-    /*font-style: italic;*/
-    /*font-weight: bold;*/
-    /*font-family: Georgia, "Times New Roman", Times, Cambria, Serif;*/
-    /*font-size: 80%;*/
     @include rounded(5px);
 }
 
@@ -336,24 +296,87 @@ input[type="submit"]:hover {
     @include hovershadow($highlight);
 }
 
-form ol {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
 
-    li {
-        float: left;
-        padding: 10px;
-    }
-
-    li.last {
-        float: none;
-        clear: both;
-        text-align: right;
-    }
-
+form#create {
+    background: $border;
+    border: 3px solid $darkground;
+    padding: 3px 0 0;
+    margin: 10px auto;
+    width: 520px;
 }
 
+form#tags {
+    padding-top: 5px;
+
+    input.tagpush {
+        margin-left: 10px !important;
+    }
+}
+
+//
+// Notifications
+//
+.message {
+    background-image: -moz-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
+    background-image: -webkit-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
+    background-image: -ms-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
+    background-image: -o-repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
+    background-image: repeating-linear-gradient(135deg, transparent, transparent 20px, rgba(255,255,255,.05) 20px, rgba(255,255,255,.05) 40px);
+    -moz-box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
+    -webkit-box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
+    box-shadow: inset 0 -1px 0 rgba(255,255,255,.4);
+    width: 100%;
+    border: 1px solid;
+    color: #fff;
+    padding: 15px;
+    position: fixed;
+    _position: absolute;
+    text-shadow: 0 1px 0 rgba(0,0,0,.5);
+    -webkit-animation: animate-bg 5s linear infinite;
+    top: 0;
+    left: 0;
+
+    h3 {
+        margin: 0 0 5px 0;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+.info {
+    background-color: #4ea5cd;
+    border-color: #3b8eb5;
+}
+
+.error {
+    background-color: #de4343;
+    border-color: #c43d3d;
+}
+
+.warning {
+    background-color: #eaaf51;
+    border-color: #d99a36;
+}
+
+.success {
+    background-color: #61b832;
+    border-color: #55a12c;
+}
+
+@-webkit-keyframes animate-bg {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: -100px 0;
+    }
+}
+
+//
+// Footer
+// 
 footer {
     text-align: right;
 
@@ -362,8 +385,3 @@ footer {
         font-size: 80%;
     }
 }
-
-// hawt
-::-moz-selection { background: $highlight; color: #fff; text-shadow: none; }
-::selection { background: $highlight; color: #fff; text-shadow: none; }
-
