@@ -84,8 +84,12 @@ class Plugin
 
     if @page
       result = @page.search selector
-      if result and result[0]
-        return result[0].content
+      if result
+        if result.length == 1
+          return result[0].content
+        else
+          return result
+        end
       else
         raise RemoteException.new(
           "url scraping failed parsing of '#{selector}' for #{@url}")

@@ -27,6 +27,29 @@ class TestRemotePlugins < Test::Unit::TestCase
     plugin = Twitpic.new 'http://twitpic.com/5lg4ai/full'
     assert_match(%r{^http://s3\.amazonaws\.com/twitpic/photos/full/}, plugin.url)
   end
+
+  def test_flickr
+    plugin = Flickr.new 'http://www.flickr.com/photos/kintel/5693336211/'
+    assert_match(plugin.url, /static\.flickr\.com/)
+    assert_equal(plugin.title, 'New neck piece')
+  end
+
+  def test_fukung
+    plugin = Fukung.new 'http://fukung.net/v/6873/catparrot.jpg'
+    assert_equal(plugin.url, 'http://media.fukung.net/images/6873/catparrot.jpg')
+    assert_equal(plugin.tags, ["thegame", "animals", "tbag8uk"])
+  end  
+
+  def test_imageshack
+    plugin = Imageshack.new 'http://imageshack.us/photo/my-images/20/test42x42.png/'
+    assert_match(plugin.url, %r{imageshack\.us/[^/]+/[^/]+/test42x42\.png})
+  end
+
+  def test_yfrog
+    plugin = Yfrog.new 'http://yfrog.com/gywkzgj'
+    assert_match(plugin.url, %r{yfrog\.com/img\d+/\d+/})
+  end
+    
 end
 
 class TestRemoteImage < Test::Unit::TestCase
