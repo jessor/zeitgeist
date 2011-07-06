@@ -220,7 +220,7 @@ post '/new' do
       else
         # save new tags if present
         if params[:tags]
-          params[:tags].each do |newtag|
+          params[:tags].split(',').each do |newtag|
             newtag.strip!
             tag = Tag.first_or_create(:tagname => newtag)
             if not tag.save
@@ -245,8 +245,13 @@ post '/new' do
   if is_ajax_request?
     if @item
       item = {
-        :id => @item.id,
-        :url => @item.image.to_s 
+        :id         => @item.id,
+        :url        => @item.image.to_s,
+        :type       => @item.type,
+        :name       => @item.name, 
+        :size       => @item.size, 
+        :mimetype   => @item.mimetype, 
+        :dimensions => @item.dimensions 
       }
     else
       item = nil
