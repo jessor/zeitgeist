@@ -16,3 +16,5 @@ gem "dm-types"
 gem "mini_magick"
 gem "carrierwave-datamapper", :require => "carrierwave/datamapper"
 gem "ruby-filemagic"
+gem "mechanize"
+
