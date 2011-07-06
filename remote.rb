@@ -113,13 +113,18 @@ class ImageDownloader
     puts "selected plugin: #{@plugin.class.to_s}"
 
     # specific site plugins may scrape for the correct values:
-    @url = @plugin.url # default: the same as orig_url
-    @tags = @plugin.tags # []
-    @title = @plugin.title # nil
-
-    puts "plugin scraped correct image url: #{@url}"
-
-    # TODO: check to see if the url matches against other plugins (bit.ly etc.)
+    begin
+      @url = @plugin.url # default: the same as orig_url
+      @tags = @plugin.tags # []
+      @title = @plugin.title # nil
+    rescue Exception => e
+      # do not fail just yet,
+      # log the exception and try with the original url
+      puts "plugin failure: #{e.message}"
+      @url = @orig_url
+      @tags = []
+      @title = []
+    end
 
     download
   end
