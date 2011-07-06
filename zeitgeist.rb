@@ -242,7 +242,23 @@ post '/new' do
     flash[:notice] = "New item added successfully."
   end
 
-  redirect '/'
+  if is_ajax_request?
+    if @item
+      item = {
+        :id => @item.id,
+        :url => @item.image.to_s 
+      }
+    else
+      item = nil
+    end
+    {
+      :error => flash[:error], 
+      :notice => flash[:notice],
+      :item => item
+    }.to_json
+  else
+    redirect '/'
+  end
 end
 
 # add tags to items
