@@ -185,6 +185,22 @@ post '/search' do
   end
 end
 
+get '/search' do
+  if is_ajax_request?
+    haml :search, :layout => false
+  else
+    haml :search
+  end
+end
+
+get '/new' do
+  if is_ajax_request?
+    haml :new, :layout => false
+  else
+    haml :new
+  end
+end
+
 get '/item/:id' do
   @item = Item.get(params[:id])
   if not @item

@@ -1,0 +1,11 @@
+%form#create{ :action => '/new', :method => 'post', :enctype => 'multipart/form-data' }
+  %fieldset
+    %ol
+      %li
+        %label{ :for => 'image_upload' } Upload an image (png|gif|jpeg):
+        %input{ :type => 'file', :name => 'image_upload' }
+      %li
+        %label{ :for => 'image_url' } or enter a URL:
+        %input{ :type => 'text', :name => 'remote_url', :size => 38 }
+      %li.last      
+        %input{ :type => 'submit', :value => 'make it so!' }

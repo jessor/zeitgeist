@@ -51,9 +51,19 @@ jQuery(function(){
     $("a.embed").click(function() {
         $.fancybox({
             'href':     '/embed',
-            ajax: {
-                      type:   "POST",
-                      data:   'url=' + this.href + '&provider=' + this.rel
+            ajax:       {
+                        type:   "POST",
+                        data:   'url=' + this.href + '&provider=' + this.rel
+            }
+        });
+        return false;
+    });
+
+     $("a.fancynav").click(function() {
+        $.fancybox({
+            'href':     this.href,
+            ajax:       {
+                        type:   "GET",
             }
         });
         return false;
@@ -70,11 +80,11 @@ jQuery(function(){
     // search
     $.ajaxSetup({ type: 'post' });
     // hide submit button
-    $('#searchsubmit').hide();
+    $('input#searchsubmit').hide();
     // hide default value on focus
-    $('#searchquery').search();
+    $('input#searchquery').search();
     // autocomplete
-    $('#searchquery').autocomplete('/search', {
+    $('input#searchquery').autocomplete('/search', {
         //matchContains:  true,
         width:          300,
         dataType:       'json',
@@ -93,7 +103,7 @@ jQuery(function(){
             return item.tagname;
         }
     }).result(function(e, item) {
-        $('#searchform').submit();
+        $('form#searchform').submit();
     });
 
     // Tag Form
