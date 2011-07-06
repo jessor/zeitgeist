@@ -216,6 +216,9 @@ class ImageDownloader
     rescue URI::InvalidURIError => e
       raise RemoteException.new(
         "looks like an invalid url (#{@url}), failed: #{e.message}")
+    rescue Exception => e
+      raise RemoteException.new(
+        "something went wrong during downloading of url (#{@url}): #{e.message}")
     end
   end 
 end
