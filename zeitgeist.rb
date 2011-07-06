@@ -198,9 +198,9 @@ post '/new' do
   # check upload file and generate meta infos
   if not error and upload
     begin
-      mime = FileMagic.new(FileMagic::MAGIC_MIME).file(upload[:tempfile].path)
-      mime = mime.slice 0...mime.index(';')
-      if settings.allowed_mime.include? mime
+      mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(upload[:tempfile].path)
+      mimetype = mimetype.slice 0...mimetype.index(';')
+      if settings.allowed_mime.include? mimetype
         type = 'image'
 
         # more meta information (only for image types!)
@@ -209,7 +209,7 @@ post '/new' do
         img = MiniMagick::Image.open(upload[:tempfile].path)
         dimensions = img["dimensions"].join 'x' 
       else
-        error = "Image file with invalid mimetype: #{mime}!"
+        error = "Image file with invalid mimetype: #{mimetype}!"
       end
     rescue Exception => e
       error = "Unable to determine upload meta information: #{e.message}"
@@ -217,7 +217,7 @@ post '/new' do
   end
 
   if type and not error
-    puts "mime:#{mime} type:#{type} checksum:#{checksum} filesize:#{filesize} dimensions:#{dimensions}"
+    puts "mime:#{mimetype} type:#{type} checksum:#{checksum} filesize:#{filesize} dimensions:#{dimensions}"
 
     # check for duplicate images before inserting
     if checksum and (item = Item.first(:checksum => checksum))
