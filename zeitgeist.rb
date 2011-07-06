@@ -13,6 +13,9 @@ require 'mini_magick'
 require 'filemagic'
 require 'digest/md5'
 require 'json'
+require 'uri'
+
+require './remote.rb'
 
 #
 # Config
@@ -28,6 +31,8 @@ configure do
   enable :sessions
   # http://stackoverflow.com/questions/5631862/problem-with-sinatra-and-session-variables-which-are-not-being-set/5677589#5677589
   set :session_secret, "fixing this for shotgun"
+
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
 end
 
 #
@@ -58,18 +63,21 @@ class Item
   include DataMapper::Resource
 
   property :id,         Serial
-  property :type,       String
+  property :type,       String # image, video, audio
   property :image,      String, :auto_validation => false
-  property :source,     Text
-  property :name,       String
-  property :mimetype,   String
+  property :source,     Text   # set to original (remote) url
+  property :name,       String # original filename
+  property :created_at, DateTime
+
+  # image meta information
   property :size,       Integer
+  property :mimetype,   String
   property :checksum,   String
   property :dimensions, String
-  property :created_at, DateTime
 
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
+
 end
 
 class Tag
@@ -97,23 +105,6 @@ DataMapper.auto_upgrade!
 # 
 
 helpers do
-  def is_image?(mimetype)
-    return true if mimetype.split("/").first.eql? "image"
-  end
-
-  def get_dimensions(tempfile)
-    imgobj = MiniMagick::Image.open(tempfile)
-    return "#{imgobj["dimensions"].first}x#{imgobj["dimensions"].last}"
-  end
-
-  def check_url(url)
-    case
-    when url.match(/^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+\//)
-      return 'audio', 'soundcloud'
-    when url.match(/^http[s]?:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9]+/)
-      return 'video', 'youtube'
-    end
-  end
 
   def is_ajax_request?
     if respond_to? :content_type
@@ -153,66 +144,105 @@ get '/filter/by/tag/:tag' do
 end
 
 # we got ourselves an upload, sir
+# with params for image_upload or remote_url
 post '/new' do
-
-  # if it's an upload
-  if params['remote_url'].empty?
-    # prevent file collisions the hacky way
-    unless params['image_upload'][:filename].empty?
-      params['image_upload'][:filename] = "#{fileprefix}_#{params['image_upload'][:filename]}"
-    end
-    tempfile = params['image_upload'][:tempfile].path # => /tmp/RackMultipart20110702-17970-zhr4d9
-    mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile) # => image/png; charset=binary
-    checksum = Digest::MD5.file(tempfile).to_s # => 649d6151fbe0ffacbed9e627c01b29ad
-    filesize = File.size(tempfile)
+  type = upload = source = filename = filesize = mimetype = checksum = dimensions = nil
+  if params[:image_upload]
     filename = params['image_upload'][:filename]
-    dimensions = get_dimensions(tempfile) if is_image?(mimetype)
-    type = 'image'
-  # if it's a url
-  else
-    # pass url to carrierwave unless we recognize it
-    if thisurl = check_url(params['remote_url'])
-      type, site = thisurl
+    upload = {
+      :tempfile => params[:image_upload][:tempfile],
+      :filename => "#{fileprefix}_#{filename}"
+    }
+
+  # remote upload
+  elsif params[:remote_url] and params[:remote_url] =~ /^http[s]?:\/\//
+    source = params[:remote_url]
+    if source =~ /^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+\//
+      type = 'audio'
+    elsif source =~ /^http[s]?:\/\/www\.youtube\.com\/watch\?v=[a-zA-Z0-9]+/
+      type = 'video'
     else
-      imageurl = params['remote_url']
-      type = 'image'
+      begin
+        downloader = Sinatra::ZeitgeistRemote::ImageDownloader.new(source)
+      rescue Sinatra::ZeitgeistRemote::RemoteException => e
+        error = e.message
+      else
+        filename = File.basename(URI.parse(downloader.url).path)
+        filename.gsub!(/[^a-zA-Z0-9_\-\.]/, '')
+        upload = {
+          :tempfile => File.open(downloader.tempfile),
+          :filename => "#{fileprefix}_#{filename}"
+        }
+        filesize = downloader.filesize
+      end
     end
+
+  else
+    error = 'You need to specifiy either a file or remote url for uploading!'
   end
 
-  # let's put it together
-  begin
-    @item = Item.new(:image => params['image_upload'],
-                     :source => params['remote_url'],
-                     :mimetype => mimetype,
-                     :checksum => checksum,
-                     :dimensions => dimensions,
-                     :size => filesize,
-                     :name => filename,
-                     :type => type,
-                     :remote_image_url => imageurl
-                    )
-  # if there's a problem with the new object
-  rescue Exception => ex
-    @downloaderror = Downloaderror.new(:source => params['remote_url'],
-                       :code => ex.message 
-                      )
-    @downloaderror.save
-    flash[:error] = "#{ex.message}"
-    redirect '/'
-  # else put it in the database
-  else
+  puts upload.inspect
 
+  # check upload file and generate meta infos
+  if not error and upload
     begin
-      @item.save
-    # if there's a problem while saving
-    rescue Exception => ex
-      flash[:error] = "#{ex.message}"
-    else
-      flash[:notice] = "New item added successfully."
-    end
+      mime = FileMagic.new(FileMagic::MAGIC_MIME).file(upload[:tempfile].path)
+      mime = mime.slice 0...mime.index(';')
+      if settings.allowed_mime.include? mime
+        type = 'image'
 
-    redirect '/'
+        # more meta information (only for image types!)
+        checksum = Digest::MD5.file(upload[:tempfile].path).to_s
+        filesize = File.size(upload[:tempfile].path) if not filesize
+        img = MiniMagick::Image.open(upload[:tempfile].path)
+        dimensions = img["dimensions"].join 'x' 
+      else
+        error = "Image file with invalid mimetype: #{mime}!"
+      end
+    rescue Exception => e
+      error = "Unable to determine upload meta information: #{e.message}"
+    end
   end
+
+  if type and not error
+    puts "mime:#{mime} type:#{type} checksum:#{checksum} filesize:#{filesize} dimensions:#{dimensions}"
+
+    # check for duplicate images before inserting
+    if checksum and (item = Item.first(:checksum => checksum))
+      error = "Duplicate image found based on checksum, id: #{item.id}"
+    else
+      # store in database, let carrierwave take care of the upload
+      @item = Item.new(:type => type, :image => upload, :source => source,
+                  :name => filename, :size => filesize, :mimetype => mimetype,
+                  :checksum => checksum, :dimensions => dimensions)
+      if not @item.save
+        error = "#{@item.errors}"
+      else
+        # save new tags if present
+        if params[:tags]
+          params[:tags].each do |newtag|
+            newtag.strip!
+            tag = Tag.first_or_create(:tagname => newtag)
+            if not tag.save
+              error = "#{tag.errors}"
+              break
+            end
+            @item.tags << tag
+          end
+          @item.save # save the new associations
+        end
+      end
+    end
+  end
+
+  # upload error:
+  if error or not type
+    flash[:error] = error
+  else
+    flash[:notice] = "New item added successfully."
+  end
+
+  redirect '/'
 end
 
 # add tags to items
