@@ -202,7 +202,7 @@ class ImageDownloader
           end
         end 
         if not @mimetype
-          raise RemoteException.new("unable to determine image type")
+          raise RemoteException.new("no image signature found")
         end
 
         # read/write remote image in chunks to temp file
