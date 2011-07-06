@@ -112,6 +112,8 @@ helpers do
       return 'audio', 'soundcloud'
     when url.match(/^http[s]?:\/\/www\.youtube\.com\/watch\?v=_?+[a-zA-Z0-9]+/)
       return 'video', 'youtube'
+    when url.match(/^http[s]?:\/\/vimeo\.com\/\d+/)
+      return 'video', 'vimeo'
     end
   end
 
