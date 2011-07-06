@@ -1,5 +1,19 @@
 jQuery(function(){
 
+    // unobstrusively clear form fields on focus and restore afterwards
+    // http://bassistance.de/2007/01/23/unobtrusive-clear-searchfield-on-focus/
+    $.fn.search = function() {
+        return this.focus(function() {
+            if( this.value == this.defaultValue ) {
+                this.value = "";
+            }
+        }).blur(function() {
+            if( !this.value.length ) {
+                this.value = this.defaultValue;
+            }
+        });
+    };
+
     $('body').noisy({
         'intensity':    1, 
         'size':         '200', 
@@ -20,6 +34,34 @@ jQuery(function(){
         slicePoint:     200,
         expandText:     '&raquo; more',
         userCollapse:   false
+    });
+
+    // search
+    function format(item) {
+        return item.tagname;
+    }
+    $.ajaxSetup({ type: 'post' });
+    $('#searchsubmit').hide();
+    $('#searchquery').search();
+    $('#searchquery').autocomplete('/search', {
+        width:          300,
+        dataType:       'json',
+        parse: function(data) {
+            return $.map(data, function(row) {
+                return {
+                    data: row,
+                    value: row.tagname,
+                    result: row.tagname
+                }
+            });
+        },
+        formatItem: function(item) {
+            return format(item);
+        }
+        //multiple:       true,
+        //matchContains:  true,
+    }).result(function(e, item) {
+        $("#content").append("<p>selected " + format(item) + "</p>");
     });
 
     $('form.tag').submit(function() {

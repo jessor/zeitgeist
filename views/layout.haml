@@ -12,6 +12,7 @@
     %script{ :src => '/js/jquery.fancybox.pack.js' }
     %script{ :src => '/js/jquery.easing.pack.js' }
     %script{ :src => '/js/jquery.mousewheel.pack.js' }
+    %script{ :src => '/js/jquery.autocomplete.min.js' }
     %script{ :src => '/js/zeitgeist.js' }
 
   %body
@@ -31,6 +32,10 @@
     %header
       %a{ :href => '/' }
         %img{ :src => '/images/logo.png', :alt => 'logo' }
+      #searchbox
+        %form#searchform{ :action => '/search', :method => 'post' }
+          %input#searchquery{ :type => 'text', :name => 'searchquery', :size => 20, :value => 'search' }
+          %input#searchsubmit{ :type => 'submit', :value => 'search!' }
 
     #wrapper
       %nav

@@ -7,6 +7,7 @@ require 'dm-core'
 require 'dm-validations'
 require 'dm-timestamps'
 require 'dm-migrations'
+require 'dm-serializer'
 require 'carrierwave'
 require 'carrierwave/datamapper'
 require 'mini_magick'
@@ -150,6 +151,16 @@ end
 get '/filter/by/tag/:tag' do
   @items = Item.all(Item.tags.tagname => params[:tag]).reverse
   haml :index
+end
+
+post '/search' do
+  @items = Tag.all(:tagname.like => "%#{params['searchquery']}%")
+  if is_ajax_request?
+    content_type :json
+    @items.to_json
+  else
+    redirect "/filter/by/tag/#{params['searchquery']}"
+  end
 end
 
 # we got ourselves an upload, sir
