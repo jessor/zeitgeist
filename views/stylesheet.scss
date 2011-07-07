@@ -198,8 +198,7 @@ nav {
 //
 .items li {
     list-style-type: none;
-    float: left;
-    display: block;
+    display: inline-block;
     background: $border;
     margin: 10px;
     padding: 10px;
@@ -224,11 +223,34 @@ nav {
     margin: 10px 0;
     overflow: hidden;
     font-size: 80%;
-    height: 30px;
 
-    a.taglink {
-        color: $white;
+    ul.taglist {
+        list-style: none; 
+        margin: 0; 
+        padding: 0;
+
+        li {
+            display: inline;
+            margin: 0; 
+            padding: 0;
+            border: 0;
+            a.taglink {
+                color: $white;
+            }
+        }
+
+        li:after {
+            content: ",";
+            margin-right: 3px;
+        }
+
+        li:last-child:after {
+        content: "";
+        }
+
     }
+
+
 }
 
 //

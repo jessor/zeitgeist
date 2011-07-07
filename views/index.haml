@@ -14,10 +14,10 @@
             %a{ :href => "#{item.source}", :class => "#{item.name} embed", :rel => "#{item.name}" }
               %img{ :src => "/images/#{item.type}.png", :width => '200px', :height => '200px' }
           .item-meta
-            Tags:
-            %span{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
+            %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
               - item.tags.each do |tag|
-                %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' } #{tag.tagname}
+                %li 
+                  %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' }> #{tag.tagname}
           %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'tag', :size => 10 }
             %input.tagpush{ :type => 'submit', :value => 'tag!' }
