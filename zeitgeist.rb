@@ -93,6 +93,9 @@ DataMapper.auto_upgrade!
 
 helpers do
 
+  include Rack::Utils
+  alias_method :h, :escape_html
+
   def is_ajax_request?
     if respond_to? :content_type
       if request.xhr?
@@ -134,6 +137,7 @@ end
 # 
 
 get '/' do
+  @autoload = h params['autoload']
   @items = Item.page(params['page'], 
                      :per_page => settings.items_per_page,
                      :order => [:created_at.desc])

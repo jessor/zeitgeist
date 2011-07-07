@@ -17,7 +17,11 @@
     -#%script{ :src => '/js/jquery.infinitescroll.js' }
     %script{ :src => '/js/jquery.livequery.js' }
     %script{ :src => '/js/zeitgeist.js' }
-
+    - if @autoload
+      :javascript
+        jQuery(function() {
+          $('a.fancy:#{@autoload}').trigger('click');
+        });
   %body
     - if flash[:error]
       %div{ :class => 'error message' }
@@ -35,7 +39,6 @@
     %header
       %a{ :href => '/' }
         %img{ :src => '/images/logo.png', :alt => 'logo' }
-
     #wrapper
       %nav
         %a{ :href => '/new', :class => 'fancynav' } Add

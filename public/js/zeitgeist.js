@@ -46,7 +46,20 @@ jQuery(function(){
             'speedOut':         200,
             'href':             $(this).attr('href'),
             'type':             'image',
-            'cyclic':           true,
+            'paginatenext':     function() {
+                if ($('div#pagination .next a').length) {
+                    window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
+                } else {
+                    alert ("That's it for now!");
+                }
+            },
+            'paginateprev':     function() {
+                if ($('div#pagination .previous a').length) {
+                    window.location.href = $('div#pagination .previous a').attr('href') + '&autoload=last';
+                } else {
+                    alert ("That's it for now!");
+                }
+            },
         });
         return false;
     });

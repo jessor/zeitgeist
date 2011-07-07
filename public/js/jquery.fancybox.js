@@ -566,13 +566,13 @@
 				return;
 			}
 
-			if ((currentOpts.cyclic && currentArray.length > 1) || currentIndex !== 0) {
+            if ((currentOpts.cyclic && currentArray.length > 1) || currentOpts.paginateprev != ""  || currentIndex !== 0) {
 				nav_left.show();
 			}
 
-			//if ((currentOpts.cyclic && currentArray.length > 1) || currentIndex != (currentArray.length -1)) {
+            if ((currentOpts.cyclic && currentArray.length > 1) || currentOpts.paginatenext != "" || currentIndex != (currentArray.length -1)) {
 				nav_right.show();
-			//}
+			}
 		},
 
 		_finish = function () {
@@ -900,7 +900,17 @@
 		} else if (currentOpts.cyclic && currentArray.length > 1) {
 			selectedIndex = pos >= currentArray.length ? 0 : currentArray.length - 1;
 			_start();
-		}
+        } else if ((currentOpts.paginatenext != "" || currentOpts.paginateprev != "")) {
+        
+            if(pos >= currentArray.length) {
+                $.fancybox.close
+                currentOpts.paginatenext();
+            } else {
+                $.fancybox.close
+                currentOpts.paginateprev();
+            }
+ 
+ 		}
 
 		return;
 	};
@@ -1140,6 +1150,9 @@
 		showNavArrows : true,
 		enableEscapeButton : true,
 		enableKeyboardNav : true,
+
+        paginatenext : '',
+        paginateprev : '',
 
 		onStart : function(){},
 		onCancel : function(){},
