@@ -137,7 +137,7 @@ end
 # 
 
 get '/' do
-  @autoload = h params['autoload']
+  @autoload = h params['autoload'] if params['autoload']
   @items = Item.page(params['page'], 
                      :per_page => settings.items_per_page,
                      :order => [:created_at.desc])
