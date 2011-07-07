@@ -19,3 +19,4 @@ gem "ruby-filemagic"
 gem "mechanize"
 gem "ruby-oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
 gem "dm-pager"
+gem "builder"
