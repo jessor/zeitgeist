@@ -24,7 +24,11 @@ jQuery(function(){
     });
 
     // fancybox <3
+    var fancyoverlay = '#171717';
+    var fancyopacity = 0.8;
     $("a.fancy").fancybox({
+        'overlayColor':     fancyoverlay,
+        'overlayOpacity':   fancyopacity,
         'transitionIn':     'fade',
         'transitionOut':    'fade',
         'speedIn':          600, 
@@ -33,6 +37,8 @@ jQuery(function(){
 
      $("a.youtube").click(function() {
         $.fancybox({
+            'overlayColor':     fancyoverlay,
+            'overlayOpacity':   fancyopacity,
             'transitionIn':     'fade',
             'transitionOut':    'fade',
             'speedIn':          600, 
@@ -50,6 +56,8 @@ jQuery(function(){
 
     $("a.embed").click(function() {
         $.fancybox({
+            'overlayColor':     fancyoverlay,
+            'overlayOpacity':   fancyopacity,
             'href':     '/embed',
             ajax:       {
                         type:   "POST",
@@ -61,6 +69,8 @@ jQuery(function(){
 
      $("a.fancynav").click(function() {
         $.fancybox({
+            'overlayColor':     fancyoverlay,
+            'overlayOpacity':   fancyopacity,
             'href':     this.href,
             ajax:       {
                         type:   "GET",
