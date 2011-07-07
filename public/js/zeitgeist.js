@@ -36,8 +36,8 @@ jQuery(function(){
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;
-    $("a.fancy").live('click', function() {
-        $.fancybox({
+    $("a.fancy").livequery(function() {
+        $(this).fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
             'transitionIn':     'fade',
@@ -46,14 +46,13 @@ jQuery(function(){
             'speedOut':         200,
             'href':             $(this).attr('href'),
             'type':             'image',
-            'titleShow':        true,
-            'titlePosition':    'outside'
+            'cyclic':           true,
         });
         return false;
     });
 
-     $("a.youtube").live('click', function() {
-        $.fancybox({
+     $("a.youtube").livequery(function() {
+        $(this).fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
             'transitionIn':     'fade',
@@ -71,8 +70,8 @@ jQuery(function(){
         return false;
     });
 
-    $("a.embed").live('click', function() {
-        $.fancybox({
+    $("a.embed").livequery(function() {
+        $(this).fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
             'href':     '/embed',
