@@ -24,9 +24,8 @@ Dev Env
 TODO
 ----
 
-* handle different filetypes (e.g. paste soundcloud link, have embedded in item listing)
-* infinite scrolling
-* filter by tags
+* bookmarklet
+* (infinite scrolling)
 * admin interface (bowtie?, wind?)
 * user models?
 * refactoring :D
