@@ -144,8 +144,14 @@ jQuery(function(){
             var Id = $(this).attr("id")
             var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')
             var options = {
-                target: tagtarget,
-                resetForm: true
+                target:     tagtarget,
+                dataType:   'json',
+                success:    function(data) {
+                                $.each(data.tags, function(i,tag) {
+                                    $(tagtarget).prepend(' ' + tag.tagname + ' ');
+                                });
+                            },
+                resetForm:  true
             };
 
             $(this).ajaxSubmit(options);

@@ -364,6 +364,7 @@ post '/edit/:id' do
     if error
       {:error => error}.to_json
     else
+      content_type :json
       {:tags => @item.tags}.to_json
     end
   else
