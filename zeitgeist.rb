@@ -62,6 +62,7 @@ class Item
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
 
+  default_scope(:default).update(:order => [:created_at.asc])
 end
 
 class Tag
@@ -197,6 +198,13 @@ get '/item/:id' do
     else
       {:item => @item, :tags => @item.tags}.to_json
     end
+  else
+    if error
+      flash[:error] = error
+      redirect '/'
+    else
+      redirect @item.image
+    end
   end
 end
 
@@ -312,8 +320,8 @@ post '/new' do
 
   if is_ajax_request?
     if @item
-      item = @item.to_json
-      tags = @item.tags.to_json
+      item = @item
+      tags = @item.tags
     else
       item = nil
       tags = nil
@@ -339,6 +347,7 @@ post '/edit/:id' do
     # strip leading/preceding whitespace and html tags
     newtags = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
 
+    newtaglist = []
     newtags.split(',').each do |newtag|
       newtag.strip!
       # get or create tag object
@@ -350,6 +359,7 @@ post '/edit/:id' do
       end
       # create association
       @item.tags << tag
+      newtaglist << tag
     end
 
     # save item with new tags
@@ -364,7 +374,7 @@ post '/edit/:id' do
     if error
       {:error => error}.to_json
     else
-      {:tags => @item.tags}.to_json
+      {:tags => newtaglist}.to_json
     end
   else
     flash[:error] = error 
