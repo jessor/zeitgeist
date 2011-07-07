@@ -160,7 +160,7 @@ jQuery(function(){
                 target:     tagtarget,
                 dataType:   'json',
                 success:    function(data) {
-                                $.each(data.tags, function(i,tag) {
+                                $.each(data.added_tags, function(i,tag) {
                                     $(tagtarget).prepend(' ' + tag.tagname + ' ');
                                 });
                             },

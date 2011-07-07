@@ -349,35 +349,49 @@ post '/new' do
   end
 end
 
-# add tags to items
+# adds or removes tags from an item
 post '/edit/:id' do
-  # get selected item object
-  @item = Item.get(params[:id])
-  if @item
-    # strip leading/preceding whitespace and html tags
-    newtags = params[:tag].gsub(/(^[\s]+|<\/?[^>]*>|[\s]+$)/, "")
+  id = params[:id]
+  add_tags = (params[:add_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
+  del_tags = (params[:del_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
 
-    newtaglist = []
-    newtags.split(',').each do |newtag|
-      newtag.strip!
-      # get or create tag object
-      tag = Tag.first_or_create(:tagname => newtag)
+  added_tags = []
+  deleted_tags = []
+
+  # get the item to edit
+  @item = Item.get(id)
+  if not @item
+    error = "item with id #{id} not found!"
+  else
+    add_tags.each do |tag|
+      puts add_tags.inspect
+      newtag = Tag.first_or_create(:tagname => tag)
+      puts newtag.inspect
       # (try to) save tag
-      if not tag.save
-        error = "#{tag.errors}"
+      if not newtag or not newtag.save
+        error = "#{newtag.errors}"
         break
       end
       # create association
-      @item.tags << tag
-      newtaglist << tag
+      @item.tags << newtag
+      added_tags << newtag
     end
 
-    # save item with new tags
-    if not @item.save
-      error = "#{@item.errors}" 
+    # only allow adding tags with api key:
+    if params[:api_secret] and params[:api_secret] == settings.api_secret 
+      del_tags.each do |tag|
+        @item.tags.each do |old_tag|
+          if old_tag.tagname == tag 
+            @item.tags.delete(old_tag) 
+            deleted_tags << old_tag
+          end
+        end
+      end
     end
-  else
-    error = "no item found with id #{params[:id]}"
+
+    if not @item.save
+      error = @item.errors
+    end
   end
 
   if is_ajax_request?
@@ -385,7 +399,7 @@ post '/edit/:id' do
     if error
       {:error => error}.to_json
     else
-      {:tags => newtaglist}.to_json
+      {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
     end
   else
     flash[:error] = error 
