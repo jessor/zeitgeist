@@ -3,3 +3,4 @@ pagedesc: 'media collected by irc nerds'
 assetpath: './asset'
 # http://stackoverflow.com/questions/5631862/problem-with-sinatra-and-session-variables-which-are-not-being-set/5677589#5677589
 session_secret: "fixing this for shotgun"
+items_per_page: 25

@@ -232,6 +232,49 @@ nav {
 }
 
 //
+// Pagination
+//
+#pagination {
+    margin-top: 20px;
+    float: left;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+
+    ul {
+        list-style: none;
+        clear: left;
+        float: left;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        left: 50%;
+        text-align: center;
+
+        li {
+            border: 1px solid $darkground;
+            display: block;
+            float: left;
+            position: relative;
+            right: 50%;
+            background: $border;
+
+            a {
+                display: block;
+                margin: 0 0 0 1px;
+                padding: 3px 10px;
+            }
+        }
+
+        li.active {
+            a {
+                color: $highlight;
+            }
+        }
+    }
+}
+
+//
 // Forms
 //
 form ol {

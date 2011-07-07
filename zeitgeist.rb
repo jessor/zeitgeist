@@ -1,4 +1,4 @@
-%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed ./remote.rb).each do |gem|
+%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed dm-pager ./remote.rb).each do |gem|
   require gem
 end
 
@@ -131,7 +131,8 @@ end
 # 
 
 get '/' do
-  @items = Item.all.reverse
+  @items = Item.page(params['page'], :per_page => settings.items_per_page)
+  @pagination = Item.page(params['page'], :per_page => settings.items_per_page).pager.to_html('/', :size => 5)
   haml :index
 end
 
