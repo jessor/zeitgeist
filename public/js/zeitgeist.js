@@ -23,19 +23,36 @@ jQuery(function(){
         'monochrome':   false
     });
 
+    // i can has diz shiny infitescrull?
+    $('footer').hide();
+    $('#content').infinitescroll({
+        loadingImg:     '/images/ajax-loader.gif',
+        loadingText:    'hold on a sec =)',
+        navSelector:    'div#pagination',
+        nextSelector:   'div#pagination li.next a',
+        itemSelector:   'ul.items',
+    });
+
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;
-    $("a.fancy").fancybox({
-        'overlayColor':     fancyoverlay,
-        'overlayOpacity':   fancyopacity,
-        'transitionIn':     'fade',
-        'transitionOut':    'fade',
-        'speedIn':          600, 
-        'speedOut':         200
+    $("a.fancy").live('click', function() {
+        $.fancybox({
+            'overlayColor':     fancyoverlay,
+            'overlayOpacity':   fancyopacity,
+            'transitionIn':     'fade',
+            'transitionOut':    'fade',
+            'speedIn':          600, 
+            'speedOut':         200,
+            'href':             $(this).attr('href'),
+            'type':             'image',
+            'titleShow':        true,
+            'titlePosition':    'outside'
+        });
+        return false;
     });
 
-     $("a.youtube").click(function() {
+     $("a.youtube").live('click', function() {
         $.fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
@@ -54,7 +71,7 @@ jQuery(function(){
         return false;
     });
 
-    $("a.embed").click(function() {
+    $("a.embed").live('click', function() {
         $.fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
@@ -80,11 +97,13 @@ jQuery(function(){
     });
         
     // limit default tag list length on index view
-    $('.taglist').expander({
-        collapseTimer:  5000,
-        slicePoint:     200,
-        expandText:     '&raquo; more',
-        userCollapse:   false
+    $('.taglist').livequery(function() {
+        $(this).expander({
+            collapseTimer:  5000,
+            slicePoint:     200,
+            expandText:     '&raquo; more',
+            userCollapse:   false
+        });
     });
 
     // search
@@ -92,41 +111,47 @@ jQuery(function(){
     // hide submit button
     $('input#searchsubmit').hide();
     // hide default value on focus
-    $('input#searchquery').search();
+    $('input#searchquery').livequery(function() {
+        $(this).search();
+    });
     // autocomplete
-    $('input#searchquery').autocomplete('/search', {
-        //matchContains:  true,
-        width:          300,
-        dataType:       'json',
-        // parse json response
-        parse: function(data) {
-            return $.map(data, function(row) {
-                return {
-                    data: row,
-                    value: row.tagname,
-                    result: row.tagname
-                }
-            });
-        },
-        // format items in autocomplete select box
-        formatItem: function(item) {
-            return item.tagname;
-        }
-    }).result(function(e, item) {
-        $('form#searchform').submit();
+    $('input#searchquery').livequery(function() {
+        $(this).autocomplete('/search', {
+            //matchContains:  true,
+            width:          300,
+            dataType:       'json',
+            // parse json response
+            parse: function(data) {
+                return $.map(data, function(row) {
+                    return {
+                        data: row,
+                        value: row.tagname,
+                        result: row.tagname
+                    }
+                });
+            },
+            // format items in autocomplete select box
+            formatItem: function(item) {
+                return item.tagname;
+            }
+        }).result(function(e, item) {
+            $('form#searchform').submit();
+        });
     });
 
     // Tag Form
-    $('form.tag').submit(function() {
-        var Id = $(this).attr("id")
-        var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')
-        var options = {
-            target: tagtarget,
-            resetForm: true
-        };
+    $('form.tag').livequery(function() {
+        $(this).submit(function() {
+            var Id = $(this).attr("id")
+            var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')
+            var options = {
+                target: tagtarget,
+                resetForm: true
+            };
 
-        $(this).ajaxSubmit(options);
-        return false;
+            $(this).ajaxSubmit(options);
+            return false;
+        });
     });
 
     // Notifications (http://www.red-team-design.com/cool-notification-messages-with-css3-jquery)

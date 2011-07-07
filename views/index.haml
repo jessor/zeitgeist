@@ -21,6 +21,6 @@
           %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'tag', :size => 10 }
             %input.tagpush{ :type => 'submit', :value => 'tag!' }
-  %div.clear
+  -#%div.clear
   #pagination  
     = @pagination
