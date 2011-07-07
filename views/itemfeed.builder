@@ -7,11 +7,15 @@ xml.rss :version => "2.0" do
 
 		@items.each do |item|
 			xml.item do
-				xml.title item.name
-				xml.link "#{request.url.chomp request.path_info}/#{settings.assetpath}/#{item.name}"
-				xml.guid "#{request.url.chomp request.path_info}/#{settings.assetpath}/#{item.name}"
+				xml.title item.name ? item.name : item.image
+				xml.link "#{request.url.chomp request.path_info}#{item.image}"
+				xml.guid "#{request.url.chomp request.path_info}#{item.image}"
 				xml.pubDate Time.parse(item.created_at.to_s).rfc822
-				xml.description item.name
+                if item.tags and item.tags.length > 0
+                  xml.description item.tags.map { |tag| tag.tagname }.join ', '
+                else
+                  xml.description item.name
+                end
 			end
 		end
 

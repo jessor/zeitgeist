@@ -1,27 +1,31 @@
-%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed dm-pager ./remote.rb).each do |gem|
+%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed dm-pager builder).each do |gem|
   require gem
 end
+require_relative 'remote.rb'
 
 #
 # Config
 #
 configure do
-  yaml = YAML.load_file('config.yaml')
-  yaml.each_pair do |key, value|
-    set(key.to_sym, value)
-  end
-
   set :haml, {:format => :html5}
   set :raise_errors, false
   set :show_exceptions, false
   use Rack::Flash
   enable :sessions
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
+
+  yaml = YAML.load_file('config.yaml')
+  yaml.each_pair do |key, value|
+    set(key.to_sym, value)
+  end
 end
 
 #
 # Models
 #
+if settings.respond_to? 'datamapper_logger'
+  DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
+end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
 
 class ImageUploader < CarrierWave::Uploader::Base
@@ -61,8 +65,6 @@ class Item
 
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
-
-  default_scope(:default).update(:order => [:created_at.desc])
 end
 
 class Tag
@@ -132,18 +134,20 @@ end
 # 
 
 get '/' do
-  @items = Item.page(params['page'], :per_page => settings.items_per_page)
-  @pagination = Item.page(params['page'], :per_page => settings.items_per_page).pager.to_html('/', :size => 5)
+  @items = Item.page(params['page'], 
+                     :per_page => settings.items_per_page,
+                     :order => [:created_at.desc])
+  @pagination = @items.pager.to_html('/', :size => 5)
   haml :index
 end
 
 get '/filter/by/type/:type' do
-  @items = Item.all(:type => params[:type]).reverse
+  @items = Item.all(:type => params[:type], :order => [:created_at.desc])
   haml :index
 end
 
 get '/filter/by/tag/:tag' do
-  @items = Item.all(Item.tags.tagname => params[:tag]).reverse
+  @items = Item.all(Item.tags.tagname => params[:tag], :order => [:created_at.desc])
   haml :index
 end
 
@@ -386,8 +390,8 @@ post '/edit/:id' do
 end
 
 get '/feed' do
-  @items = Item.last(10)
-  builder :itemfeed
+  @items = Item.all(:limit => 10, :order => [:created_at.desc])
+  builder :itemfeed 
 end
 
 # compile sass stylesheet
