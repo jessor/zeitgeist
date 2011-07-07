@@ -373,7 +373,7 @@ post '/edit/:id' do
 end
 
 get '/feed' do
-  @items = Item.all.reverse
+  @items = Item.last(10)
   builder :itemfeed
 end
 
