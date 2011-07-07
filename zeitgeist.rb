@@ -62,7 +62,7 @@ class Item
   mount_uploader :image, ImageUploader
   has n, :tags, :through => Resource
 
-  default_scope(:default).update(:order => [:created_at.asc])
+  default_scope(:default).update(:order => [:created_at.desc])
 end
 
 class Tag
