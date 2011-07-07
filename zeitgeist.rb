@@ -193,6 +193,7 @@ get '/item/:id' do
   end
 
   if is_ajax_request?
+    content_type :json
     if error
       {:error => error}.to_json
     else
@@ -319,6 +320,7 @@ post '/new' do
   end
 
   if is_ajax_request?
+    content_type :json
     if @item
       item = @item
       tags = @item.tags
@@ -371,6 +373,7 @@ post '/edit/:id' do
   end
 
   if is_ajax_request?
+    content_type :json
     if error
       {:error => error}.to_json
     else
@@ -383,7 +386,7 @@ post '/edit/:id' do
 end
 
 get '/feed' do
-  @items = Item.all.reverse
+  @items = Item.last(10)
   builder :itemfeed
 end
 
