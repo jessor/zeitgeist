@@ -327,11 +327,22 @@ nav {
         li:hover {
             background: $highlight;
             border-color: $highlightnuance;
-        }
 
+            a{
+                color: $white !important;
+            }
+        }
     }
 
+    .read-more {
+        display: block;
+        padding-top: 2px;
 
+        a {
+            padding-left: 5px;
+            text-decoration: none;
+        }
+    }
 }
 
 //
