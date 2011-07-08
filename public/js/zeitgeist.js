@@ -49,6 +49,7 @@ jQuery(function(){
         $(this).fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
+            'showNavArrows':    false,
             'href':     '/embed',
             ajax:       {
                         type:   "POST",
