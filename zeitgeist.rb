@@ -232,6 +232,8 @@ post '/new' do
       downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(source)
     rescue Sinatra::ZeitgeistRemote::RemoteException => e
       error = e.message
+      puts "remote exception: #{e.message}"
+      puts e.traceback.join "\n"
     else
       type = downloader.type
       if downloader.tempfile
@@ -300,10 +302,10 @@ post '/new' do
     else
       # store in database, let carrierwave take care of the upload
       @item = Item.new(:type => type, :image => upload, :source => source,
-                  :name => filename, :size => filesize, :mimetype => mimetype,
+                  :name => filename[0...49], :size => filesize, :mimetype => mimetype,
                   :checksum => checksum, :dimensions => dimensions)
       if not @item.save
-        error = "#{@item.errors}"
+        error = "#{@item.errors.full_messages.inspect}"
       else
         # save new tags if present
         if params[:tags]
