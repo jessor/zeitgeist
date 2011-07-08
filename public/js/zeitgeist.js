@@ -14,15 +14,6 @@ jQuery(function(){
         });
     };
 
-    // add noise to body background
-    $('body').noisy({
-        'intensity':    1, 
-        'size':         '200', 
-        'opacity':      0.034, 
-        'fallback':     '', 
-        'monochrome':   false
-    });
-
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;

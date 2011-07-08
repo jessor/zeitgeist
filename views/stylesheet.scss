@@ -92,7 +92,7 @@ $lightblue: #1AE0CC;
 // General and Classes
 //
 body {
-    background: $background;
+    background: $background url('/images/bodybackground.png');
     color: $white;
     font-family: 'Helvetica', 'Arial';
 }
