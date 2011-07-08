@@ -81,12 +81,6 @@ $lightblue: #1AE0CC;
     filter: dropshadow(color=$c, offx=1, offy=1);
 }
 
-@mixin rotate($deg) {
-    -moz-transform: rotate(#{$deg}deg);
-    -o-transform: rotate(#{$deg}deg);
-    -webkit-transform: rotate(#{$deg}deg);
-}
-
 @mixin transition ($value) {
     -moz-transition: $value;
     -o-transition: $value;
@@ -279,7 +273,6 @@ nav {
     list-style-type: none;
     float: left;
     display: block;
-    position: relative;
     background: $border;
     margin: 10px;
     padding: 10px;
@@ -291,52 +284,6 @@ nav {
 
     img:hover {
         @include hovershadow($blue);
-    }
-
-    .itembadge {
-        top: 20px;
-        left: -2px;
-        height: 30px;
-        position: absolute;
-        text-decoration: none;
-        width: 75px;
-        @include rotate(-45);
-
-        span {
-            background: $highlight;
-            color: white;
-            font-size: 14px;
-            left: 0;
-            padding: 5px 0;
-            position: absolute;
-            text-align: center;
-            width: 75px;
-        }
-    }
-    .itembadge:before {
-        position: absolute;
-        display: block;
-        top: 0;
-        left: 74px;
-        content: "";
-        width: 0;
-        height: 0;
-        border-width: 26px 0 0 26px;
-        border-style: solid;
-        border-color: transparent transparent transparent $highlight;
-    }
-    .itembadge:after {
-        position: absolute;
-        display: block;
-        top: 0;
-        left: -25px;
-        z-index: 99999;
-        content: "";
-        width: 0;
-        height: 0;
-        border-width: 0 0 26px 26px;
-        border-style: solid;
-        border-color: transparent transparent $highlight transparent;
     }
 }
 
