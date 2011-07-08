@@ -136,8 +136,75 @@ a:hover {
 // Header
 //
 header {
-    margin-top: 0;
+    margin: 0 auto;
     text-align: center;
+    width: 800px;
+}
+
+// Header Ribbon
+// http://jsfiddle.net/Damion/VWRBU/
+.ribbon {
+    background-color: $border;
+    /*background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
+    /*background-image: -moz-linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
+    /*background-image: linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
+    height: 64px;
+    margin: 0 40px;
+    position: relative;
+    /*padding: 2px 0;*/
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
+}
+
+.ribbon:before,
+.ribbon:after {
+    content: '';
+    border: 6px solid transparent;
+    position: absolute;
+    display: block;
+    width: 0;
+    height: 0;
+    top: 100%;
+}
+
+.ribbon:before{
+    left: 0;
+    border-top-color: $border;
+    border-left-width: 7px;
+    border-right-width: 0;
+}
+
+.ribbon:after {
+    right: 0;
+    border-top-color: $border;
+    border-right-width: 7px;
+    border-left-width: 0;
+}
+
+.ribbon .right, .ribbon .left{
+    border: 30px solid $darkground;
+    position: absolute;
+    display: block;
+    width:0; height:0;
+    top: 10px;
+    z-index: -1;
+}
+
+.ribbon .right {
+    /*-webkit-box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, 1px 0 0 #777;*/
+    /*-moz-box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, 1px 0 0 #777;*/
+    /*box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, 1px 0 0 #777;*/
+    border-left-color: transparent;
+    left: -54px;
+}
+
+.ribbon .left {
+    /*-webkit-box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, -1px 0 0 #777;*/
+    /*-moz-box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, -1px 0 0 #777;*/
+    /*box-shadow: 0 1px 0 #777, 0 -1px 0 #bbb, 0 -2px 0 #777, -1px 0 0 #777;*/
+    border-right-color: transparent;
+    right: -54px;
 }
 
 nav {
