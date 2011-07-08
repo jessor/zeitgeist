@@ -59,21 +59,21 @@ class TestRemoteImage < Test::Unit::TestCase
 
   def test_remote_image
     # using twitpic plugin
-    remote = ImageDownloader.new('http://twitpic.com/5lg4ai')
+    remote = RemoteDownloader.new('http://twitpic.com/5lg4ai')
     puts remote.tempfile
     assert_equal(remote.mimetype, 'image/png')
     assert_equal(remote.filesize, 568)
     assert_equal(Digest::MD5.file(remote.tempfile).to_s, '40a0e920a34f218c17981d296b9ecc3e')
 
     # using imgur plugin
-    remote = ImageDownloader.new('http://imgur.com/qbJ52')
+    remote = RemoteDownloader.new('http://imgur.com/qbJ52')
     puts remote.tempfile
     assert_equal(remote.mimetype, 'image/png')
     assert_equal(remote.filesize, 568)
     assert_equal(Digest::MD5.file(remote.tempfile).to_s, '40a0e920a34f218c17981d296b9ecc3e')
 
     # using the default plugin
-    remote = ImageDownloader.new('http://apoc.cc/test_42x42.png')
+    remote = RemoteDownloader.new('http://apoc.cc/test_42x42.png')
     puts remote.tempfile
     assert_equal(remote.mimetype, 'image/png')
     assert_equal(remote.filesize, 568)
@@ -82,15 +82,15 @@ class TestRemoteImage < Test::Unit::TestCase
     # test error handling:
     # not an image
     assert_raise(RemoteException) do
-      remote = ImageDownloader.new('http://apoc.cc/')
+      remote = RemoteDownloader.new('http://apoc.cc/')
     end
     # 404:
     assert_raise(RemoteException) do
-      remote = ImageDownloader.new('http://apoc.cc/this_never_exists')
+      remote = RemoteDownloader.new('http://apoc.cc/this_never_exists')
     end
     # dns error:
     assert_raise(RemoteException) do
-      remote = ImageDownloader.new('http://icann_wouldnt_be.that_stupid/')
+      remote = RemoteDownloader.new('http://icann_wouldnt_be.that_stupid/')
     end
   end
 end

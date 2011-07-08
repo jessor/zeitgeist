@@ -1,6 +1,7 @@
 
 module Sinatra::ZeitgeistRemote
   class Plugins::Fukung < Plugin
+    TYPE = 'image'
     PATTERN = %r{http[s]?://(www\.)?fukung\.net/}
 
     def url

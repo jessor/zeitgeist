@@ -4,15 +4,18 @@
     %ul.items
       - @items.each do |item|
         %li
-          - if item.type == "image"
-            %a{ :href => "#{item.image}", :class => 'fancy', :rel => 'group', :title => "#{item.name} at #{item.dimensions}" }
-              %img{ :src => "#{item.image.thumbnail}", :width => '200px', :height => '200px' }
-          - elsif item.type == "youtube"
-            %a{ :href => "#{item.source}", :class => "#{item.name}", :rel => "#{item.name}" }
-              %img{ :src => "/images/#{item.type}.png", :width => '200px', :height => '200px' }
+          - if item.image.thumbnail.to_s
+            - image = item.image.thumbnail.to_s
           - else
-            %a{ :href => "#{item.source}", :class => "#{item.name} embed", :rel => "#{item.name}" }
-              %img{ :src => "/images/#{item.type}.png", :width => '200px', :height => '200px' }
+            - image = "images/#{item.type}.png"
+
+          - if item.type == "image"
+            %a{ :href => item.image, :class => 'fancy', :title => "#{item.name} at #{item.dimensions}" }
+              %img{ :src => image, :width => '200px', :height => '200px' }
+          - else
+            %a{ :href => item.source, :class => 'embed', :title => item.name }
+              %img{ :src => image, :width => '200px', :height => '200px' }
+
           .item-meta
             Tags:
             %span{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 

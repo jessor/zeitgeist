@@ -1,6 +1,7 @@
 
 module Sinatra::ZeitgeistRemote
   class Plugins::Imageshack < Plugin
+    TYPE = 'image'
     PATTERN = %r{http[s]?://(www\.)?imageshack\.us/photo/}
 
     def url

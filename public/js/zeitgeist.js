@@ -54,25 +54,6 @@ jQuery(function(){
         return false;
     });
 
-     $("a.youtube").livequery(function() {
-        $(this).fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'transitionIn':     'fade',
-            'transitionOut':    'fade',
-            'speedIn':          600, 
-            'speedOut':         200,
-            'width':            680,
-            'height':           495,
-            'href':             this.href.replace(new RegExp("watch\\?v=", "i"), 'v/'),
-            'type':             'swf',
-            'swf':              {
-                'allowfullscreen':  'true'
-            }
-        });
-        return false;
-    });
-
     $("a.embed").livequery(function() {
         $(this).fancybox({
             'overlayColor':     fancyoverlay,
@@ -80,7 +61,7 @@ jQuery(function(){
             'href':     '/embed',
             ajax:       {
                         type:   "POST",
-                        data:   'url=' + this.href + '&provider=' + this.rel
+                        data:   { 'url': this.href }
             }
         });
         return false;

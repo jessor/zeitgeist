@@ -19,6 +19,17 @@ class RemoteException < Exception
 end
 
 module Plugins
+  # iterate all classes within Plugins namespace and test url
+  # for matching PATTERN:
+  def self.plugin_by_url(url)
+    Plugins::constants.each do |const|
+      plugin = Plugins::const_get(const)
+      return plugin.new(url) if plugin.class == Class and 
+          plugin.kind_of? Plugin.class and 
+          plugin::PATTERN.match url
+    end
+    return Plugin.new(url) # default plugin
+  end
 end
 
 # Default Plugin for pre-download processing
@@ -27,6 +38,8 @@ end
 # Plugins for specific sites may scrape for the real image
 # url and/or for other content like tags or titles.
 class Plugin
+  TYPE = 'image' 
+
   def initialize(orig_url)
     @orig_url = orig_url
   end
@@ -42,12 +55,23 @@ class Plugin
     @orig_url
   end
 
+  def filename
+    url = self.url || @orig_url
+    filename = File.basename(URI.parse(url).path)
+    filename.gsub!(/[^a-zA-Z0-9_\-\.]/, '')
+    return filename
+  end
+
   def title
     nil
   end
 
   def tags
     []
+  end
+
+  def oembed
+    OEmbed::Providers.get(@orig_url)
   end
 
   private
@@ -71,9 +95,32 @@ class Plugin
   def get(url = nil)
     url = self.orig_url if not url
     if not @page
+      puts "get url: #{url}"
       @page = agent.get url
     end
     @page
+  end
+
+  def match(pattern)
+    if not @page
+      # implicit fetch the page of the url
+      @page = get
+    end
+
+    if @page
+      result = @page.body.scan pattern
+      puts "search result for #{pattern} : #{result.inspect}"
+      if result
+        if result.length == 1
+          return result[0]
+        else
+          return result
+        end
+      else
+        raise RemoteException.new(
+          "url scraping failed regex matching of '#{pattern}' for #{@url}")
+      end
+    end
   end
 
   def search(selector)
@@ -99,16 +146,26 @@ class Plugin
     return ''
   end
 
+  def og_search(property)
+    search 'meta[@property="og:' + property + '"]/@content'
+  end
+
 end # end class plugin
 
-class ImageDownloader
-  attr_reader :orig_url, :url, :tempfile, :mimetype, :filesize, :tags, :title 
+class RemoteDownloader
+  attr_reader :type, :orig_url, :url, :filename, :tempfile, :mimetype, :filesize, :tags, :title 
 
   def initialize(orig_url)
+    @url = nil
+    @filename = nil
+    @tempfile = nil
+    @mimetype = nil
+    @filesize = nil
     @orig_url = orig_url
 
     # dynamically instanciate plugin based on orig_url
-    @plugin = select_plugin.new orig_url
+    @plugin = Plugins::plugin_by_url(orig_url)
+    @type = @plugin.class::TYPE
 
     puts "selected plugin: #{@plugin.class.to_s}"
 
@@ -117,28 +174,18 @@ class ImageDownloader
       @url = @plugin.url # default: the same as orig_url
       @tags = @plugin.tags # []
       @title = @plugin.title # nil
+      @filename = @plugin.filename
     rescue Exception => e
       # do not fail just yet,
       # log the exception and try with the original url
       puts "plugin failure: #{e.message}"
+      puts e.backtrace.join("\n")
       @url = @orig_url
       @tags = []
       @title = []
     end
 
-    download
-  end
-
-  # iterate all classes within Plugins namespace and test orig_url
-  # for matching PATTERN:
-  def select_plugin
-    Plugins::constants.each do |const|
-      plugin = Plugins::const_get(const)
-      return plugin if plugin.class == Class and 
-          plugin.kind_of? Plugin.class and 
-          plugin::PATTERN.match @orig_url
-    end
-    return Plugin # default plugin
+    download if @url
   end
 
   private

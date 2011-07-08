@@ -1,6 +1,7 @@
 
 module Sinatra::ZeitgeistRemote
   class Plugins::Flickr < Plugin
+    TYPE = 'image'
     PATTERN = %r{http[s]?://(www\.)?flickr\.com/photos/}
 
     def url

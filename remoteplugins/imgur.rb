@@ -1,6 +1,7 @@
 
 module Sinatra::ZeitgeistRemote
   class Plugins::Imgur < Plugin
+    TYPE = 'image'
     PATTERN = %r{http://imgur\.com/(gallery/)?[^/]+/?}
 
     def url

@@ -87,6 +87,11 @@ end
 DataMapper.finalize
 DataMapper.auto_upgrade!
 
+# initialize oembed
+# later detect embed provider by url 
+# (if not overwritten by url)
+OEmbed::Providers.register_all
+
 #
 # Helpers
 # 
@@ -110,24 +115,6 @@ helpers do
 
   def fileprefix
     "#{Time.now.strftime("%y%m%d%H%M%S")}_zeitgeist"
-  end
-
-  def classify_url(url)
-    case
-    when url.match(/^http[s]?:\/\/soundcloud\.com\/[\S]+\/[\S]+/)
-      return 'audio', 'soundcloud'
-    when url.match(/^http[s]?:\/\/www\.youtube\.com\/watch\?v=_?+[a-zA-Z0-9]+/)
-      return 'video', 'youtube'
-    when url.match(/^http[s]?:\/\/vimeo\.com\/\d+/)
-      return 'video', 'vimeo'
-    end
-  end
-
-  def custom_provider(provider)
-    case
-    when provider =~ /soundcloud/i
-      return OEmbed::Provider.new('http://soundcloud.com/oembed')
-    end
   end
 
 end
@@ -173,16 +160,8 @@ get '/about' do
 end
 
 post '/embed' do
-  provider = params['provider'].capitalize
-  if OEmbed::Providers::const_defined? provider
-    provider = OEmbed::Providers::const_get(provider)
-  else
-    provider = custom_provider(params['provider'])
-  end
-  @resource = provider.get(params['url'])
-  if is_ajax_request?
-    haml :embed, :layout => false
-  end
+  remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(params['url'])
+  remoteplugin.oembed.html
 end
 
 post '/search' do
@@ -249,21 +228,19 @@ post '/new' do
   # remote upload
   elsif params[:remote_url] and params[:remote_url] =~ /^http[s]?:\/\//
     source = params[:remote_url]
-    if this_source = classify_url(source)
-      type, filename = this_source
+    begin
+      downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(source)
+    rescue Sinatra::ZeitgeistRemote::RemoteException => e
+      error = e.message
     else
-      begin
-        downloader = Sinatra::ZeitgeistRemote::ImageDownloader.new(source)
-      rescue Sinatra::ZeitgeistRemote::RemoteException => e
-        error = e.message
-      else
-        filename = File.basename(URI.parse(downloader.url).path)
-        filename.gsub!(/[^a-zA-Z0-9_\-\.]/, '')
+      type = downloader.type
+      if downloader.tempfile
         upload = {
           :tempfile => File.open(downloader.tempfile),
-          :filename => "#{fileprefix}_#{filename}"
+          :filename => "#{fileprefix}_#{downloader.filename}"
         }
         filesize = downloader.filesize
+        filename = downloader.filename
       end
     end
 
@@ -279,7 +256,7 @@ post '/new' do
       mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(upload[:tempfile].path)
       mimetype = mimetype.slice 0...mimetype.index(';')
       if settings.allowed_mime.include? mimetype
-        type = 'image'
+        type = 'image' if not type
         upload[:content_type] = mimetype
 
         # more meta information (only for image types!)
@@ -308,8 +285,14 @@ post '/new' do
     end
   end
 
-  if type and not error
+  if not error
     puts "mime:#{mimetype} type:#{type} checksum:#{checksum} filesize:#{filesize} dimensions:#{dimensions}"
+
+    # for non image types hash the original url instead of
+    # (preview) image or nil
+    if type != 'image'
+      checksum = Digest::MD5.hexdigest(source)
+    end
 
     # check for duplicate images before inserting
     if checksum and (item = Item.first(:checksum => checksum))
