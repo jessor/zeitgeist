@@ -136,7 +136,7 @@ end
 # General Filters
 # 
 before do
-  if request.host =~ /^www/
+  if request.host =~ /^www\./
     redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
   end
 end
