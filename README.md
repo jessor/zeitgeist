@@ -25,7 +25,6 @@ TODO
 ----
 
 * bookmarklet
-* (infinite scrolling)
 * admin interface (bowtie?, wind?)
 * user models?
 * refactoring :D

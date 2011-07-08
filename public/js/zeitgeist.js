@@ -23,16 +23,6 @@ jQuery(function(){
         'monochrome':   false
     });
 
-    // i can has diz shiny infitescrull?
-    //$('footer').hide();
-    //$('#content').infinitescroll({
-        //loadingImg:     '/images/ajax-loader.gif',
-        //loadingText:    'hold on a sec =)',
-        //navSelector:    'div#pagination',
-        //nextSelector:   'div#pagination li.next a',
-        //itemSelector:   'ul.items',
-    //});
-
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;
