@@ -110,7 +110,13 @@ a:hover {
 #wrapper {
     margin: 20px;
 }
- .dragged {
+
+#content p,
+#content h2, {
+    margin: 20px;
+}
+
+.dragged {
     margin-top: 100px;
 }
 
@@ -415,6 +421,13 @@ form#tags {
     to {
         background-position: -100px 0;
     }
+}
+
+//
+// Fancybox
+//
+#fancybox-outer {
+    background: $background;
 }
 
 //

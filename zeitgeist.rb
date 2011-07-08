@@ -160,6 +160,14 @@ get '/filter/by/tag/:tag' do
   haml :index
 end
 
+get '/about' do
+  if is_ajax_request?
+    haml :about, :layout => false
+  else
+    haml :about
+  end
+end
+
 post '/embed' do
   provider = params['provider'].capitalize
   if OEmbed::Providers::const_defined? provider
