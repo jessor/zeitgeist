@@ -79,6 +79,7 @@ jQuery(function(){
         return false;
     });
         
+    /*
     // limit default tag list length on index view
     $('.taglist').livequery(function() {
         $(this).expander({
@@ -88,6 +89,7 @@ jQuery(function(){
             userCollapse:   false
         });
     });
+    */
 
     // search
     $.ajaxSetup({ type: 'post' });
@@ -132,7 +134,7 @@ jQuery(function(){
                 dataType:   'json',
                 success:    function(data) {
                                 $.each(data.added_tags, function(i,tag) {
-                                    $(tagtarget).prepend(' ' + tag.tagname + ' ');
+                                    $(tagtarget).prepend('<li>' + tag.tagname + '</li>');
                                 });
                             },
                 resetForm:  true
