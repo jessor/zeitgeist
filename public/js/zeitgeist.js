@@ -89,7 +89,7 @@ jQuery(function(){
         });
     });
 
-    // search
+    // Search
     $.ajaxSetup({ type: 'post' });
     // hide submit button
     $('input#searchsubmit').hide();
@@ -99,6 +99,7 @@ jQuery(function(){
     });
     // autocomplete
     $('input#searchquery').livequery(function() {
+        $(this).focus();
         $(this).autocomplete('/search', {
             //matchContains:  true,
             width:          300,
