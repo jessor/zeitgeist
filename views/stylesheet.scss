@@ -276,6 +276,7 @@ nav {
     margin: 10px;
     padding: 10px;
     border: 3px solid $darkground;
+    position: relative;
 
     .overlay {
         position: absolute;
@@ -299,6 +300,7 @@ nav {
 .item-meta {
     width: 200px;
     margin: 10px 0;
+    height: 25px;
     overflow: hidden;
     font-size: 80%;
 
@@ -308,22 +310,23 @@ nav {
         padding: 0;
 
         li {
-            display: inline;
-            margin: 0; 
-            padding: 0;
+            display: block;
+            float: left;
             border: 0;
+            background: $background;
+            border: 1px solid $darkground;
+            @include rounded(5px);
+            padding: 3px;
+            margin: 0;
+
             a.taglink {
-                color: $white;
+                text-decoration: none;
             }
         }
 
-        li:after {
-            content: ",";
-            margin-right: 3px;
-        }
-
-        li:last-child:after {
-        content: "";
+        li:hover {
+            background: $highlight;
+            border-color: $highlightnuance;
         }
 
     }
@@ -444,15 +447,15 @@ form#create {
     background: $border;
     border: 3px solid $darkground;
     padding: 3px 0 0;
-    margin: 10px auto;
+    margin: auto;
     width: 520px;
 }
 
-form#tags {
-    padding-top: 5px;
+form.tag {
+    margin-top: 5px;
 
     input.tagpush {
-        margin-left: 10px !important;
+        margin-left: 5px;
     }
 }
 

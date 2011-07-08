@@ -25,6 +25,7 @@
               - item.tags.each do |tag|
                 %li 
                   %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' }> #{tag.tagname}
+              %div.clear
           %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'add_tags', :size => 10 }
             %input.tagpush{ :type => 'submit', :value => 'tag!' }

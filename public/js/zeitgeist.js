@@ -79,17 +79,23 @@ jQuery(function(){
         return false;
     });
         
-    /*
     // limit default tag list length on index view
     $('.taglist').livequery(function() {
         $(this).expander({
             collapseTimer:  5000,
-            slicePoint:     200,
-            expandText:     '&raquo; more',
-            userCollapse:   false
+            slicePoint:     300,
+            expandPrefix:   '',
+            expandText:     '&raquo;',
+            userCollapse:   false,
+            collapseTimer:  '10000',
+            afterExpand:    function($element) {
+                $element.parent().css({'overflow': 'visible', 'height': 'auto'});
+            },
+            onCollapse:     function($element) {
+                $element.parent().css({'overflow': 'hidden', 'height': '25px'});
+            }
         });
     });
-    */
 
     // search
     $.ajaxSetup({ type: 'post' });
@@ -134,7 +140,7 @@ jQuery(function(){
                 dataType:   'json',
                 success:    function(data) {
                                 $.each(data.added_tags, function(i,tag) {
-                                    $(tagtarget).prepend('<li>' + tag.tagname + '</li>');
+                                    $(tagtarget).prepend('<li><a href="/filter/by/tag/' + tag.tagname + '">' + tag.tagname + '</a></li>');
                                 });
                             },
                 resetForm:  true
