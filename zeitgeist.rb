@@ -137,21 +137,26 @@ end
 # 
 
 get '/' do
-  @autoload = h params['autoload'] if params['autoload']
   @items = Item.page(params['page'], 
+                     Item.tags.tagname.not => 'nsfw',
                      :per_page => settings.items_per_page,
                      :order => [:created_at.desc])
   @pagination = @items.pager.to_html('/', :size => 5)
+  @autoload = h params['autoload'] if params['autoload']
   haml :index
 end
 
 get '/filter/by/type/:type' do
-  @items = Item.all(:type => params[:type], :order => [:created_at.desc])
+  @items = Item.all(Item.tags.tagname.not => 'nsfw', :type => params[:type], :order => [:created_at.desc])
   haml :index
 end
 
 get '/filter/by/tag/:tag' do
-  @items = Item.all(Item.tags.tagname => params[:tag], :order => [:created_at.desc])
+  if params[:tag] == 'nsfw'
+    @items = Item.all(Item.tags.tagname => params[:tag], :order => [:created_at.desc])
+  else
+    @items = Item.all(Item.tags.tagname.not => 'nsfw', Item.tags.tagname => params[:tag], :order => [:created_at.desc])
+  end
   haml :index
 end
 
