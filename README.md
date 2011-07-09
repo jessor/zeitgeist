@@ -32,3 +32,9 @@ Development
 * shotgun -E production zeitgeist.rb
 
 Ignore "DataObjects::URI.new with arguments is deprecated", it's not our bug, see [dm-do-adapter/issues/4](https://github.com/datamapper/dm-do-adapter/issues/4)
+
+
+Licence
+-------
+
+Zeitgeist is licensed under the GPLv2+. Please drop me a line if you use or modify it :)
