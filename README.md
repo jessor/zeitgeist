@@ -1,4 +1,4 @@
-Zeitgeist
+Zeitgeist ![http://stillmaintained.com/jessor/zeitgeist](http://stillmaintained.com/jessor/zeitgeist.png)
 =========
 
 Extendable image and media gallery built with [Sinatra](http://www.sinatrarb.com).
