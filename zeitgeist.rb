@@ -129,6 +129,10 @@ helpers do
     end
   end
 
+  def is_api_request?
+    ( env['HTTP_X_API_SECRET'] == settings.api_secret )
+  end
+
   def fileprefix
     "#{Time.now.strftime("%y%m%d%H%M%S")}_zeitgeist"
   end
@@ -212,7 +216,7 @@ get '/item/:id' do
     error = "no item found with id #{params[:id]}"
   end
 
-  if is_ajax_request?
+  if is_ajax_request? or is_api_request? 
     content_type :json
     if error
       {:error => error}.to_json
@@ -347,7 +351,7 @@ post '/new' do
     notice = "New item added successfully."
   end
 
-  if is_ajax_request?
+  if is_ajax_request? or is_api_request? 
     content_type :json
     if @item
       item = @item
@@ -397,8 +401,8 @@ post '/edit/:id' do
       added_tags << newtag
     end
 
-    # only allow adding tags with api key:
-    if params[:api_secret] and params[:api_secret] == settings.api_secret 
+    # atm only allowed via api
+    if is_api_request?
       del_tags.each do |tag|
         @item.tags.each do |old_tag|
           if old_tag.tagname == tag 
@@ -420,6 +424,13 @@ post '/edit/:id' do
       {:error => error}.to_json
     else
       {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
+    end
+  elsif is_api_request? 
+    content_type :json
+    if error
+      {:error => error}.to_json
+    else
+      {:item => @item, :tags => @item.tags}.to_json
     end
   else
     flash[:error] = error 
