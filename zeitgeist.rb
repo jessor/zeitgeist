@@ -1,7 +1,16 @@
-%w(rubygems sinatra haml sass rack-flash dm-core dm-validations dm-timestamps dm-migrations dm-serializer carrierwave carrierwave/datamapper mini_magick filemagic digest/md5 json uri yaml oembed dm-pager builder).each do |gem|
-  require gem
-end
-require_relative 'remote.rb'
+require 'rubygems'
+require 'bundler/setup'
+
+Bundler.require(:default)
+
+# ruby core requirements
+require 'digest/md5'
+require 'json'
+require 'uri'
+require 'yaml'
+
+# remote url download library
+require './remote.rb'
 
 #
 # Config
@@ -239,8 +248,11 @@ post '/new' do
       downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(source)
     rescue Sinatra::ZeitgeistRemote::RemoteException => e
       error = e.message
-      puts "remote exception: #{e.message}"
-      puts e.traceback.join "\n"
+      puts "Error downloading remote source URL (#{source}): #{e.message}" 
+      puts e.backtrace
+      # error = e.message
+      # info "Error downloading remote source URL (#{source}): #{e.message}"
+      # debug e.backtrace
     else
       type = downloader.type
       if downloader.tempfile
@@ -257,8 +269,7 @@ post '/new' do
     error = 'You need to specifiy either a file or remote url for uploading!'
   end
 
-  puts upload.inspect
-
+  puts "Temporary upload: #{upload.inspect}"
   # check upload file and generate meta infos
   if not error and upload
     begin
@@ -425,3 +436,4 @@ end
 get '/stylesheet.css' do
   scss :stylesheet, :style => :compact
 end
+

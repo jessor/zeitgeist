@@ -3,6 +3,7 @@ GEM
   specs:
     activesupport (3.0.9)
     addressable (2.2.6)
+    builder (2.1.2)
     carrierwave (0.5.4)
       activesupport (~> 3.0)
     carrierwave-datamapper (0.1.1)
@@ -81,6 +82,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  builder
+  carrierwave
   carrierwave-datamapper
   dm-core
   dm-migrations

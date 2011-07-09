@@ -14,9 +14,10 @@ gem "dm-migrations"
 gem "dm-serializer"
 gem "dm-sqlite-adapter"
 gem "mini_magick"
+gem "carrierwave"
 gem "carrierwave-datamapper", :require => "carrierwave/datamapper"
-gem "ruby-filemagic"
+gem "ruby-filemagic", :require => "filemagic" 
 gem "mechanize"
-gem "ruby-oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
+gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
 gem "dm-pager"
 gem "builder"
