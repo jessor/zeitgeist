@@ -82,7 +82,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  builder
+  builder (>= 2.1.2)
   carrierwave
   carrierwave-datamapper
   dm-core

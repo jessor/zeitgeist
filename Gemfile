@@ -20,4 +20,5 @@ gem "ruby-filemagic", :require => "filemagic"
 gem "mechanize"
 gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
 gem "dm-pager"
-gem "builder"
+gem "builder", ">= 2.1.2"
+
