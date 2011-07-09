@@ -2,7 +2,9 @@ Zeitgeist ![http://stillmaintained.com/jessor/zeitgeist](http://stillmaintained.
 =========
 
 Extendable image and media gallery built with [Sinatra](http://www.sinatrarb.com).
-See it in action: [zeitgeist.li](http://zeitgeist.li) (deployed with Phusion Passenger)[http://modrails.com/]).
+
+See it in action: [zeitgeist.li](http://zeitgeist.li).
+
 This is work in progress, come and join the fun!
 
 
