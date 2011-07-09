@@ -42,6 +42,13 @@ class ImageUploader < CarrierWave::Uploader::Base
   end
 
   version :thumbnail do
+    def collapse
+      manipulate! do |img|
+        img.collapse!
+        img
+      end
+    end
+    process :collapse # to first frame for gif animations
     # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
     process :resize_to_fill => [200, 200]
   end
