@@ -90,6 +90,11 @@ class Tag
   property :tagname,    String, :unique => true
 
   has n, :items, :through => Resource
+
+  def tagname=(tag)
+    tag.downcase!
+    super
+  end
 end
 
 class Downloaderror
@@ -152,6 +157,23 @@ end
 # Routes
 # 
 
+=begin
+  / same as: /item/page/1
+  /item/page/:page        GET
+  /item/by/type/:type     GET
+  /item/by/tag/:tagname   GET
+  /item/search            GET
+  /item/search            POST   query
+  /item/:id                GET
+  /item/create             GET
+  /item/create             POST
+  /item/:id/tags/update    POST    add, del       append or delete tags to item
+  /about
+  /feed
+  /asset/2011/07/63e2cff3-[filtered original filename].[jpeg/png/gif]
+  /asset/2011/07/63e2cff3-200-[filtered original filename].[jpeg/png/gif]
+=end
+
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
   @items = Item.page(params['page'], 
@@ -181,7 +203,7 @@ end
 
 post '/embed' do
   remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(params['url'])
-  remoteplugin.oembed.html
+  remoteplugin.embed # returns html code for embedding
 end
 
 post '/search' do
@@ -259,13 +281,13 @@ post '/new' do
       # debug e.backtrace
     else
       type = downloader.type
+      filename = downloader.filename
       if downloader.tempfile
         upload = {
           :tempfile => File.open(downloader.tempfile),
           :filename => "#{fileprefix}_#{downloader.filename}"
         }
         filesize = downloader.filesize
-        filename = downloader.filename
       end
     end
 

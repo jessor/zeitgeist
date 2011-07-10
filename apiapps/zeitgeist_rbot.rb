@@ -30,6 +30,7 @@ module ::Zeitgeist
     end
 
     def by_id_or_offset(id) 
+      debug "by_id_or_offset(#{id})"
       if id < 0
         by_offset id
       else
@@ -68,7 +69,7 @@ class ZeitgeistBotPlugin < Plugin
 
   # match messages (that include urls) for tags list with this pattern
   # match groups: tags list (see self.parse_tags_list)
-  PATTERN_LISTEN_TAGS = %{^[^#]+[#] ([^#]+)[#]?[^#]+$}
+  PATTERN_LISTEN_TAGS = %{^[^#]+[#] ([^#]+)(#[^#]*)?$}
 
   # parse messages for operators with this pattern
   # match groups: item offset or id (default: -1), tags list (optional)
@@ -99,8 +100,24 @@ class ZeitgeistBotPlugin < Plugin
                                        @bot.config['zeitgeist.api_secret'])
   end
 
+  def help(plugin, topic='')
+    domain = URI.parse(@bot.config['zeitgeist.base_url']).host
+    # tags are case-insensitive | 
+    domain + " bot: grab image/video/audio urls and help tagging them: " \
+    "comma separate multiple tags |" \
+    " opt-out urls: start message with '#' | succeed a link by '# tags' to create " \
+    "with tags | you can use short operators: <op>[offset or id] [tags] " \
+    "with '~' or '^' as <op> | " \
+    "default offset -1 (last), reply url info or append/delete tags " \
+    "if specified (-tag to delete a tag)"
+  end
+
   def save
-    @registry[:zeitgeist] = Marshal::dump(@source_history)
+    debug "zeitgeist save history: #{@source_history.inspect}"
+    serialized = Marshal::dump(@source_history) 
+    @registry[:zeitgeist] = serialized
+    load_test = Marshal::load(serialized)
+    debug "zeitgeist save history load test: #{load_test.inspect}"
   end
 
   #
@@ -203,8 +220,9 @@ class ZeitgeistBotPlugin < Plugin
 
   def item_tags_edit(source, id, tags)
     history = history_by_source source
-    if (item = history.by_id_or_offset id)
-      item_or_id = item
+    item = history.by_id_or_offset(id)
+    if item
+      item_or_id = item.id
     else
       item_or_id = id
     end
@@ -225,7 +243,7 @@ class ZeitgeistBotPlugin < Plugin
   
   def item_get(source, id)
     history = history_by_source source
-    if not (item = history.by_id_or_offset id)
+    if not (item = history.by_id_or_offset(id))
       begin
         item = Zeitgeist::Item::new_existing(@api, id)
         history << item

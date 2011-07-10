@@ -14,19 +14,21 @@ module ::Zeitgeist
     def initialize(base_url, api_secret)
       @base_url = base_url
       @api_secret = api_secret
+      @agent = nil
+    end
 
+    def init_agent
       @agent = Mechanize.new
-      @agent.pre_connect_hooks << lambda do |params|
-        params[:request]['X-API-Secret'] = @api_secret
-      end
+      @agent.request_headers['X-API-Secret'] = @api_secret
       @agent.max_history = 0
       @agent.redirect_ok = false
-      @agent.keep_alive = true
+      # @agent.keep_alive = false, no longer in effect need to reinit manually now m(
     end
 
     def item_new(url, tags) # /item/new
       debug "item_new(#{url}, #{tags.inspect})"
       tags = tags.join ',' if tags.class == Array
+      url = url.first if url.class == Array
       request(url_builder('new'), {:remote_url => url, :tags => tags})
     end
 
@@ -55,7 +57,8 @@ module ::Zeitgeist
     end
     
     # makes GET request, POST if data is specified
-    def request(url, data = nil)
+    def request(url, data = nil, tries = 1)
+      init_agent if not @agent
       debug "zeitgeist http request for #{url} and #{data.inspect}" 
       begin
         if data
@@ -63,10 +66,17 @@ module ::Zeitgeist
         else
           page = @agent.get(url)
         end
-      rescue
-        debug "zeitgeist app http error: #{$!.message}"
+      rescue Exception => e
+        debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
         debug $@.join "\n"
-        raise $!
+
+        if tries < 3
+          tries+=1
+          @agent = nil
+          return request(url, data, tries)
+        end
+
+        raise e
       else
         if not page.body.empty?
           begin
