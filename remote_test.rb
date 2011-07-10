@@ -49,7 +49,24 @@ class TestRemotePlugins < Test::Unit::TestCase
     plugin = Yfrog.new 'http://yfrog.com/gywkzgj'
     assert_match(plugin.url, %r{yfrog\.com/img\d+/\d+/})
   end
+
+  def test_youtube
+    plugin = Youtube.new 'http://www.youtube.com/watch?v=PXRX47L_3yE&feature=feedbul'
+    assert_equal(plugin.title, "Medal of Honor Cat")
+    assert_match(plugin.embed, %r{embed/PXRX47L_3yE})
+  end
     
+  def test_vimeo
+    plugin = Vimeo.new 'http://vimeo.com/26134306'
+    assert_equal(plugin.title, "Eclectic Method - The Dark Side")
+    assert_match(plugin.embed, %r{<iframe src="http://player.vimeo.com})
+  end
+
+  def test_soundcloud
+    plugin = Soundcloud.new 'http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'
+    assert_equal(plugin.title, "Flux Pavilion - The Story Of Shadrok")
+    assert_match(plugin.embed, %r{<object height="81"})
+  end
 end
 
 class TestRemoteImage < Test::Unit::TestCase

@@ -203,7 +203,7 @@ end
 
 post '/embed' do
   remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(params['url'])
-  remoteplugin.oembed.html
+  remoteplugin.embed # returns html code for embedding
 end
 
 post '/search' do

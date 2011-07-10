@@ -70,8 +70,8 @@ class Plugin
     []
   end
 
-  def oembed
-    OEmbed::Providers.get(@orig_url)
+  def embed
+    OEmbed::Providers.get(@orig_url).html
   end
 
   private

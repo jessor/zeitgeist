@@ -12,8 +12,8 @@ module Sinatra::ZeitgeistRemote
       og_search 'title'
     end
 
-    def oembed
-      OEmbed::Provider.new('http://soundcloud.com/oembed').get(@orig_url)
+    def embed
+      OEmbed::Provider.new('http://soundcloud.com/oembed').get(@orig_url).html
     end
   end
 end
