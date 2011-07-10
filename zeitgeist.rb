@@ -21,8 +21,9 @@ configure do
   set :show_exceptions, false
   use Rack::Flash
   use Rack::PageSpeed, :public => 'public' do
-    store :disk
+    store :disk => 'public'
     combine_javascripts
+    minify_javascripts
   end
   enable :sessions
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']

@@ -3,3 +3,4 @@
 .sass-cache
 public/asset
 public/uploads
+public/rack-pagespeed*
