@@ -105,26 +105,27 @@ jQuery(function(){
     // Autocomplete
     $(':input.autocomplete').livequery(function() {
         $(this).autocomplete('/search', {
-                width:          300,
-                dataType:       'json',
-                // parse json response
-                parse: function(data) {
-                    return $.map(data, function(row) {
-                        return {
-                            data: row,
-                            value: row.tagname,
-                            result: row.tagname
-                        }
-                    });
-                },
-                // format items in autocomplete select box
-                formatItem: function(item) {
-                    return item.tagname;
-                }
-            })
+            width:          300,
+            dataType:       'json',
+            // parse json response
+            parse: function(data) {
+                //alert(data);
+                return $.map(data, function(row) {
+                    return {
+                        data: row,
+                        value: row.tagname,
+                        result: row.tagname
+                    }
+                });
+            },
+            // format items in autocomplete select box
+            formatItem: function(item) {
+                return item.tagname;
+            }
+        })
         // submit on selection of suggested tag
         .result(function(e, item) {
-                $(this).parent().submit();
+            $(this).parent().submit();
         });
     });
 

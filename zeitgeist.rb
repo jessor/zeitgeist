@@ -207,7 +207,7 @@ post '/embed' do
 end
 
 post '/search' do
-  @items = Tag.all(:tagname.like => "%#{params['searchquery']}%")
+  @items = Tag.all(:tagname.like => "%#{params['q']}%")
   if is_ajax_request?
     content_type :json
     @items.to_json
