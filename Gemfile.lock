@@ -1,3 +1,13 @@
+GIT
+  remote: git://github.com/c00lryguy/rack-pagespeed.git
+  revision: 376677bb0de9aa428919a45aca56d8390f64c4c7
+  ref: 376677bb0de9aa428919
+  specs:
+    rack-pagespeed (1.0.8)
+      dalli
+      jsmin
+      nokogiri
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -9,6 +19,7 @@ GEM
     carrierwave-datamapper (0.1.1)
       carrierwave
       dm-core (~> 1.0)
+    dalli (1.0.5)
     data_objects (0.10.6)
       addressable (~> 2.1)
     dm-aggregates (1.1.0)
@@ -44,6 +55,7 @@ GEM
     fastercsv (1.5.4)
     ffi (1.0.9)
     haml (3.1.2)
+    jsmin (1.0.1)
     json (1.4.6)
     livereload (1.6)
       em-dir-watcher (>= 0.1)
@@ -97,6 +109,7 @@ DEPENDENCIES
   mechanize
   mini_magick
   rack-flash
+  rack-pagespeed!
   rb-inotify
   ruby-filemagic
   ruby-oembed
