@@ -13,6 +13,7 @@ module ::Zeitgeist
 
     # make sure item is new otherwise old item will be overwritten (by id)
     def <<(item)
+      debug "<<(#{item.inspect})"
       return if not item or item.class != Item
       while @items.length > @max_size
         @items.shift
@@ -73,7 +74,7 @@ class ZeitgeistBotPlugin < Plugin
 
   # parse messages for operators with this pattern
   # match groups: item offset or id (default: -1), tags list (optional)
-  PATTERN_LISTEN_OP = %r{^[\^|~](-?[0-9]+)? ?(.*)?$}
+  PATTERN_LISTEN_OP = %r{^\.?(\^|~|zg)(-?[0-9]+)? ?(.*)?$}
 
   Config.register(Config::StringValue.new('zeitgeist.base_url',
       :default => 'http://localhost/',
@@ -88,36 +89,67 @@ class ZeitgeistBotPlugin < Plugin
 
   def initialize
     super
-    if @registry.has_key? :zeitgeist
-      @source_history = Marshal::load(@registry[:zeitgeist]) 
-      debug "use stack from registry (length:#{@source_history.length})"
-    end
-    if not @source_history
-      debug 'use empty source_history'
-      @source_history = {} #  Stack.new
-    end
+    registry_load
     @api = Zeitgeist::ZeitgeistAPI.new(@bot.config['zeitgeist.base_url'],
                                        @bot.config['zeitgeist.api_secret'])
   end
 
   def help(plugin, topic='')
     domain = URI.parse(@bot.config['zeitgeist.base_url']).host
-    # tags are case-insensitive | 
-    domain + " bot: grab image/video/audio urls and help tagging them: " \
-    "comma separate multiple tags |" \
-    " opt-out urls: start message with '#' | succeed a link by '# tags' to create " \
-    "with tags | you can use short operators: <op>[offset or id] [tags] " \
-    "with '~' or '^' as <op> | " \
-    "default offset -1 (last), reply url info or append/delete tags " \
-    "if specified (-tag to delete a tag)"
+    case topic
+
+    when 'get'
+      "zg get <index or id>: show some item information (default: -1, last in channel history)"
+    when 'add'
+      "zg add <URL> <tags>: add url using (optional) tags"
+    when 'tag'
+      "zg tag <index or id> <tags>: add or remove tags from selected item (default for index: -1, last in channel history)"
+    when 'op'
+     "shortcut to view and tag items:" \
+      "  [zg,~ or ^][offset or id] [tags] " \
+      "default offset -1 (last in channel): " \
+      "show some infos, (if specified) tags are added or deleted from the selected item" \
+      " (you need to opt-in to use the '~' and '^' shortcuts! use '.zg short-opt-in' or '.zg short-opt-out')"
+    else
+      "[help zg <topic>] " + domain + " irc interface:" \
+        " help topics: get|add|tag|op" \
+      " (notes: comma separate multiple tags | tags are case-insensitive | " \
+      "use -foo to delete a tag named foo | offsets (negative id) is valid for current channel only)" \
+      " channel messages (#{@bot.config['zeitgeist.listen_channels'].join ','}) that include links are submitted as new" \
+      " (notes: to opt-out this, start message with '#' | succeed a link by '# tags' to create " \
+      "with tags)"
+    end
+  end
+
+  def registry_load
+    if not @registry.has_key? :zeitgeist_registry
+      debug "initialize empty registry"
+    else
+      registry_data = @registry[:zeitgeist_registry]
+      debug "read existing registry data" # : #{registry.length}"
+      # registry_data = YAML::load(registry)
+      @source_history = registry_data['source_history']
+      @allow_noaddress = registry_data['allow_noaddress']
+    end
+
+
+    if not @source_history
+      @source_history = {}
+    end
+    if not @allow_noaddress
+      @allow_noaddress = []
+    end
+
   end
 
   def save
-    debug "zeitgeist save history: #{@source_history.inspect}"
-    serialized = Marshal::dump(@source_history) 
-    @registry[:zeitgeist] = serialized
-    load_test = Marshal::load(serialized)
-    debug "zeitgeist save history load test: #{load_test.inspect}"
+    registry = {
+      'source_history' => @source_history,
+      'allow_noaddress' => @allow_noaddress
+    }
+    serialized = YAML::dump(registry)
+    debug "save registry data: #{serialized.length}"
+    @registry[:zeitgeist_registry] = registry # serialized
   end
 
   #
@@ -138,9 +170,31 @@ class ZeitgeistBotPlugin < Plugin
     m.reply item_get(m.channel || m.source, id)
   end
 
+  def cmd_allow_noaddress_show(m, params)
+    if @allow_noaddress.empty?
+      m.reply 'nobody'
+    else
+      m.reply @allow_noaddress.join ', '
+    end
+  end
+
+  def cmd_allow_noaddress_add(m, params)
+    from = m.source.to_s
+    return if @allow_noaddress.include? from
+    m.reply "you can now use the shortcuts ~ and ^"
+    @allow_noaddress = [] if not @allow_noaddress or @allow_noaddress.class != Array
+    @allow_noaddress << from
+  end
+
+  def cmd_allow_noaddress_remove(m, params)
+    from = m.source.to_s
+    m.reply "opt-out complete, just use zg for op commands"
+    @allow_noaddress.delete from
+  end
+
   # listens to all messages in channel list for new urls to 
   # add or operators to edit item tags. 
-  def message(m)
+  def message(m, dummy=nil)
     response = nil
     return if m.address? or not @bot.config['zeitgeist.listen_channels'].include? m.channel.to_s
 
@@ -177,8 +231,13 @@ class ZeitgeistBotPlugin < Plugin
 
     # parse op
     if message.match PATTERN_LISTEN_OP
-      offset_or_id = $1 ? $1.strip : ''
-      tags = $2 ? $2.strip : ''
+      if $1 != 'zg' and not @allow_noaddress.include? source
+        debug "no opt-in! ignore short syntax"
+        return
+      end
+
+      offset_or_id = $2 ? $2.strip : ''
+      tags = $3 ? $3.strip : ''
       offset_or_id = -1 if offset_or_id.empty?
       offset_or_id = offset_or_id.to_i if offset_or_id.class == String
 
@@ -186,10 +245,16 @@ class ZeitgeistBotPlugin < Plugin
 
       if tags.empty? # get item 
         response = item_get(channel, offset_or_id)
-        m.reply response
+        if not response =~ /Error:/
+          m.reply response
+        end
       else
         response = item_tags_edit(channel, offset_or_id, tags)
-        m.reply response
+        if response =~ /no item found/
+          m.reply 'item not found, sorry'
+        else
+          m.reply response
+        end
       end
       response = nil # no need to log
 
@@ -197,7 +262,7 @@ class ZeitgeistBotPlugin < Plugin
     
     if response
       @bot.config['zeitgeist.log_destination'].each do |dest|
-        @bot.say(dest, "[#{source}/#{channel}] #{response}") 
+        @bot.say(dest, "[#{source}/#{channel}] #{response} (#{urls.inspect})") 
       end
     end
 
@@ -226,6 +291,7 @@ class ZeitgeistBotPlugin < Plugin
     else
       item_or_id = id
     end
+    return 'not in history, use item id' if item_or_id < 0
 
     add, del = parse_tags_list(tags)
     debug "zeitgeist add/delete tags: add:#{add.inspect} del:#{del.inspect}"
@@ -233,7 +299,7 @@ class ZeitgeistBotPlugin < Plugin
     begin
       item = Zeitgeist::Item::edit_tags(@api, item_or_id, add, del)
       history << item # NOTE: this may overwrite old items based on their id!
-      return item.to_s
+      return "##{item.id} tags: " + item.tags.join(', ')
     rescue Exception => e
       debug e.inspect
       debug $@.join "\n"
@@ -245,6 +311,7 @@ class ZeitgeistBotPlugin < Plugin
     history = history_by_source source
     if not (item = history.by_id_or_offset(id))
       begin
+        return 'not in history, use item id' if id < 0
         item = Zeitgeist::Item::new_existing(@api, id)
         history << item
         return item.to_s
@@ -269,6 +336,7 @@ class ZeitgeistBotPlugin < Plugin
     add = []
     del = []
 
+    tags.downcase!
     tags.split(',').each do |tag|
       tag.strip!
       next if tag.empty?
@@ -289,14 +357,22 @@ class ZeitgeistBotPlugin < Plugin
 end
 
 plugin = ZeitgeistBotPlugin.new
-plugin.map('zeitgeist get :index', 
+plugin.map('zg get :index', 
            :threaded => true, 
            :action => 'cmd_item_get')
-plugin.map('zeitgeist add :url [*tags]', 
+plugin.map('zg add :url [*tags]', 
            :defaults => {:tags => ''},
            :threaded => true, 
            :action => 'cmd_item_new')
-plugin.map('zeitgeist tag :index *tags', 
+plugin.map('zg tag [:index] *tags', 
            :threaded => true, 
+           :defaults => {:index => -1},
            :action => 'cmd_item_tags_edit')
+
+plugin.map('zg short-opt-show', :action => 'cmd_allow_noaddress_show') 
+plugin.map('zg short-opt-in', :action => 'cmd_allow_noaddress_add') 
+plugin.map('zg short-opt-out', :action => 'cmd_allow_noaddress_remove') 
+
+
+
 
