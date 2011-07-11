@@ -12,7 +12,7 @@ module Sinatra::ZeitgeistRemote
     end
 
     def url
-      search 'img[3]/@src' 
+      search_one 'img[3]/@src' 
     end
   end
 end

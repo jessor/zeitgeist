@@ -5,11 +5,11 @@ module Sinatra::ZeitgeistRemote
     PATTERN = %r{http[s]?://(www\.)?flickr\.com/photos/}
 
     def url
-      search '.photo-div/img/@src' 
+      search_one '.photo-div/img/@src' 
     end
 
     def title
-      search 'h1.photo-title/text()'
+      search_one 'h1.photo-title/text()'
     end
   end
 end
