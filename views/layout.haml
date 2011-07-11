@@ -39,7 +39,4 @@
       = partial(:_navigation)
       = yield
       %div.clear
-      %footer
-        %a{ :href => '#wrapper'} &uarr;
-        %div
-          %a{ :href => '/about', :class => 'fancynav' } About
+      = partial(:_footer)

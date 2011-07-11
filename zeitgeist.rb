@@ -130,7 +130,9 @@ helpers do
   alias_method :h, :escape_html
 
   def partial(page, options={})
-    haml page, options.merge!(:layout => false)
+    unless @partials == false
+      haml page, options.merge!(:layout => false)
+    end
   end
 
   def is_ajax_request?
@@ -474,6 +476,11 @@ end
 get '/feed' do
   @items = Item.all(:limit => 10, :order => [:created_at.desc])
   builder :itemfeed 
+end
+
+not_found do
+  @partials = false
+  haml :'404'
 end
 
 # compile sass stylesheet
