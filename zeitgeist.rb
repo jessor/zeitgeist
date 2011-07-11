@@ -16,22 +16,24 @@ require './remote.rb'
 # Config
 #
 configure do
-  set :haml, {:format => :html5}
-  set :raise_errors, false
-  set :show_exceptions, false
-  use Rack::Flash
-  use Rack::PageSpeed, :public => 'public' do
-    store :disk => 'public'
-    combine_javascripts
-    minify_javascripts
-  end
-  enable :sessions
-  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
-
   yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
   yaml.each_pair do |key, value|
     set(key.to_sym, value)
   end
+
+  set :haml, {:format => :html5}
+  set :raise_errors, false
+  set :show_exceptions, false
+  use Rack::Flash
+  if settings.pagespeed
+    use Rack::PageSpeed, :public => 'public' do
+      store :disk => 'public'
+      combine_javascripts
+      minify_javascripts
+    end
+  end
+  enable :sessions
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
 end
 
 #

@@ -5,6 +5,7 @@ production:
   session_secret: "fixing this for shotgun"
   items_per_page: 25
   api_secret: 'changeme'
+  pagespeed: true
 development:
   pagetitle: 'the localhost zeitgeist'
   pagedesc: 'media collected by a lonely developer'
@@ -13,3 +14,4 @@ development:
   items_per_page: 50
   datamapper_logger: :debug # show sql queries for debugging
   api_secret: 'changeme'
+  pagespeed: false
