@@ -16,7 +16,7 @@ module ::Zeitgeist
       debug "<<(#{item.inspect})"
       return if not item or item.class != Item
       while @items.length > @max_size
-        @items.shift
+       @items.shift
       end
       debug "history size: #{@items.length}"
 
@@ -75,6 +75,8 @@ class ZeitgeistBotPlugin < Plugin
   # parse messages for operators with this pattern
   # match groups: item offset or id (default: -1), tags list (optional)
   PATTERN_LISTEN_OP = %r{^\.?(\^|~|zg)(-?[0-9]+)? ?(.*)?$}
+
+  MORON_PATTERNS = [/^\^\^/]
 
   Config.register(Config::StringValue.new('zeitgeist.base_url',
       :default => 'http://localhost/',
@@ -181,7 +183,7 @@ class ZeitgeistBotPlugin < Plugin
   def cmd_allow_noaddress_add(m, params)
     from = m.source.to_s
     return if @allow_noaddress.include? from
-    m.reply "you can now use the shortcuts ~ and ^"
+    m.reply "now you can use the shortcuts ~ and ^"
     @allow_noaddress = [] if not @allow_noaddress or @allow_noaddress.class != Array
     @allow_noaddress << from
   end
@@ -227,6 +229,11 @@ class ZeitgeistBotPlugin < Plugin
       if response =~ /Duplicate/
         # .blame/lart?
       end
+    end
+
+    # and we propably don't want any of these
+    MORON_PATTERNS.each do |pattern|
+      return if message.match pattern
     end
 
     # parse op
@@ -321,6 +328,7 @@ class ZeitgeistBotPlugin < Plugin
         return e.message
       end
     else
+      item = Zeitgeist::Item::new_existing(@api, item.id)
       return item.to_s
     end
   end
