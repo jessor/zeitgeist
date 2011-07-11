@@ -14,6 +14,24 @@ jQuery(function(){
         });
     };
 
+    // Focus the next logical input field (according to the DOM)
+    // based on http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
+    $.fn.focusInputField = function(direction) {
+        return this.each(function() {
+            var fields = $(this).parents('body').find(':input[type=text]');
+            var index = fields.index( this );
+            if ( index > -1 && ( index + 1 ) < fields.length ) {
+                if(direction == 'prev') {
+                    fields.eq( index - 1 ).focus();
+                }
+                else {
+                    fields.eq( index + 1 ).focus();
+                }
+            }
+            return false;
+        });
+    };
+
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;
@@ -96,6 +114,20 @@ jQuery(function(){
     // autofocus input field
     $('input#searchquery').livequery(function() {
         $(this).focus()
+    });
+    // redirect tab to focus next/previous input[type=text] field
+    $(':input').keydown(function(e) {
+        var keycode = e.keycode || e.which;
+        // shift+tab
+        if(keycode == 9 && e.shiftKey) {
+            e.preventDefault();
+            $(this).focusInputField('prev');
+        }
+        // only tab
+        else if(keycode == 9) {
+            e.preventDefault();
+            $(this).focusInputField('next');
+        }
     });
     // hide default value on focus
     $('input#searchquery').livequery(function() {
