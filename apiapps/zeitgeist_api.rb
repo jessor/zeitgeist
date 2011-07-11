@@ -94,6 +94,15 @@ module ::Zeitgeist
         else
           page = @agent.get(url)
         end
+      rescue Mechanize::ResponseCodeError => e
+        debug "zeitgeist internal server error"
+        if page.code != 500 and page.body.empty?
+          debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
+          debug $@.join "\n"
+          raise e
+        else
+          debug "application error valid"
+        end
       rescue Exception => e
         debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
         debug $@.join "\n"
@@ -105,21 +114,21 @@ module ::Zeitgeist
         end
 
         raise e
-      else
-        if not page.body.empty?
-          begin
-            response = JSON.parse(page.body)
-            debug response.inspect
-            return response
-          rescue
-            debug "zeitgeist response not valid json? #{$!.message}"
-            debug $@.join "\n"
-            raise $!
-          end
-        else
-          debug 'empty http response from zeitgeist'
-          raise Exception.new 'empty http response from zeitgeist'
+      end
+
+      if not page.body.empty?
+        begin
+          response = JSON.parse(page.body)
+          debug response.inspect
+          return response
+        rescue
+          debug "zeitgeist response not valid json? #{$!.message}"
+          debug $@.join "\n"
+          raise $!
         end
+      else
+        debug 'empty http response from zeitgeist'
+        raise Exception.new 'empty http response from zeitgeist'
       end
     end
   end

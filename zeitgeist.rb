@@ -4,6 +4,7 @@ require 'bundler/setup'
 Bundler.require(:default)
 
 # ruby core requirements
+require 'base64'
 require 'digest/md5'
 require 'json'
 require 'uri'
@@ -16,15 +17,18 @@ require './remote.rb'
 # Config
 #
 configure do
+  set :haml, {:format => :html5}
+  set :raise_errors, false
+  set :show_exceptions, false
+  use Rack::Flash
+  enable :sessions
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
+
   yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
   yaml.each_pair do |key, value|
     set(key.to_sym, value)
   end
 
-  set :haml, {:format => :html5}
-  set :raise_errors, false
-  set :show_exceptions, false
-  use Rack::Flash
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do
       store :disk => 'public'
@@ -32,8 +36,6 @@ configure do
       minify_javascripts
     end
   end
-  enable :sessions
-  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
 end
 
 #
@@ -49,8 +51,24 @@ class ImageUploader < CarrierWave::Uploader::Base
 
   storage :file
 
+  def filename
+    make_filename
+  end
+
   def store_dir
-    "#{settings.assetpath}/"
+=begin
+    thats not gonna work... the year/month directory needs to
+    be stored somewhere else (within filename?) but the
+    thumbnail filename is not easily overwritten with model
+    instance attributes, atleast i wasn't able to figure
+    it out yet.
+
+    year_month = Time.now.strftime('%Y%m')
+    path = "#{settings.assetpath}/#{year_month}/"
+    Dir.mkdir path if not Dir.exists? path
+    path
+=end
+   "#{settings.assetpath}/"
   end
 
   def extensions_white_list
@@ -67,6 +85,26 @@ class ImageUploader < CarrierWave::Uploader::Base
     process :collapse # to first frame for gif animations
     # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
     process :resize_to_fill => [200, 200]
+  end
+
+  def make_filename(postfix='')
+    mimetype = model.mimetype
+    checksum = [model.checksum].pack('H*')
+    extension = '.' + mimetype.slice(mimetype.index('/')+1, mimetype.length)
+
+    self.class::base64_filename(store_dir, checksum, postfix + extension)
+  end
+
+  def self.base64_filename(path, hash, postfix, prefix='zg.')
+    path += '/' if path[-1] != '/'
+    (1..6).each do |k|
+      partial = hash[0...(k*3)]
+      partial = partial.ljust(k*3) if k == 6 # "impossible"
+      encoded = Base64::urlsafe_encode64(partial).downcase
+      filename = prefix + encoded + postfix
+      return filename if not File.exists?(path + filename)
+    end
+    return nil
   end
 end
 
@@ -170,22 +208,19 @@ end
 # Routes
 # 
 
-=begin
-  / same as: /item/page/1
-  /item/page/:page        GET
-  /item/by/type/:type     GET
-  /item/by/tag/:tagname   GET
-  /item/search            GET
-  /item/search            POST   query
-  /item/:id                GET
-  /item/create             GET
-  /item/create             POST
-  /item/:id/tags/update    POST    add, del       append or delete tags to item
-  /about
-  /feed
-  /asset/2011/07/63e2cff3-[filtered original filename].[jpeg/png/gif]
-  /asset/2011/07/63e2cff3-200-[filtered original filename].[jpeg/png/gif]
-=end
+error RuntimeError do
+  @error = env['sinatra.error'].message
+  if request.get?
+    # TODO: render error page ...
+  elsif is_ajax_request? or is_api_request? 
+    status 200 # much easier to handle when it response normally
+    content_type :json
+    {:error => @error}.to_json
+  else
+    flash[:error] = @error
+    redirect '/'
+  end
+end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
@@ -271,139 +306,101 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
-  notice = error = nil
+  error = nil
+  flash[:error] = nil
   type = upload = source = filename = filesize = mimetype = checksum = dimensions = nil
+
+  tags = []
+  tags = params[:tags].split(',').map { |tag| tag.strip!; tag.downcase! } if params[:tags]
+  tempfile = nil
+
   if params[:image_upload]
-    filename = params['image_upload'][:filename]
-    upload = {
-      :tempfile => params[:image_upload][:tempfile],
-      :filename => "#{fileprefix}_#{filename}"
-    }
+    type = 'image'
+    tempfile = params[:image_upload][:tempfile]
+    title = params['image_upload'][:filename]
 
-  # remote upload
-  elsif params[:remote_url] and params[:remote_url] =~ /^http[s]?:\/\//
+  elsif params[:remote_url] and not params[:remote_url].empty? # remote upload
     source = params[:remote_url]
-    begin
-      downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(source)
-    rescue Sinatra::ZeitgeistRemote::RemoteException => e
-      error = e.message
-      puts "Error downloading remote source URL (#{source}): #{e.message}" 
-      puts e.backtrace
-      # error = e.message
-      # info "Error downloading remote source URL (#{source}): #{e.message}"
-      # debug e.backtrace
-    else
-      type = downloader.type
-      filename = downloader.filename
-      if downloader.tempfile
-        upload = {
-          :tempfile => File.open(downloader.tempfile),
-          :filename => "#{fileprefix}_#{downloader.filename}"
-        }
-        filesize = downloader.filesize
+    plugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(source)
+    if not plugin
+      raise 'invalid url'
+    end
+
+    if plugin.url
+      downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(plugin)
+      begin
+        downloader.download!
+      rescue Sinatra::ZeitgeistRemote::RemoteException => e
+        puts "Error downloading remote source URL (#{source}): #{e.message}" 
+        puts $@
+        raise "#{e.message}"
+      else
+        tempfile = downloader.tempfile
       end
     end
 
+    type = plugin.type
+    title = plugin.title
+    # only existing tags:
+    plugin.tags.each do |tag|
+      tag.downcase!
+      tags << tag if Tag.first(:tagname => tag)
+    end
+    puts "new tags: " + tags.inspect
   else
-    error = 'You need to specifiy either a file or remote url for uploading!'
+    raise 'You need to specifiy either a file or remote url for uploading!'
   end
 
-  puts "Temporary upload: #{upload.inspect}"
   # check upload file and generate meta infos
-  if not error and upload
-    begin
-      mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(upload[:tempfile].path)
-      mimetype = mimetype.slice 0...mimetype.index(';')
-      if settings.allowed_mime.include? mimetype
-        type = 'image' if not type
-        upload[:content_type] = mimetype
+  if tempfile
+    mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile)
+    mimetype = mimetype.slice 0...mimetype.index(';')
 
-        # more meta information (only for image types!)
-        checksum = Digest::MD5.file(upload[:tempfile].path).to_s
-        filesize = File.size(upload[:tempfile].path) if not filesize
-        img = MiniMagick::Image.open(upload[:tempfile].path)
-        dimensions = img["dimensions"].join 'x' 
-
-        # if the file extension does not match 
-        # with the detected mimetype change it
-        ext = File.extname(upload[:filename])
-        mime_ext = '.' + mimetype.slice(mimetype.index('/')+1, mimetype.length)
-        if ext.empty? or ext != mime_ext
-          # strip existing extension:
-          upload[:filename].slice!(ext)
-
-          # append correct extension based on mimetype
-          upload[:filename] += mime_ext
-
-        end
-      else
-        error = "Image file with invalid mimetype: #{mimetype}!"
-      end
-    rescue Exception => e
-      error = "Unable to determine upload meta information: #{e.message}"
+    # mimetype not allowed? = no image file?
+    if not settings.allowed_mime.include? mimetype
+      raise "Image file with invalid mimetype: #{mimetype}!"
     end
+    
+    # more meta information (only for image types!)
+    checksum = Digest::MD5.file(tempfile).hexdigest
+    filesize = File.size(tempfile) if not filesize
+    dimensions = MiniMagick::Image.open(tempfile)["dimensions"].join 'x'
   end
 
-  if not error
-    puts "mime:#{mimetype} type:#{type} checksum:#{checksum} filesize:#{filesize} dimensions:#{dimensions}"
-
-    # for non image types hash the original url instead of
-    # (preview) image or nil
-    if type != 'image'
-      checksum = Digest::MD5.hexdigest(source)
-    end
-
-    # check for duplicate images before inserting
-    if checksum and (item = Item.first(:checksum => checksum))
-      error = "Duplicate image found based on checksum, id: #{item.id}"
-    else
-      # store in database, let carrierwave take care of the upload
-      @item = Item.new(:type => type, :image => upload, :source => source,
-                  :name => filename[0...49], :size => filesize, :mimetype => mimetype,
-                  :checksum => checksum, :dimensions => dimensions)
-      if not @item.save
-        error = "#{@item.errors.full_messages.inspect}"
-      else
-        # save new tags if present
-        if params[:tags]
-          params[:tags].split(',').each do |newtag|
-            newtag.strip!
-            tag = Tag.first_or_create(:tagname => newtag)
-            if not tag.save
-              error = "#{tag.errors}"
-              break
-            end
-            @item.tags << tag
-          end
-          @item.save # save the new associations
-        end
-      end
-    end
+  # for non image types hash the original url instead of
+  # (preview) image or nil
+  if type != 'image'
+    checksum = Digest::MD5.hexdigest(source)
   end
 
-  # upload error:
-  if type and not error
-    notice = "New item added successfully."
+  # check for duplicate images before inserting
+  if checksum and (item = Item.first(:checksum => checksum))
+    raise "Duplicate image found based on checksum, id: #{item.id}"
   end
+
+  # store in database, let carrierwave take care of the upload
+  @item = Item.new(:type => type, :image => File.open(tempfile), :source => source,
+              :name => title[0...49], :size => filesize, :mimetype => mimetype,
+              :checksum => checksum, :dimensions => dimensions)
+
+  if not @item.save
+    raise "error saving item: #{@item.errors.full_messages.inspect}"
+  end
+
+  tags.each do |newtag|
+    tag = Tag.first_or_create(:tagname => newtag)
+    if not tag.save 
+      raise "error saving tags: #{tag.errors.full_messages.inspect}" 
+    end
+    @item.tags << tag
+  end
+  @item.save # save the new associations
 
   if is_ajax_request? or is_api_request? 
     content_type :json
-    if @item
-      item = @item
-      tags = @item.tags
-    else
-      item = nil
-      tags = nil
-    end
-    {
-      :error => error, 
-      :notice => notice,
-      :item => item,
-      :tags => tags
-    }.to_json
+    {:item => @item, :tags => @item.tags}.to_json
   else
-    flash[:error] = error
-    flash[:notice] = notice
+    flash[:notice] = 'New item added successfully.'
     redirect '/'
   end
 end
