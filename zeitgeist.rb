@@ -129,6 +129,10 @@ helpers do
   include Rack::Utils
   alias_method :h, :escape_html
 
+  def partial(page, options={})
+    haml page, options.merge!(:layout => false)
+  end
+
   def is_ajax_request?
     if respond_to? :content_type
       if request.xhr?
