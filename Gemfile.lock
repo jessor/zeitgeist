@@ -1,9 +1,8 @@
 GIT
-  remote: git://github.com/c00lryguy/rack-pagespeed.git
-  revision: 376677bb0de9aa428919a45aca56d8390f64c4c7
-  ref: 376677bb0de9aa428919
+  remote: git://github.com/jessor/rack-pagespeed.git
+  revision: fed8e2d67f7e23335431c5be46f6ecea47e16913
   specs:
-    rack-pagespeed (1.0.8)
+    rack-pagespeed (1.0.9)
       dalli
       jsmin
       nokogiri

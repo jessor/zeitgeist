@@ -21,4 +21,4 @@ gem "mechanize"
 gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
 gem "dm-pager"
 gem "builder", ">= 2.1.2"
-gem "rack-pagespeed", :git => 'git://github.com/c00lryguy/rack-pagespeed.git', :ref => '376677bb0de9aa428919'
+gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
