@@ -102,7 +102,7 @@ jQuery(function(){
                 $element.parent().css({'overflow': 'visible', 'height': 'auto'});
             },
             onCollapse:     function($element) {
-                $element.parent().css({'overflow': 'hidden', 'height': '25px'});
+                $element.parent().css({'overflow': 'hidden', 'height': '22px'});
             }
         });
     });
