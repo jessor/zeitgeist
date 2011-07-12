@@ -16,6 +16,29 @@ class TestRemotePlugins < Test::Unit::TestCase
     Sinatra::Application
   end
 
+  def test_url_patterns
+    {
+      nil        => ['this.is.not.a.url!'],
+      Plugin     => ['http://example.com/a/generic/url.jpg'],
+      Flickr     => ['http://www.flickr.com/photos/kintel/5693336211/'],
+      Fukung     => ['http://fukung.net/v/6873/catparrot.jpg'],
+      Imageshack => ['http://imageshack.us/photo/my-images/20/test42x42.png/'],
+      Imgur      => ['http://imgur.com/vXUwn'],
+      Soundcloud => ['http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'],
+      Twitpic    => ['http://twitpic.com/5lg4ai'],
+      Vimeo      => ['http://vimeo.com/26134306'],
+      Yfrog      => ['http://yfrog.com/gywkzgj'],
+      Youtube    => ['http://www.youtube.com/watch?v=PXRX47L_3yE&feature=feedbul']
+    }.each_pair do |plugin, urls|
+      urls.each do |url|
+        assert_equal(
+          plugin, 
+          Plugins::plugin_by_url(url).class, 
+          "expect plugin (#{plugin.class}) for url: #{url}")
+      end
+    end
+  end
+
   def test_imgur
     plugin = Imgur.new 'http://imgur.com/vXUwn'
     assert_equal(plugin.url, 'http://i.imgur.com/vXUwn.png')
@@ -54,18 +77,26 @@ class TestRemotePlugins < Test::Unit::TestCase
     plugin = Youtube.new 'http://www.youtube.com/watch?v=PXRX47L_3yE&feature=feedbul'
     assert_equal(plugin.title, "Medal of Honor Cat")
     assert_match(plugin.embed, %r{embed/PXRX47L_3yE})
+    assert(plugin.tags.include?("freddiyw"), 
+          "tags not scraped correctly? #{plugin.tags.inspect}")
   end
     
   def test_vimeo
     plugin = Vimeo.new 'http://vimeo.com/26134306'
     assert_equal(plugin.title, "Eclectic Method - The Dark Side")
     assert_match(plugin.embed, %r{<iframe src="http://player.vimeo.com})
+    assert(plugin.tags.include?("star wars"), 
+          "tags not scraped correctly? #{plugin.tags.inspect}")
   end
 
   def test_soundcloud
     plugin = Soundcloud.new 'http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'
     assert_equal(plugin.title, "Flux Pavilion - The Story Of Shadrok")
     assert_match(plugin.embed, %r{<object height="81"})
+    plugin = Soundcloud.new 'http://soundcloud.com/plugexpert/db-proj-plugexpert-rmx'
+    assert(plugin.tags.include?("drumandbass"), 
+          "tags not scraped correctly? #{plugin.tags.inspect}")
+    
   end
 end
 
@@ -74,40 +105,64 @@ class TestRemoteImage < Test::Unit::TestCase
     Sinatra::Application
   end
 
-  def test_remote_image
+=begin
+  attr_reader :plugin, :type, :tempfile, :mimetype, :filesize 
+
+  def initialize(plugin)
+    plugin = Plugins::plugin_by_url(plugin) if plugin.class == String
+    @plugin = plugin
+    @type = @plugin.class::TYPE
+    @tempfile = nil
+    @mimetype = nil
+    @filesize = nil
+  end
+=end
+
+  def test_remote_downloader_twitpic
     # using twitpic plugin
-    remote = RemoteDownloader.new('http://twitpic.com/5lg4ai')
+    plugin = Plugins::plugin_by_url 'http://twitpic.com/5lg4ai'
+    remote = RemoteDownloader.new plugin
+    remote.download!
     puts remote.tempfile
-    assert_equal(remote.mimetype, 'image/png')
-    assert_equal(remote.filesize, 568)
+    assert_equal('image/png', remote.mimetype)
+    assert_equal(568, remote.filesize)
     assert_equal(Digest::MD5.file(remote.tempfile).to_s, '40a0e920a34f218c17981d296b9ecc3e')
+  end
 
+  def test_remote_downloader_imgur
     # using imgur plugin
-    remote = RemoteDownloader.new('http://imgur.com/qbJ52')
+    plugin = Plugins::plugin_by_url 'http://imgur.com/qbJ52'
+    remote = RemoteDownloader.new plugin
+    remote.download!
     puts remote.tempfile
-    assert_equal(remote.mimetype, 'image/png')
-    assert_equal(remote.filesize, 568)
+    assert_equal('image/png', remote.mimetype)
+    assert_equal(568, remote.filesize)
     assert_equal(Digest::MD5.file(remote.tempfile).to_s, '40a0e920a34f218c17981d296b9ecc3e')
+  end
 
+  def test_remote_downloader_generic
     # using the default plugin
-    remote = RemoteDownloader.new('http://apoc.cc/test_42x42.png')
+    plugin = Plugins::plugin_by_url 'http://apoc.cc/test_42x42.png'
+    remote = RemoteDownloader.new plugin
+    remote.download!
     puts remote.tempfile
-    assert_equal(remote.mimetype, 'image/png')
-    assert_equal(remote.filesize, 568)
+    assert_equal('image/png', remote.mimetype)
+    assert_equal(568, remote.filesize)
     assert_equal(Digest::MD5.file(remote.tempfile).to_s, '40a0e920a34f218c17981d296b9ecc3e')
+  end
 
+  def test_remote_downloader_errors
     # test error handling:
     # not an image
+    plugin = Plugins::plugin_by_url 'http://apoc.cc/'
+    remote = RemoteDownloader.new plugin
     assert_raise(RemoteException) do
-      remote = RemoteDownloader.new('http://apoc.cc/')
+      remote.download!
     end
     # 404:
+    remote = RemoteDownloader.new('http://apoc.cc/this_never_exists')
     assert_raise(RemoteException) do
-      remote = RemoteDownloader.new('http://apoc.cc/this_never_exists')
-    end
-    # dns error:
-    assert_raise(RemoteException) do
-      remote = RemoteDownloader.new('http://icann_wouldnt_be.that_stupid/')
+      remote.download!
     end
   end
 end

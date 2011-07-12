@@ -9,7 +9,7 @@ module Sinatra::ZeitgeistRemote
     end
 
     def url # return url to preview image
-      preview_url = search 'meta[@property="og:image"]/@content'
+      preview_url = og_search 'image'
       if preview_url.include? 'ytimg.com'
         preview_url.gsub(/default\.jpg/, 'hqdefault.jpg')
       else
@@ -18,7 +18,11 @@ module Sinatra::ZeitgeistRemote
     end
 
     def title
-      search 'meta[@name="title"]/@content'
+      search_one 'meta[@name="title"]/@content'
+    end
+
+    def tags
+      search '#eow-tags li a/text()'
     end
 
     def embed
@@ -33,10 +37,9 @@ yt
     private
 
     def video_id
-      id = match(/'VIDEO_ID': "([^"]+)",/).first
+      id = match_one /'VIDEO_ID': "([^"]+)",/
       if not id
-        @orig_url.match /v=([^&]+)/
-        id = $1
+        id = @orig_url.match(/v=([^&]+)/)[1]
       end
       return id
     end

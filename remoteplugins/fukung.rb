@@ -5,13 +5,11 @@ module Sinatra::ZeitgeistRemote
     PATTERN = %r{http[s]?://(www\.)?fukung\.net/}
 
     def url
-      search 'link[@rel="image_src"]/@href' 
+      search_one 'link[@rel="image_src"]/@href' 
     end
 
     def tags
-      search('#taglist a/text()').map do |tag|
-        tag.content
-      end
+      search '#taglist a/text()'
     end
   end
 end

@@ -1,3 +1,31 @@
+=begin
+
+you can use this api in any ruby application to post urls,
+add and delete tags:
+
+api = Zeitgeist::ZeitgeistAPI.new('http://zeitgeist.li/', 'changeme')
+
+# get item:
+item = Zeitgeist::Item::new_existing(api, 1234)
+item.id
+item.type
+item.source
+item.tags
+item.image
+item.name
+item.size
+item.mimetype
+item.dimensions
+
+# create new item:
+Zeitgeist::Item::new_create(api, 
+  'http://example.com/resource/link.png', 
+  ['tags', 'to', 'add'])
+
+# add or delete tags:
+Zeitgeist::Item::edit_tags(api, 1234, ['add', 'tags'], ['del', 'tags'])
+
+=end
 
 begin
 require 'rubygems'
@@ -66,6 +94,15 @@ module ::Zeitgeist
         else
           page = @agent.get(url)
         end
+      rescue Mechanize::ResponseCodeError => e
+        debug "zeitgeist internal server error"
+        if page.code != 500 and page.body.empty?
+          debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
+          debug $@.join "\n"
+          raise e
+        else
+          debug "application error valid"
+        end
       rescue Exception => e
         debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
         debug $@.join "\n"
@@ -77,27 +114,27 @@ module ::Zeitgeist
         end
 
         raise e
-      else
-        if not page.body.empty?
-          begin
-            response = JSON.parse(page.body)
-            debug response.inspect
-            return response
-          rescue
-            debug "zeitgeist response not valid json? #{$!.message}"
-            debug $@.join "\n"
-            raise $!
-          end
-        else
-          debug 'empty http response from zeitgeist'
-          raise Exception.new 'empty http response from zeitgeist'
+      end
+
+      if not page.body.empty?
+        begin
+          response = JSON.parse(page.body)
+          debug response.inspect
+          return response
+        rescue
+          debug "zeitgeist response not valid json? #{$!.message}"
+          debug $@.join "\n"
+          raise $!
         end
+      else
+        debug 'empty http response from zeitgeist'
+        raise Exception.new 'empty http response from zeitgeist'
       end
     end
   end
 
   class Item
-    attr_reader :id
+    attr_reader :id, :tags
 
     #
     # objects of this class may safely be serialized
@@ -180,5 +217,4 @@ module ::Zeitgeist
   end
 
 end # Zeitgeist module
-
 

@@ -11,6 +11,7 @@
 require 'sinatra/base'
 require 'mechanize' # for scraping of meta data and image url
 require 'open-uri' # for the chunked downloading
+require 'uri'
 
 module Sinatra
 module ZeitgeistRemote
@@ -22,6 +23,7 @@ module Plugins
   # iterate all classes within Plugins namespace and test url
   # for matching PATTERN:
   def self.plugin_by_url(url)
+    return nil if not url =~ URI::regexp
     Plugins::constants.each do |const|
       plugin = Plugins::const_get(const)
       return plugin.new(url) if plugin.class == Class and 
@@ -40,8 +42,14 @@ end
 class Plugin
   TYPE = 'image' 
 
+  # initialize with the original remote url
+  # this default plugin assumes an image/ resource
   def initialize(orig_url)
     @orig_url = orig_url
+  end
+
+  def type
+    self.class::TYPE
   end
 
   # original url (can point to html page)
@@ -50,20 +58,19 @@ class Plugin
   end
 
   # should return url to an image/png,jpg,gif file
+  # or nil if there isn't one (image/audio without preview pic)
   def url
     # defines the default behaviour: no change in remote image url
+    # other remote plugins may overwrite this behaviour and scrape
+    # the image link from html (along other information)
     @orig_url
   end
 
-  def filename
-    url = self.url || @orig_url
-    filename = File.basename(URI.parse(url).path)
-    filename.gsub!(/[^a-zA-Z0-9_\-\.]/, '')
-    return filename
-  end
-
+  # the extracted content title or original filename
   def title
-    nil
+    path = URI.parse(url).path
+    filename = File.basename(path)
+    return filename.gsub('/', '')
   end
 
   def tags
@@ -101,94 +108,80 @@ class Plugin
     @page
   end
 
-  def match(pattern)
-    if not @page
-      # implicit fetch the page of the url
-      @page = get
+  def scan(pattern)
+    # implicit fetch the page of the url
+    get if not @page
+    return if not @page
+
+    result = @page.body.scan pattern
+    if result.empty?
+      raise RemoteException.new(
+        "url scraping failed regex matching of '#{pattern}' for #{@url}")
     end
 
-    if @page
-      result = @page.body.scan pattern
-      puts "search result for #{pattern} : #{result.inspect}"
-      if result
-        if result.length == 1
-          return result[0]
-        else
-          return result
-        end
-      else
-        raise RemoteException.new(
-          "url scraping failed regex matching of '#{pattern}' for #{@url}")
-      end
-    end
+    puts "search result for #{pattern} : #{result.inspect}"
+
+    return result
+  end
+
+  def match(pattern)
+    scan(pattern).first
+  end
+
+  def match_one(pattern)
+    match(pattern).first
   end
 
   def search(selector)
-    if not @page
-      # implicit fetch the page of the url
-      @page = get
+    # implicit fetch the page of the url
+    get if not @page
+    return if not @page
+
+    result = @page.search selector
+    if not result
+      raise RemoteException.new(
+        "url scraping failed parsing of '#{selector}' for #{@url}")
     end
 
-    if @page
-      result = @page.search selector
-      if result
-        if result.length == 1
-          return result[0].content
-        else
-          return result
-        end
+    puts "search selector #{selector}: #{result.inspect}"
+    return [] if result.length == 0
+
+    # convert to simple array of strings
+    result = result.map do |elem|
+      case elem
+      when Nokogiri::XML::Text
+        elem.content
+      when Nokogiri::XML::Attr
+        elem.value
       else
-        raise RemoteException.new(
-          "url scraping failed parsing of '#{selector}' for #{@url}")
+        elem
       end
     end
 
-    return ''
+    return result
+  end
+
+  def search_one(selector)
+    search(selector).first
   end
 
   def og_search(property)
-    search 'meta[@property="og:' + property + '"]/@content'
+    search_one 'meta[@property="og:' + property + '"]/@content'
   end
 
 end # end class plugin
 
 class RemoteDownloader
-  attr_reader :type, :orig_url, :url, :filename, :tempfile, :mimetype, :filesize, :tags, :title 
+  attr_reader :plugin, :type, :tempfile, :mimetype, :filesize 
 
-  def initialize(orig_url)
-    @url = nil
-    @filename = nil
+  def initialize(plugin)
+    plugin = Plugins::plugin_by_url(plugin) if plugin.class == String
+    @plugin = plugin
+    @type = @plugin.class::TYPE
     @tempfile = nil
     @mimetype = nil
     @filesize = nil
-    @orig_url = orig_url
-
-    # dynamically instanciate plugin based on orig_url
-    @plugin = Plugins::plugin_by_url(orig_url)
-    @type = @plugin.class::TYPE
-
-    puts "selected plugin: #{@plugin.class.to_s}"
-
-    # specific site plugins may scrape for the correct values:
-    begin
-      @url = @plugin.url # default: the same as orig_url
-      @tags = @plugin.tags # []
-      @title = @plugin.title # nil
-      @filename = @plugin.filename
-    rescue Exception => e
-      # do not fail just yet,
-      # log the exception and try with the original url
-      puts "plugin failure: #{e.message}"
-      puts e.backtrace.join("\n")
-      @url = @orig_url
-      @tags = []
-      @title = []
-    end
-
-    download if @url
   end
-
-  private
 
   IMAGE_SIGNATURE = {
     'image/jpeg' => "\xFF\xD8",
@@ -200,7 +193,7 @@ class RemoteDownloader
   # Performs a simple header/signature test before downloading
   # the complete image. Writes a temporary file and sets mime
   # and filesize attributes.
-  def download
+  def download!
     # generate temp name:
     begin
       @tempfile = "#{settings.remote_temp_path}/zeitgeist-remote-" + 
@@ -219,20 +212,20 @@ class RemoteDownloader
     }
     # TODO: should also check the received content type
 
-    puts "fetch #{@url}"
-    begin
-      if settings.remote_proxy_host
-        proxy_uri = "http://#{settings.remote_proxy_host}:#{settings.remote_proxy_port}/"
-        if settings.remote_proxy_user
-          open_args[:proxy_http_basic_authentication] = [
-            proxy_uri, settings.remote_proxy_user, settings.remote_proxy_pass
-          ]
-        else
-          open_args[:proxy] = proxy_uri
-        end
+    if settings.remote_proxy_host
+      proxy_uri = "http://#{settings.remote_proxy_host}:#{settings.remote_proxy_port}/"
+      if settings.remote_proxy_user
+        open_args[:proxy_http_basic_authentication] = [
+          proxy_uri, settings.remote_proxy_user, settings.remote_proxy_pass
+        ]
+      else
+        open_args[:proxy] = proxy_uri
       end
+    end
 
-      open(@url, 'r', open_args) do |input|
+    puts "fetch #{@plugin.url}"
+    begin
+      open(@plugin.url, 'r', open_args) do |input|
         # first read the image header/signature to verify image
         # very preliminary test, but doesnt really matter
         max_sigsize = IMAGE_SIGNATURE.values.max { |a, b| a.length <=> b.length }.length
@@ -268,13 +261,13 @@ class RemoteDownloader
       end # end uri-open
     rescue OpenURI::HTTPError => e
       raise RemoteException.new(
-        "http error occured, downloading remote url (#{@url}) failed: #{e.message}")
+        "http error occured, downloading remote url (#{@plugin.url}) failed: #{e.message}")
     rescue URI::InvalidURIError => e
       raise RemoteException.new(
-        "looks like an invalid url (#{@url}), failed: #{e.message}")
+        "looks like an invalid url (#{@plugin.url}), failed: #{e.message}")
     rescue Exception => e
       raise RemoteException.new(
-        "something went wrong during downloading of url (#{@url}): #{e.message}")
+        "something went wrong during downloading of url (#{@plugin.url}): #{e.message}")
     end
   end 
 end
