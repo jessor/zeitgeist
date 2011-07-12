@@ -18,7 +18,7 @@ class TestRemotePlugins < Test::Unit::TestCase
 
   def test_url_patterns
     {
-      nil        => ['this.is.not.a.url!'],
+      NilClass   => ['this.is.not.a.url!'],
       Plugin     => ['http://example.com/a/generic/url.jpg'],
       Flickr     => ['http://www.flickr.com/photos/kintel/5693336211/'],
       Fukung     => ['http://fukung.net/v/6873/catparrot.jpg'],
@@ -63,6 +63,11 @@ class TestRemotePlugins < Test::Unit::TestCase
     assert_equal(plugin.tags, ["thegame", "animals", "tbag8uk"])
   end  
 
+  def test_picpaste
+    plugin = Picpaste.new 'http://picpaste.com/test_42x42.png'
+    assert_match(plugin.url, %r{http://picpaste.com/pics/test_42x42.\d+.png})
+  end  
+
   def test_imageshack
     plugin = Imageshack.new 'http://imageshack.us/photo/my-images/20/test42x42.png/'
     assert_match(plugin.url, %r{imageshack\.us/[^/]+/[^/]+/test42x42\.png})
@@ -93,8 +98,8 @@ class TestRemotePlugins < Test::Unit::TestCase
     plugin = Soundcloud.new 'http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'
     assert_equal(plugin.title, "Flux Pavilion - The Story Of Shadrok")
     assert_match(plugin.embed, %r{<object height="81"})
-    plugin = Soundcloud.new 'http://soundcloud.com/plugexpert/db-proj-plugexpert-rmx'
-    assert(plugin.tags.include?("drumandbass"), 
+    plugin = Soundcloud.new 'http://soundcloud.com/shlohmo/shell-of-light-shlohmo-remix'
+    assert(plugin.tags.include?("remix"), 
           "tags not scraped correctly? #{plugin.tags.inspect}")
     
   end
@@ -104,19 +109,6 @@ class TestRemoteImage < Test::Unit::TestCase
   def app
     Sinatra::Application
   end
-
-=begin
-  attr_reader :plugin, :type, :tempfile, :mimetype, :filesize 
-
-  def initialize(plugin)
-    plugin = Plugins::plugin_by_url(plugin) if plugin.class == String
-    @plugin = plugin
-    @type = @plugin.class::TYPE
-    @tempfile = nil
-    @mimetype = nil
-    @filesize = nil
-  end
-=end
 
   def test_remote_downloader_twitpic
     # using twitpic plugin
