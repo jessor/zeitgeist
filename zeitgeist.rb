@@ -92,6 +92,14 @@ class Item
 
       self.type = @plugin.type
       self.title = @plugin.title[0..49]
+      if @plugin.tags
+        @plugin.tags.each do |tagname|
+          # only add existing tags as association:
+          tagname.downcase!; tagname.strip!
+          tag = Tag.first(:tagname => tagname)
+          self.tags << tag if tag
+        end
+      end
     end
 
     if tempfile # temporary fileupload
@@ -154,8 +162,8 @@ class Tag
 
   has n, :items, :through => Resource
 
-  def tagname=(tag)
-    tag.downcase!
+  def tagname=(tag) # overwrite assignment
+    tag.downcase!; tag.strip!
     super
   end
 end
