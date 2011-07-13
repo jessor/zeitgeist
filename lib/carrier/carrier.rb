@@ -109,8 +109,10 @@ module Sinatra::Carrier
     # it should be ensured that this is called anyways 
     # even if an error occurred!
     def cleanup!
-      File.unlink @image if @image and File.exists? @image
-      File.unlink @thumbnail if @thumbnail and File.exists? @thumbnail
+      if settings.delete_tmp_file_after_storage
+        File.unlink @image if @image and File.exists? @image
+        File.unlink @thumbnail if @thumbnail and File.exists? @thumbnail
+      end
     end
 
     # its not really guaranteed that this method is used by storage
@@ -142,6 +144,7 @@ module Sinatra::Carrier
     puts 'register'
     app.set :asset_path => './public/asset'
     app.set :carrier_store => 'local'
+    app.set :delete_tmp_file_after_storage => true
   end
 
 end # Sinatra/Carrier

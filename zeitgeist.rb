@@ -60,7 +60,7 @@ class Item
   # image meta information
   property :size,       Integer
   property :mimetype,   String
-  property :checksum,   String
+  property :checksum,   String, :unique => true
   property :dimensions, String
 
   # taggings
@@ -103,6 +103,10 @@ class Item
         self.mimetype = localtemp.mimetype
         self.checksum = localtemp.checksum
         self.size = localtemp.filesize if not @plugin
+
+        if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
+          raise "Duplicate image found based on checksum, id: #{item.id}"
+        end
 
         # store file in configured storage
         self.image = localtemp.store!
@@ -332,7 +336,7 @@ post '/new' do
     raise 'You should select either an upload or an remote url!'
   end
 
-  # store in database, let carrierwave take care of the upload
+  # store in database, the before save hook downloads/proccess the file
   @item = Item.new(:image => tempfile, :source => source)
   if @item.save
     # successful? append new tags:

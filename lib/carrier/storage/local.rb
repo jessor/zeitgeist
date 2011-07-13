@@ -20,11 +20,21 @@ module Sinatra::Carrier
         thumbnail_local = localpath thumbnail
         puts "move temporary image to local storage: #{image_local}"
         puts "move temporary thumbnail to local storage: #{thumbnail_local}"
-        if not File.exists? image_local
-          FileUtils.mv(temp.image, image_local)
-        end
-        if not File.exists? thumbnail_local
-          FileUtils.mv(temp.thumbnail, thumbnail_local)
+
+        if settings.delete_tmp_file_after_storage
+          if not File.exists? image_local
+            FileUtils.mv(temp.image, image_local)
+          end
+          if not File.exists? thumbnail_local
+            FileUtils.mv(temp.thumbnail, thumbnail_local)
+          end
+        else
+          if not File.exists? image_local
+            FileUtils.copy(temp.image, image_local)
+          end
+          if not File.exists? thumbnail_local
+            FileUtils.copy(temp.thumbnail, thumbnail_local)
+          end
         end
 
         super + [image, thumbnail].join('|')
