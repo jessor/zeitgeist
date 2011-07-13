@@ -259,8 +259,8 @@ class ZeitgeistBotPlugin < Plugin
         response = item_tags_edit(channel, offset_or_id, tags)
         if response =~ /no item found/
           m.reply 'item not found, sorry'
-        else
-          m.reply response
+        #else
+        #  m.reply response
         end
       end
       response = nil # no need to log
@@ -372,6 +372,10 @@ plugin.map('zg add :url [*tags]',
            :defaults => {:tags => ''},
            :threaded => true, 
            :action => 'cmd_item_new')
+plugin.map('zg del :id', 
+           :defaults => {:tags => ''},
+           :threaded => true, 
+           :action => 'cmd_item_del')
 plugin.map('zg tag [:index] *tags', 
            :threaded => true, 
            :defaults => {:index => -1},

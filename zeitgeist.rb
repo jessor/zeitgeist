@@ -129,6 +129,14 @@ class Item
     end
   end
 
+  after :destroy do
+    # get and destory file storage
+    identifier = attribute_get(:image)
+    return if not identifier
+    store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
+    store.destroy! identifier
+  end
+
   # the image property should return the URI for thumbnail
   # and full-sized image
   def image
