@@ -1,29 +1,26 @@
-#sinatra_authentication
-  %h1.page_title Users
-  %table
+%table
+  %tr
+    %th user
+    %th level
+    -#%th show
+    %th edit
+    %th delete
+  - @users.each do |user|
     %tr
-      %th
+      %td
+        - if user.email
+          = user.email
+        - else
+          "user #{user.id}"
       - if current_user.admin?
-        %th permission level
-    - @users.each do |user|
-      %tr
+        %td= user.permission_level
+      -#%td
+        -#%a{ :href => "/users/#{user.id}" } show
+      - if current_user.admin?
         %td
-          - if user.email
-            = user.email
-          - elsif user.fb_uid
-            <fb:name uid=#{user.fb_uid} />
+          %a{ :href => "/users/#{user.id}/edit" } edit
+        %td
+          - if !user.site_admin?
+            %a{ :href => "/users/#{user.id}/delete", :onclick => "return confirm('you sure?')" } delete
           - else
-            "user #{user.id}"
-        - if current_user.admin?
-          %td= user.permission_level
-        %td
-          %a{:href => "/users/#{user.id}"} show
-        - if current_user.admin?
-          %td
-            %a{:href => "/users/#{user.id}/edit"} edit
-          %td
-            -# this doesn't work for tk
-            - if !user.site_admin?
-              %a{:href => "/users/#{user.id}/delete", :onclick => "return confirm('you sure?')"} delete
-            - else
-              site admin
+            site admin

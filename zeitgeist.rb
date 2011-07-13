@@ -22,11 +22,12 @@ configure do
     set(key.to_sym, value)
   end
 
-  use Rack::Session::Cookie, :secret => settings.racksession_secret
+  #use Rack::Session::Cookie, :secret => settings.racksession_secret
   use Rack::Flash
   enable :sessions
   set :haml, {:format => :html5}
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
+  set :sinatra_authentication_view_path, 'views/auth_'
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do

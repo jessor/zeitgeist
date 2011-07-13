@@ -107,6 +107,12 @@ a:hover {
     color: $white;
 }
 
+table td,
+table th {
+    padding: 0 10px;
+    text-align: left;
+}
+
 #wrapper {
     margin: 20px;
 }
@@ -439,9 +445,16 @@ input {
     @include rounded(5px);
     /*@include boxshadow;*/
 }
-
+            
 input:focus {
     @include hovershadow($highlight);
+}
+ 
+input[type="text"],
+input[type="password"] {
+    background-repeat: no-repeat;
+    background-position: 4px 4px;
+    padding-left: 25px;
 }
 
 input[type="submit"] {
@@ -464,18 +477,12 @@ input[type="submit"]:hover {
     @include hovershadow($highlight);
 }
 
-input[type=text] {
-    background-repeat: no-repeat;
-    background-position: 4px 4px;
-    padding-left: 25px;
-}
-
 .formbox {
     background: $border;
     border: 3px solid $darkground;
     padding: 3px 0 0;
     margin: auto;
-    width: 520px;
+    width: 400px;
 }
 
 form#create {
@@ -509,9 +516,6 @@ form#create {
     }
 }
 
-
-
-
 form.tag {
     margin-top: 5px;
 
@@ -521,6 +525,17 @@ form.tag {
 
     input.tagpush {
         margin-left: 5px;
+    }
+}
+
+form.auth {
+
+    input#user_email {
+        background-image: url('images/email.png');
+    }
+
+    input[type="password"] {
+        background-image: url('/images/password.png');
     }
 }
 
