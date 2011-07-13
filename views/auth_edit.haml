@@ -1,0 +1,22 @@
+%form{ :action => "/users/#{@user.id}/edit", :method => "post", :class => 'formbox auth' }
+  %fieldset
+    %ol
+      %li
+        %label{ :for => "user_email" } Email
+        %input{ :id => "user_email", :name => "user[email]", :size => 30, :type => "text", :value => @user.email }
+      %li
+        %label{ :for => "user_password" } New password
+        %input{ :id => "user_password", :name => "user[password]", :size => 30, :type => "password" }
+      %li
+        %label{ :for => "user_password_confirmation" } Confirm
+        %input{ :id => "user_password_confirmation", :name => "user[password_confirmation]", :size => 30, :type => "password" }
+      - if current_user.admin? && current_user.id != @user.id
+        %li
+          %label{ :for => 'permission_level' }  Permission level
+          %select{ :id => "permission_level", :name => "user[permission_level]" }
+          %option{ :value => -1, :selected => @user.admin? }
+            Admin
+          %option{ :value => 1, :selected => @user.permission_level == 1 }
+            Authenticated user
+      %li.last
+        %input{ :value => "Update", :type => "submit" }

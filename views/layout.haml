@@ -34,6 +34,15 @@
         %p
           = flash[:notice]
         %div#dump
+    #sitenav
+      %a{ :href => '/new', :class => 'fancynav' } Add
+      |
+      %a{ :href => '/search', :class => 'fancynav' } Search
+      |
+      - if logged_in?
+        %a{ :href => '/logout' } Logout
+      - else
+        %a{ :href => '/login', :class => 'fancynav' } Login
     = partial(:_header)
     #wrapper
       = partial(:_navigation)

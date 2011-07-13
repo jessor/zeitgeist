@@ -18,7 +18,7 @@ jQuery(function(){
     // based on http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
     $.fn.focusInputField = function(direction) {
         return this.each(function() {
-            var fields = $(this).parents('body').find(':input[type=text]');
+            var fields = $(this).parents('body').find(':input[type=text], :input[type=password]');
             var index = fields.index( this );
             if ( index > -1 && ( index + 1 ) < fields.length ) {
                 if(direction == 'prev') {

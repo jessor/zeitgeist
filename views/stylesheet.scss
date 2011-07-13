@@ -107,6 +107,12 @@ a:hover {
     color: $white;
 }
 
+table td,
+table th {
+    padding: 0 10px;
+    text-align: left;
+}
+
 #wrapper {
     margin: 20px;
 }
@@ -143,6 +149,18 @@ header {
     margin: 0 auto;
     text-align: center;
     width: 800px;
+}
+
+#sitenav {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: $border;
+    border: 3px solid $darkground;
+    padding: 2px;
+    text-align: right;
+    font-size: 80%;
+    z-index: 11;
 }
 
 // Header Ribbon
@@ -439,9 +457,16 @@ input {
     @include rounded(5px);
     /*@include boxshadow;*/
 }
-
+            
 input:focus {
     @include hovershadow($highlight);
+}
+ 
+input[type="text"],
+input[type="password"] {
+    background-repeat: no-repeat;
+    background-position: 4px 4px;
+    padding-left: 25px;
 }
 
 input[type="submit"] {
@@ -464,19 +489,15 @@ input[type="submit"]:hover {
     @include hovershadow($highlight);
 }
 
-input[type=text] {
-    background-repeat: no-repeat;
-    background-position: 4px 4px;
-    padding-left: 25px;
-}
-
-
-form#create {
+.formbox {
     background: $border;
     border: 3px solid $darkground;
     padding: 3px 0 0;
     margin: auto;
-    width: 520px;
+    width: 400px;
+}
+
+form#create {
 
     input#remote_url {
         background-image: url('/images/url.png');
@@ -507,11 +528,9 @@ form#create {
     }
 }
 
-
-
-
 form.tag {
     margin-top: 5px;
+    display: inline;
 
     input[type=text] {
         background-image: url('/images/tag-mono.png');
@@ -519,6 +538,21 @@ form.tag {
 
     input.tagpush {
         margin-left: 5px;
+    }
+}
+
+form.delete {
+    display: inline;
+}
+
+form.auth {
+
+    input#user_email {
+        background-image: url('images/email.png');
+    }
+
+    input[type="password"] {
+        background-image: url('/images/password.png');
     }
 }
 
@@ -544,6 +578,7 @@ form.tag {
     -webkit-animation: animate-bg 5s linear infinite;
     top: 0;
     left: 0;
+    z-index: 20;
 
     h3 {
         margin: 0 0 5px 0;

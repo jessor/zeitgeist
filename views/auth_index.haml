@@ -1,0 +1,26 @@
+%table
+  %tr
+    %th user
+    %th level
+    -#%th show
+    %th edit
+    %th delete
+  - @users.each do |user|
+    %tr
+      %td
+        - if user.email
+          = user.email
+        - else
+          "user #{user.id}"
+      - if current_user.admin?
+        %td= user.permission_level
+      -#%td
+        -#%a{ :href => "/users/#{user.id}" } show
+      - if current_user.admin?
+        %td
+          %a{ :href => "/users/#{user.id}/edit" } edit
+        %td
+          - if !user.site_admin?
+            %a{ :href => "/users/#{user.id}/delete", :onclick => "return confirm('you sure?')" } delete
+          - else
+            site admin

@@ -20,15 +20,17 @@ require './lib/carrier/carrier.rb'
 # Config
 #
 configure do
-  set :haml, {:format => :html5}
-  use Rack::Flash
-  enable :sessions
-  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
-
   yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
   yaml.each_pair do |key, value|
     set(key.to_sym, value)
   end
+
+  #use Rack::Session::Cookie, :secret => settings.racksession_secret
+  use Rack::Flash
+  enable :sessions
+  set :haml, {:format => :html5}
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
+  set :sinatra_authentication_view_path, 'views/auth_'
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do
@@ -435,11 +437,23 @@ post '/edit/:id' do
     content_type :json
     if error
       {:error => error}.to_json
-    else
+    
       {:item => @item, :tags => @item.tags}.to_json
     end
   else
     flash[:error] = error 
+    redirect '/'
+  end
+end
+
+delete '/:id' do
+  if current_user.admin?
+    item = Item.get(params[:id])
+    item.destroy
+    flash[:notice] = "Item ##{params[:id]} is gone now."
+    redirect '/'
+  else
+    flash[:error] = "Y U NO AUTHENTICATE?"
     redirect '/'
   end
 end
