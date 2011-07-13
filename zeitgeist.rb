@@ -448,7 +448,7 @@ post '/:id/delete' do
       {:id => item.id}.to_json
     else
       flash[:notice] = "Item ##{params[:id]} is gone now."
-      redirect '/'
+      redirect params['return_to']
     end
   else
     raise 'Y U NO AUTHENTICATE?'

@@ -31,6 +31,7 @@
             %input.tagpush{ :type => 'submit', :value => 'tag!' }
           -if current_user.admin?
             %form.delete{ :action => "/#{item.id}/delete", :method => 'post' }
+              %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
               %input.tagpush{ :type => 'submit', :value => 'X' }
   #pagination  
     = pagination
