@@ -60,6 +60,11 @@ module ::Zeitgeist
       request(url_builder('new'), {:remote_url => url, :tags => tags})
     end
 
+    def item_delete(id) # /:id/delete
+      debug "item_delete(#{id})"
+      request(url_builder(id, 'delete'), {:id => id})
+    end
+
     def item_tags_edit(id, add, del) # /item/tags/edit
       debug "item_tags_edit(#{id}, #{add.inspect}, #{del.inspect})"
       add = add.join ',' if add.class == Array

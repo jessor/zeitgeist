@@ -235,7 +235,6 @@ end
 # Routes
 # 
 
-
 error RuntimeError do
   @error = env['sinatra.error'].message
   if request.get?
@@ -290,6 +289,14 @@ post '/embed' do
   remoteplugin.embed # returns html code for embedding
 end
 
+get '/search' do
+  if is_ajax_request?
+    haml :search, :layout => false
+  else
+    haml :search
+  end
+end
+
 post '/search' do
   @items = Tag.all(:tagname.like => "%#{params['q']}%")
   if is_ajax_request?
@@ -300,42 +307,11 @@ post '/search' do
   end
 end
 
-get '/search' do
-  if is_ajax_request?
-    haml :search, :layout => false
-  else
-    haml :search
-  end
-end
-
 get '/new' do
   if is_ajax_request?
     haml :new, :layout => false
   else
     haml :new
-  end
-end
-
-get '/item/:id' do
-  @item = Item.get(params[:id])
-  if not @item
-    error = "no item found with id #{params[:id]}"
-  end
-
-  if is_ajax_request? or is_api_request? 
-    content_type :json
-    if error
-      {:error => error}.to_json
-    else
-      {:item => @item, :tags => @item.tags}.to_json
-    end
-  else
-    if error
-      flash[:error] = error
-      redirect '/'
-    else
-      redirect @item.image
-    end
   end
 end
 
@@ -381,8 +357,24 @@ post '/new' do
   end
 end
 
+get '/:id' do
+  pass unless params[:id].match /^\d+$/
+  @item = Item.get(params[:id])
+  raise "no item found with id #{params[:id]}" if not @item
+
+  if is_ajax_request? or is_api_request? 
+    content_type :json
+    {:item => @item, :tags => @item.tags}.to_json
+  elsif @item.type == 'image'
+    redirect @item.image
+  else
+    remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@item.source)
+    remoteplugin.embed # returns html code for embedding
+  end
+end
+
 # adds or removes tags from an item
-post '/edit/:id' do
+post '/:id/update' do
   id = params[:id]
   add_tags = (params[:add_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
   del_tags = (params[:del_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
@@ -446,15 +438,20 @@ post '/edit/:id' do
   end
 end
 
-delete '/:id' do
-  if current_user.admin?
+post '/:id/delete' do
+  if current_user.admin? or is_api_request?
     item = Item.get(params[:id])
+    raise 'item not found' if not item
     item.destroy
-    flash[:notice] = "Item ##{params[:id]} is gone now."
-    redirect '/'
+    if is_api_request?
+      content_type :json
+      {:id => item.id}.to_json
+    else
+      flash[:notice] = "Item ##{params[:id]} is gone now."
+      redirect '/'
+    end
   else
-    flash[:error] = "Y U NO AUTHENTICATE?"
-    redirect '/'
+    raise 'Y U NO AUTHENTICATE?'
   end
 end
 

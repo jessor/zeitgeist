@@ -46,6 +46,10 @@ module ::Zeitgeist
       return nil
     end
 
+    def delete_by_id(id)
+      @items.delete by_id(id)
+    end
+
     def by_offset(offset)
       @items[offset]
     end
@@ -162,6 +166,12 @@ class ZeitgeistBotPlugin < Plugin
     m.reply item_new(m.channel || m.source, url, tags, m.source.nick)
   end
 
+  def cmd_item_del(m, params)
+    id = params[:id]
+    say_log(m, 'delete log id: ' + id)
+    m.reply item_del(m.channel || m.source, id, m.source.nick)
+  end
+
   def cmd_item_tags_edit(m, params)
     id, tags = params[:index].to_i, params[:tags].join(' ')
     m.reply item_tags_edit(m.channel || m.source, id, tags)
@@ -266,16 +276,21 @@ class ZeitgeistBotPlugin < Plugin
       response = nil # no need to log
 
     end
-    
-    if response
-      @bot.config['zeitgeist.log_destination'].each do |dest|
-        @bot.say(dest, "[#{source}/#{channel}] #{response} (#{urls.inspect})") 
-      end
-    end
+
+    say_log(m, response)
 
   end
 
   private
+
+  def say_log(m, log)
+    return if not log
+    channel = m.channel.to_s
+    source = m.source.to_s
+    @bot.config['zeitgeist.log_destination'].each do |dest|
+      @bot.say(dest, "[#{source}/#{channel}] #{log}") 
+    end
+  end
 
   def item_new(source, url, tags, nick)
     history = history_by_source source
@@ -283,6 +298,24 @@ class ZeitgeistBotPlugin < Plugin
       item = Zeitgeist::Item::new_create(@api, url, tags)
       history << item
       return item.to_s
+    rescue Exception => e
+      debug e.inspect
+      debug $@.join "\n"
+      return e.message
+    end
+  end
+
+  def item_del(source, id, nick)
+    history = history_by_source source
+    begin
+      response = @api.item_delete(id)
+      if response.has_key? 'error'
+        return response['error']
+      else
+        # delete from history:
+        history.delete_by_id id
+        return "deleted item ##{id}"
+      end
     rescue Exception => e
       debug e.inspect
       debug $@.join "\n"
@@ -364,7 +397,11 @@ class ZeitgeistBotPlugin < Plugin
 
 end
 
+
 plugin = ZeitgeistBotPlugin.new
+
+plugin.default_auth('del', false)
+
 plugin.map('zg get :index', 
            :threaded => true, 
            :action => 'cmd_item_get')
@@ -373,8 +410,8 @@ plugin.map('zg add :url [*tags]',
            :threaded => true, 
            :action => 'cmd_item_new')
 plugin.map('zg del :id', 
-           :defaults => {:tags => ''},
            :threaded => true, 
+           :auth_path => 'del',
            :action => 'cmd_item_del')
 plugin.map('zg tag [:index] *tags', 
            :threaded => true, 

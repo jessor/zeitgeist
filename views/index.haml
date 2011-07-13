@@ -26,12 +26,11 @@
                 %li 
                   %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' }> #{tag.tagname}
               %div.clear
-          %form.tag{ :action => "/edit/#{item.id}", :method => 'post', :id => "formforitem-#{item.id}" }
+          %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }
-              %input.tagpush{ :type => 'submit', :value => 'tag!' }
+            %input.tagpush{ :type => 'submit', :value => 'tag!' }
           -if current_user.admin?
-            %form.delete{ :action => "/#{item.id}", :method => 'post' }
-              %input{ :type => 'hidden', :name => '_method', :value => 'delete' }
+            %form.delete{ :action => "/#{item.id}/delete", :method => 'post' }
               %input.tagpush{ :type => 'submit', :value => 'X' }
   #pagination  
     = pagination
