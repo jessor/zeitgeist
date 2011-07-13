@@ -474,11 +474,23 @@ post '/edit/:id' do
     content_type :json
     if error
       {:error => error}.to_json
-    else
+    
       {:item => @item, :tags => @item.tags}.to_json
     end
   else
     flash[:error] = error 
+    redirect '/'
+  end
+end
+
+delete '/:id' do
+  if current_user.admin?
+    item = Item.get(params[:id])
+    item.destroy
+    flash[:notice] = "Item ##{params[:id]} is gone now."
+    redirect '/'
+  else
+    flash[:error] = "Y U NO AUTHENTICATE?"
     redirect '/'
   end
 end

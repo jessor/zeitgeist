@@ -530,6 +530,7 @@ form#create {
 
 form.tag {
     margin-top: 5px;
+    display: inline;
 
     input[type=text] {
         background-image: url('/images/tag-mono.png');
@@ -538,6 +539,10 @@ form.tag {
     input.tagpush {
         margin-left: 5px;
     }
+}
+
+form.delete {
+    display: inline;
 }
 
 form.auth {
