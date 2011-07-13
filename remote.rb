@@ -114,9 +114,9 @@ class Plugin
     return if not @page
 
     result = @page.body.scan pattern
-    if result.empty?
-      raise RemoteException.new(
-        "url scraping failed regex matching of '#{pattern}' for #{@url}")
+    if not result or result.empty?
+      puts "url scraping failed regex matching of '#{pattern}' for #{@url}"
+      return []
     end
 
     puts "search result for #{pattern} : #{result.inspect}"
@@ -125,11 +125,11 @@ class Plugin
   end
 
   def match(pattern)
-    scan(pattern).first
+    scan(pattern).first || []
   end
 
   def match_one(pattern)
-    match(pattern).first
+    match(pattern).first || ''
   end
 
   def search(selector)
@@ -139,8 +139,8 @@ class Plugin
 
     result = @page.search selector
     if not result
-      raise RemoteException.new(
-        "url scraping failed parsing of '#{selector}' for #{@url}")
+      puts "url scraping failed parsing of '#{selector}' for #{@url}"
+      return []
     end
 
     puts "search selector #{selector}: #{result.inspect}"
@@ -162,11 +162,11 @@ class Plugin
   end
 
   def search_one(selector)
-    search(selector).first
+    search(selector).first || '' 
   end
 
   def og_search(property)
-    search_one 'meta[@property="og:' + property + '"]/@content'
+    search_one 'meta[@property="og:' + property + '"]/@content' 
   end
 
 end # end class plugin
@@ -196,7 +196,7 @@ class RemoteDownloader
   def download!
     # generate temp name:
     begin
-      @tempfile = "#{settings.remote_temp_path}/zeitgeist-remote-" + 
+      @tempfile = "#{settings.remote_temp_path}/zg-remote-" + 
         "#{Time.now.strftime("%y%m%d%H%M%S")}-#{rand(100)}"
     end while File.exists? @tempfile
 
@@ -274,13 +274,17 @@ end
 
 # set default configuration
 def self.registered(app)
-  app.set :remote_chunk => 1024 * 16 # 16 KiB
+  app.set :remote_chunk => 1024 * 128 # 16 KiB
   app.set :remote_temp_path => '/tmp'
   app.set :remote_max_filesize => 1024 ** 2 * 8 # 8 MiB
   app.set :remote_proxy_host => nil
   app.set :remote_proxy_port => nil
   app.set :remote_proxy_user => nil
   app.set :remote_proxy_pass => nil
+
+  # initialize oembed
+  # used in plugin.embed as the default behaviour
+  OEmbed::Providers.register_all
 end
 
 end # end namespace ZeitgeistRemote

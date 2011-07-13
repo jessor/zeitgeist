@@ -6,6 +6,8 @@ production:
   items_per_page: 25
   api_secret: 'changeme'
   pagespeed: true
+  carrier_store: 'local'
+  temppath: '/tmp'
 development:
   pagetitle: 'the localhost zeitgeist'
   pagedesc: 'media collected by a lonely developer'
@@ -15,3 +17,5 @@ development:
   datamapper_logger: :debug # show sql queries for debugging
   api_secret: 'changeme'
   pagespeed: false
+  carrier_store: 'local'
+  temppath: '/tmp'

@@ -13,6 +13,9 @@ require 'yaml'
 # remote url download library
 require './remote.rb'
 
+# upload, validate, process tempfile
+require './lib/carrier/carrier.rb'
+
 #
 # Config
 #
@@ -44,76 +47,14 @@ if settings.respond_to? 'datamapper_logger'
 end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
 
-class ImageUploader < CarrierWave::Uploader::Base
-  include CarrierWave::MiniMagick
-
-  storage :file
-
-  def filename
-    make_filename
-  end
-
-  def store_dir
-=begin
-    thats not gonna work... the year/month directory needs to
-    be stored somewhere else (within filename?) but the
-    thumbnail filename is not easily overwritten with model
-    instance attributes, atleast i wasn't able to figure
-    it out yet.
-
-    year_month = Time.now.strftime('%Y%m')
-    path = "#{settings.assetpath}/#{year_month}/"
-    Dir.mkdir path if not Dir.exists? path
-    path
-=end
-   "#{settings.assetpath}/"
-  end
-
-  def extensions_white_list
-    %w(jpg jpeg gif png)
-  end
-
-  version :thumbnail do
-    def collapse
-      manipulate! do |img|
-        img.collapse!
-        img
-      end
-    end
-    process :collapse # to first frame for gif animations
-    # http://rubydoc.info/github/jnicklas/carrierwave/master/CarrierWave/MiniMagick/ClassMethods
-    process :resize_to_fill => [200, 200]
-  end
-
-  def make_filename(postfix='')
-    mimetype = model.mimetype
-    checksum = [model.checksum].pack('H*')
-    extension = '.' + mimetype.slice(mimetype.index('/')+1, mimetype.length)
-
-    self.class::base64_filename(store_dir, checksum, postfix + extension)
-  end
-
-  def self.base64_filename(path, hash, postfix, prefix='zg.')
-    path += '/' if path[-1] != '/'
-    (1..6).each do |k|
-      partial = hash[0...(k*3)]
-      partial = partial.ljust(k*3) if k == 6 # "impossible"
-      encoded = Base64::urlsafe_encode64(partial).downcase
-      filename = prefix + encoded + postfix
-      return filename if not File.exists?(path + filename)
-    end
-    return nil
-  end
-end
-
 class Item
   include DataMapper::Resource
 
   property :id,         Serial
-  property :type,       String # image, video, audio
+  property :type,       String, :default => 'image' # image, video, audio
   property :image,      String, :auto_validation => false
   property :source,     Text   # set to original (remote) url
-  property :name,       String # original filename
+  property :title,      Text
   property :created_at, DateTime
 
   # image meta information
@@ -122,8 +63,83 @@ class Item
   property :checksum,   String
   property :dimensions, String
 
-  mount_uploader :image, ImageUploader
+  # taggings
   has n, :tags, :through => Resource
+
+  # hooks for processing either the upload or remote url
+  # NOTE: raise a RuntimeError if something went wrong!
+  before :save do
+    tempfile = @image
+    puts tempfile
+
+    if not tempfile # remote upload!
+      @plugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@source)
+      raise 'invalid url!' if not @plugin
+
+      if @plugin.url
+        downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(@plugin)
+        begin
+          downloader.download!
+        rescue
+          puts "error downloading remote URL(#{@source}): #{$!.message}"
+          puts $@
+          raise 'error downloading remote: ' + $!.message
+        else
+          tempfile = downloader.tempfile
+          self.size = downloader.filesize
+        end
+      end
+
+      self.type = @plugin.type
+      self.title = @plugin.title[0..49]
+    end
+
+    if tempfile # temporary fileupload
+      begin
+        localtemp = Sinatra::Carrier::LocalTemp.new(tempfile, @created_at)
+        localtemp.process! # creates thumbnail, verify image
+
+        self.dimensions = localtemp.dimensions
+        self.mimetype = localtemp.mimetype
+        self.checksum = localtemp.checksum
+        self.size = localtemp.filesize if not @plugin
+
+        # store file in configured storage
+        self.image = localtemp.store!
+      rescue
+        puts $!.message
+        puts $@
+        raise 'carrier error: ' + $!.message
+      ensure
+        # to make sure tempfiles are deleted in case of an error 
+        localtemp.cleanup! 
+      end
+    end
+  end
+
+  # the image property should return the URI for thumbnail
+  # and full-sized image
+  def image
+    # this creates a storage object, which one is based on the
+    # identification, this means the store can be switched in an
+    # running installation. New images will be stored in the new
+    # storage, but old not mitigated ones are still availible.
+    if not @image_obj
+      identifier = attribute_get(:image)
+      return nil if not identifier
+      store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
+      @image_obj = store.retrieve! identifier # this returns an Image object for view
+    end
+    @image_obj
+  end
+
+  def title
+    if not attribute_get(:title)
+      attribute_get(:source)
+    else
+      attribute_get(:title)
+    end
+  end
 end
 
 class Tag
@@ -140,21 +156,8 @@ class Tag
   end
 end
 
-class Downloaderror
-  include DataMapper::Resource
-
-  property :id,         Serial
-  property :source,     Text
-  property :code,       String
-end
-
 DataMapper.finalize
 DataMapper.auto_upgrade!
-
-# initialize oembed
-# later detect embed provider by url 
-# (if not overwritten by url)
-OEmbed::Providers.register_all
 
 #
 # Helpers
@@ -317,102 +320,42 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
-  error = nil
-  flash[:error] = nil
-  type = upload = source = filename = filesize = mimetype = checksum = dimensions = nil
+  tags = params[:tags] ? params[:tags].split(',') : []
 
-  tags = []
-  tags = params[:tags].split(',').map { |tag| tag.strip!; tag.downcase! } if params[:tags]
-  tempfile = nil
-
+  tempfile = nil # stays nil for remote url
   if params[:image_upload]
-    type = 'image'
-    tempfile = params[:image_upload][:tempfile]
-    title = params['image_upload'][:filename]
-
-  elsif params[:remote_url] and not params[:remote_url].empty? # remote upload
+    tempfile = params[:image_upload][:tempfile].path
+    source = params['image_upload'][:filename]
+  elsif params[:remote_url] and not params[:remote_url].empty?
     source = params[:remote_url]
-    plugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(source)
-    if not plugin
-      raise 'invalid url'
-    end
-
-    if plugin.url
-      downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(plugin)
-      begin
-        downloader.download!
-      rescue Sinatra::ZeitgeistRemote::RemoteException => e
-        puts "Error downloading remote source URL (#{source}): #{e.message}" 
-        puts $@
-        raise "#{e.message}"
-      else
-        tempfile = downloader.tempfile
-      end
-    end
-
-    type = plugin.type
-    title = plugin.title
-    # only existing tags:
-    plugin.tags.each do |tag|
-      tag.downcase!
-      tags << tag if Tag.first(:tagname => tag)
-    end
-    puts "new tags: " + tags.inspect
   else
-    raise 'You need to specifiy either a file or remote url for uploading!'
-  end
-
-  # check upload file and generate meta infos
-  if tempfile
-    mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(tempfile)
-    mimetype = mimetype.slice 0...mimetype.index(';')
-
-    # mimetype not allowed? = no image file?
-    if not settings.allowed_mime.include? mimetype
-      raise "Image file with invalid mimetype: #{mimetype}!"
-    end
-    
-    # more meta information (only for image types!)
-    checksum = Digest::MD5.file(tempfile).hexdigest
-    filesize = File.size(tempfile) if not filesize
-    dimensions = MiniMagick::Image.open(tempfile)["dimensions"].join 'x'
-  end
-
-  # for non image types hash the original url instead of
-  # (preview) image or nil
-  if type != 'image'
-    checksum = Digest::MD5.hexdigest(source)
-  end
-
-  # check for duplicate images before inserting
-  if checksum and (item = Item.first(:checksum => checksum))
-    raise "Duplicate image found based on checksum, id: #{item.id}"
+    raise 'You should select either an upload or an remote url!'
   end
 
   # store in database, let carrierwave take care of the upload
-  @item = Item.new(:type => type, :image => File.open(tempfile), :source => source,
-              :name => title[0...49], :size => filesize, :mimetype => mimetype,
-              :checksum => checksum, :dimensions => dimensions)
-
-  if not @item.save
-    raise "error saving item: #{@item.errors.full_messages.inspect}"
-  end
-
-  tags.each do |newtag|
-    tag = Tag.first_or_create(:tagname => newtag)
-    if not tag.save 
-      raise "error saving tags: #{tag.errors.full_messages.inspect}" 
+  @item = Item.new(:image => tempfile, :source => source)
+  if @item.save
+    # successful? append new tags:
+    tags.each do |tagname|
+      tag = Tag.first_or_create(:tagname => tagname)
+      if tag.save
+        @item.tags << tag
+      else
+        raise 'error saving new tag: ' + tag.errors.first
+      end
     end
-    @item.tags << tag
-  end
-  @item.save # save the new associations
+    @item.save # save the new associations
 
-  if is_ajax_request? or is_api_request? 
-    content_type :json
-    {:item => @item, :tags => @item.tags}.to_json
+    # success message, api returns item created and tags added
+    if is_ajax_request? or is_api_request? 
+      content_type :json
+      {:item => @item, :tags => @item.tags}.to_json
+    else
+      flash[:notice] = 'New item added successfully.'
+      redirect '/'
+    end
   else
-    flash[:notice] = 'New item added successfully.'
-    redirect '/'
+    raise 'new item error: ' + @item.errors.full_messages.inspect
   end
 end
 
