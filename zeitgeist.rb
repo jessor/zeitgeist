@@ -18,8 +18,6 @@ require './remote.rb'
 #
 configure do
   set :haml, {:format => :html5}
-  set :raise_errors, false
-  set :show_exceptions, false
   use Rack::Flash
   enable :sessions
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
@@ -208,10 +206,11 @@ end
 # Routes
 # 
 
+
 error RuntimeError do
   @error = env['sinatra.error'].message
   if request.get?
-    # TODO: render error page ...
+    haml :error, :layout => false
   elsif is_ajax_request? or is_api_request? 
     status 200 # much easier to handle when it response normally
     content_type :json
@@ -475,9 +474,9 @@ get '/feed' do
   builder :itemfeed 
 end
 
-not_found do
-  @partials = false
-  haml :'404'
+error 400..510 do
+  @code = response.status.to_s
+  haml :error, :layout => false
 end
 
 # compile sass stylesheet

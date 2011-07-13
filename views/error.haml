@@ -1,0 +1,18 @@
+!!!
+%html
+  %head
+    %title
+      &= @title || settings.pagetitle
+    %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
+    %link{ :rel => 'shortcut icon', :href => '/images/favicon.png' }
+  %body
+    #error
+      %a{ :href => '/' }
+        %img{ :src => '/images/error.png', :alt => 'error logo' }
+      %h2 Error #{@code}
+      %p
+        Time flies
+        %br
+        Content dissolves
+        %br
+        Refrigerator
