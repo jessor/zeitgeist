@@ -50,9 +50,7 @@ class Plugin
 
   # the extracted content title or original filename
   def title
-    path = URI.parse(url).path
-    filename = File.basename(path)
-    return filename.gsub('/', '')
+    ""
   end
 
   def tags

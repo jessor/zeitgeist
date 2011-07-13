@@ -123,7 +123,7 @@ class Item
       rescue
         puts $!.message
         puts $@
-        raise 'carrier error: ' + $!.message
+        raise $!.message
       ensure
         # to make sure tempfiles are deleted in case of an error 
         localtemp.cleanup! 
@@ -234,20 +234,6 @@ end
 #
 # Routes
 # 
-
-error RuntimeError do
-  @error = env['sinatra.error'].message
-  if request.get?
-    haml :error, :layout => false
-  elsif is_ajax_request? or is_api_request? 
-    status 200 # much easier to handle when it response normally
-    content_type :json
-    {:error => @error}.to_json
-  else
-    flash[:error] = @error
-    redirect '/'
-  end
-end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
@@ -460,9 +446,20 @@ get '/feed' do
   builder :itemfeed 
 end
 
-error 400..510 do
+error 400..510 do # error RuntimeError do
+  puts "error exception do"
+  @error = env['sinatra.error'].message
   @code = response.status.to_s
-  haml :error, :layout => false
+  if is_ajax_request? or is_api_request? 
+    status 200 # much easier to handle when it response normally
+    content_type :json
+    {:error => @error}.to_json
+  elsif request.get?
+    haml :error, :layout => false 
+  else
+    flash[:error] = @error
+    redirect '/'
+  end
 end
 
 # compile sass stylesheet

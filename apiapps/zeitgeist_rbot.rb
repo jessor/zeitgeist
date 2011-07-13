@@ -224,6 +224,8 @@ class ZeitgeistBotPlugin < Plugin
     urls = message.scan(PATTERN_LISTEN_URL)
     debug "message (#{message}) pattern match PATTERN_LISTEN_URL: #{urls.inspect}"
     urls.each do |url|
+      url = url.first if url.class == Array
+      next if url.match @bot.config['zeitgeist.base_url']
       # ... and tags:
       if urls.length == 1 and message.match PATTERN_LISTEN_TAGS
         debug "message (#{message}) pattern match PATTERN_LISTEN_TAGS: #{$1}"

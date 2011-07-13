@@ -69,7 +69,7 @@ module ::Zeitgeist
       debug "item_tags_edit(#{id}, #{add.inspect}, #{del.inspect})"
       add = add.join ',' if add.class == Array
       del = del.join ',' if del.class == Array
-      request(url_builder('edit', id), {
+      request(url_builder(id, 'update'), {
         :add_tags => add,
         :del_tags => del
       })
@@ -77,7 +77,7 @@ module ::Zeitgeist
 
     def item_get(id) # /item
       debug "item_get(#{id})"
-      request(url_builder('item', id))
+      request(url_builder(id))
     end
 
     private
@@ -101,7 +101,7 @@ module ::Zeitgeist
         end
       rescue Mechanize::ResponseCodeError => e
         debug "zeitgeist internal server error"
-        if page.code != 500 and page.body.empty?
+        if not page or (page.code != 500 and page.body.empty?)
           debug "zeitgeist app http error (try:#{tries}): (#{e.class}) #{e.message}"
           debug $@.join "\n"
           raise e
@@ -147,7 +147,7 @@ module ::Zeitgeist
     def initialize(item)
       item = { 
         'base_url'=>nil,'id'=>nil,'type'=>nil,'source'=>nil,'tags'=>[], 
-        'image'=>nil,'name'=>nil,'size'=>nil,'mimetype'=>nil,'dimensions'=>nil
+        'image'=>nil,'title'=>nil,'size'=>nil,'mimetype'=>nil,'dimensions'=>nil
       }.merge(item)
       item.each_pair do |name, value|
         instance_variable_set("@#{name}", value) 
@@ -159,16 +159,18 @@ module ::Zeitgeist
 
     def to_s
       if @source and not @source.empty?
-        url = @source
+        middle = @source
       else
-        url = "#{@base_url}item/#{@id}"
+        middle = "#{@base_url}item/#{@id}"
       end
+      middle += " \"#{@title}\"" if @title and @title != @source
+
       if @type == 'image' and @mimetype
         type = @mimetype
       else
         type = @type
       end
-      string = "##{@id} [#{type}] #{url}"
+      string = "##{@id} [#{type}] #{middle}"
       if @size and @dimensions
         string += " [#{'%0.2f' % (@size / 1024.0)} KiB" \
                " #{@dimensions}]"
