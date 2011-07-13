@@ -36,6 +36,14 @@ Development
 Ignore "DataObjects::URI.new with arguments is deprecated", it's not our bug, see [dm-do-adapter/issues/4](https://github.com/datamapper/dm-do-adapter/issues/4)
 
 
+Acknowledgements
+----------------
+
+* Form Icons: [Dat Nguyen](http://splashyfish.com/), [Iconfinder](http://www.iconfinder.com/search/?q=iconset%3AsplashyIcons)
+* Clock, Audio Icon: [Alexandre Moore](http://sa-ki.deviantart.com/), [Iconfinder](http://www.iconfinder.com/search/?q=iconset%3Anuove)
+* Header Ribbon: [Damion Yeatman](http://twitter.com/#!/DamYeatman), [Forrst](http://forrst.com/posts/CSS3_Ribbon-DcL)
+
+
 Licence
 -------
 
