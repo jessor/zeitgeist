@@ -17,15 +17,16 @@ require './remote.rb'
 # Config
 #
 configure do
-  set :haml, {:format => :html5}
-  use Rack::Flash
-  enable :sessions
-  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
-
   yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
   yaml.each_pair do |key, value|
     set(key.to_sym, value)
   end
+
+  use Rack::Session::Cookie, :secret => settings.racksession_secret
+  use Rack::Flash
+  enable :sessions
+  set :haml, {:format => :html5}
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do

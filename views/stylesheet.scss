@@ -470,13 +470,15 @@ input[type=text] {
     padding-left: 25px;
 }
 
-
-form#create {
+.formbox {
     background: $border;
     border: 3px solid $darkground;
     padding: 3px 0 0;
     margin: auto;
     width: 520px;
+}
+
+form#create {
 
     input#remote_url {
         background-image: url('/images/url.png');
