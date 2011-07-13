@@ -191,6 +191,10 @@ helpers do
     "#{Time.now.strftime("%y%m%d%H%M%S")}_zeitgeist"
   end
 
+  def pagination
+    @items.pager.to_html(request.path, :size => 5)
+  end
+
 end
 
 #
@@ -223,20 +227,28 @@ end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
-  @items = Item.page(params['page'], 
+  @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
                      :order => [:created_at.desc])
-  @pagination = @items.pager.to_html('/', :size => 5)
+  pagination
   haml :index
 end
 
 get '/filter/by/type/:type' do
-  @items = Item.all(:type => params[:type], :order => [:created_at.desc])
+  @items = Item.page(params['page'],
+                     :per_page => settings.items_per_page,
+                     :type => params[:type],
+                     :order => [:created_at.desc])
+  pagination
   haml :index
 end
 
 get '/filter/by/tag/:tag' do
-  @items = Item.all(Item.tags.tagname => params[:tag], :order => [:created_at.desc])
+  @items = Item.page(params['page'],
+                     :per_page => settings.items_per_page,
+                     Item.tags.tagname => params[:tag],
+                     :order => [:created_at.desc])
+  pagination
   haml :index
 end
 
