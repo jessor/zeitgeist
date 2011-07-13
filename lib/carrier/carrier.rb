@@ -10,7 +10,9 @@ require 'mini_magick'
 
 require File.dirname(File.expand_path(__FILE__)) + '/storage.rb'
 
-module Sinatra::Carrier
+module Sinatra
+
+module Carrier
 
   module ImageProcessor
     # we want to: find the dimension, find out if this is multiple
@@ -147,5 +149,9 @@ module Sinatra::Carrier
     app.set :delete_tmp_file_after_storage => true
   end
 
-end # Sinatra/Carrier
+end # Carrier
+
+register Carrier
+
+end # Sinatra
 

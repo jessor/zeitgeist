@@ -1,8 +1,11 @@
+if Dir.pwd == File.dirname(File.expand_path(__FILE__))
+  Dir.chdir '..'
+end
 require 'test/unit'
 require 'rack/test'
 require 'digest/md5' 
 require './zeitgeist.rb'
-require './remote.rb'
+require './lib/remote/remote.rb'
 
 ENV['RACK_ENV'] = 'test'
 

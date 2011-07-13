@@ -11,7 +11,7 @@ require 'uri'
 require 'yaml'
 
 # remote url download library
-require './remote.rb'
+require './lib/remote/remote.rb'
 
 # upload, validate, process tempfile
 require './lib/carrier/carrier.rb'
