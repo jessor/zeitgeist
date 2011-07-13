@@ -225,6 +225,13 @@ nav {
 
     form {
         text-align: center;
+
+        input[type=text] {
+            background-image: url('/images/search.png');
+        }
+        input[type=submit] {
+            margin-left: 5px;
+        }
     }
 }
 
@@ -457,6 +464,12 @@ input[type="submit"]:hover {
     @include hovershadow($highlight);
 }
 
+input[type=text] {
+    background-repeat: no-repeat;
+    background-position: 4px 4px;
+    padding-left: 25px;
+}
+
 
 form#create {
     background: $border;
@@ -464,10 +477,45 @@ form#create {
     padding: 3px 0 0;
     margin: auto;
     width: 520px;
+
+    input#remote_url {
+        background-image: url('/images/url.png');
+    }
+
+    .fileinput {
+        position: relative;
+
+        input[type=file] {
+            position: relative;
+            text-align: right;
+            -moz-opacity: 0;
+            filter: alpha(opacity=0); /* brrrr */
+            opacity: 0;
+            z-index: 2;
+        }
+    }
+
+    .fileinputfake {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+
+        input {
+            background-image: url('/images/upload.png');
+        }
+    }
 }
+
+
+
 
 form.tag {
     margin-top: 5px;
+
+    input[type=text] {
+        background-image: url('/images/tag-mono.png');
+    }
 
     input.tagpush {
         margin-left: 5px;
