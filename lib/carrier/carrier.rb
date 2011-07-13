@@ -144,6 +144,7 @@ module Carrier
   # register carrier as a sinatra plugin
   def self.registered(app)
     puts 'register'
+    app.set :temppath => '/tmp'
     app.set :asset_path => './public/asset'
     app.set :carrier_store => 'local'
     app.set :delete_tmp_file_after_storage => true
