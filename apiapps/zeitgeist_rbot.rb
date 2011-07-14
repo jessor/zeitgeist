@@ -257,6 +257,10 @@ class ZeitgeistBotPlugin < Plugin
 
       offset_or_id = $2 ? $2.strip : ''
       tags = $3 ? $3.strip : ''
+      if offset_or_id.empty? and tags.match /^\d+$/
+        offset_or_id = tags
+        tags = ''
+      end
       offset_or_id = -1 if offset_or_id.empty?
       offset_or_id = offset_or_id.to_i if offset_or_id.class == String
 

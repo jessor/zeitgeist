@@ -18,9 +18,11 @@ module Plugins
 
     def self.pattern_test(pattern, url)
       if pattern.class == String
-        true if URI.parse(url).host.include? pattern
+        host = URI.parse(url).host
+        puts "test host: #{host} (pattern: #{pattern})"
+        return true if host.to_s.include? pattern
       elsif url.match pattern 
-        true
+        return true
       end
     end
 
@@ -54,10 +56,21 @@ module Plugins
     end
 
     def tags
-      AUTOTAGGING.each_pair do |pattern, tags|
-        return tags if Plugin::pattern_test(pattern, self.orig_url)
+      AUTOTAGGING.each_pair do |pattern, new_tags|
+        puts "autotagging test for #{self.url} with #{pattern}"
+        if Plugin::pattern_test(pattern, self.url) or
+          Plugin::pattern_test(pattern, self.orig_url) 
+          puts "::> #{new_tags.inspect}"
+           return new_tags 
+        end
       end
       []
+    end
+    
+    # per default allow any tags to be added, sometimes this
+    # is not desirable (youtube tagspam)
+    def only_existing_tags
+      false
     end
 
     def embed

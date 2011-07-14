@@ -33,6 +33,8 @@ configure do
   set :sinatra_authentication_view_path, 'views/auth_'
   # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
   disable :show_exceptions
+  disable :dump_errors
+  disable :raise_errors 
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do
@@ -89,29 +91,41 @@ class Item
       @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
-      if @plugin.url
-        puts "Download remote content from url: #{@plugin.url}"
-        downloader = Sinatra::Remote::Downloader.new(@plugin.url)
-        begin
-          downloader.download!
-        rescue
-          puts "error downloading remote URL(#{@source}): #{$!.message}"
-          puts $@
-          raise 'error downloading remote: ' + $!.message
-        else
-          tempfile = downloader.tempfile
-          self.size = downloader.filesize
+      begin
+        if @plugin.url
+          puts "Download remote content from url: #{@plugin.url}"
+          downloader = Sinatra::Remote::Downloader.new(@plugin.url)
+          begin
+            downloader.download!
+          rescue
+            puts "error downloading remote URL(#{@source}): #{$!.message}"
+            puts $@
+            raise 'error downloading remote: ' + $!.message
+          else
+            tempfile = downloader.tempfile
+            self.size = downloader.filesize
+          end
         end
+      rescue
+        puts "error with remote plugin URL(#{@source}): #{$!.message}"
+        puts $@
+        raise 'error with remote plugin: ' + $!.message
       end
 
       self.type = @plugin.type
       self.title = @plugin.title[0..49]
       if @plugin.tags
         @plugin.tags.each do |tagname|
-          # only add existing tags as association:
-          tagname.downcase!; tagname.strip!
-          tag = Tag.first(:tagname => tagname)
-          self.tags << tag if tag
+          if @plugin.only_existing_tags
+            # only add existing tags as association:
+            tagname.downcase!; tagname.strip!
+            tag = Tag.first(:tagname => tagname)
+            self.tags << tag if tag
+          else
+            tagname.downcase!; tagname.strip!
+            tag = Tag.first_or_create(:tagname => tagname)
+            self.tags << tag if tag
+          end
         end
       end
     end

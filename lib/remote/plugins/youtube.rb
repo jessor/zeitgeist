@@ -24,6 +24,10 @@ class Youtube < Plugin
     search '#eow-tags li a/text()'
   end
 
+  def only_existing_tags
+    true
+  end
+
   def embed
     <<yt
     <iframe class="youtube-player" type="text/html" width="640" height="385" 
