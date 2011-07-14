@@ -146,7 +146,7 @@ class Item
     # this creates a storage object, which one is based on the
     # identification, this means the store can be switched in an
     # running installation. New images will be stored in the new
-    # storage, but old not mitigated ones are still availible.
+    # storage, but old not mitigated ones are still available.
     if not @image_obj
       identifier = attribute_get(:image)
       return nil if not identifier
@@ -157,11 +157,9 @@ class Item
   end
 
   def title
-    if not attribute_get(:title)
-      attribute_get(:source)
-    else
-      attribute_get(:title)
-    end
+    title = attribute_get(:title)
+    return nil if not title or title.empty?
+    super
   end
 end
 
@@ -173,8 +171,11 @@ class Tag
 
   has n, :items, :through => Resource
 
-  def tagname=(tag) # overwrite assignment
-    tag.downcase!; tag.strip!
+  def tagname=(tag)
+    # cleanup:
+    tag.gsub!(%r{[<>/~\^,+]}, '')
+    tag.strip!
+    tag.downcase!
     super
   end
 end
@@ -363,64 +364,49 @@ end
 # adds or removes tags from an item
 post '/:id/update' do
   id = params[:id]
-  add_tags = (params[:add_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
-  del_tags = (params[:del_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
+  add_tags = (params[:add_tags] || '').split(',')
+  del_tags = (params[:del_tags] || '').split(',')
 
   added_tags = []
   deleted_tags = []
 
   # get the item to edit
   @item = Item.get(id)
-  if not @item
-    error = "item with id #{id} not found!"
-  else
-    add_tags.each do |tag|
-      puts add_tags.inspect
-      newtag = Tag.first_or_create(:tagname => tag)
-      puts newtag.inspect
-      # (try to) save tag
-      if not newtag or not newtag.save
-        error = "#{newtag.errors}"
-        break
-      end
-      # create association
-      @item.tags << newtag
-      added_tags << newtag
-    end
+  raise "item with id #{id} not found!" if not @item
 
-    # atm only allowed via api
-    if is_api_request?
-      del_tags.each do |tag|
-        @item.tags.each do |old_tag|
-          if old_tag.tagname == tag 
-            @item.tags.delete(old_tag) 
-            deleted_tags << old_tag
-          end
+  # add tags (create them if not exists)
+  add_tags.each do |tag|
+    newtag = Tag.first_or_create(:tagname => tag)
+    # (try to) save tag
+    if not newtag or not newtag.save
+      raise "error saving tags: #{newtag.errors.inspect}" 
+    end
+    # create association
+    @item.tags << newtag
+    added_tags << newtag
+  end
+
+  # atm only allowed via api
+  if is_api_request?
+    del_tags.each do |tag|
+      @item.tags.each do |old_tag|
+        if old_tag.tagname == tag
+          @item.tags.delete(old_tag) 
+          deleted_tags << old_tag
         end
       end
     end
-
-    if not @item.save
-      error = @item.errors
-    end
   end
+
+  raise "error save item: #{@item.errors.inspect}" if not @item.save
 
   if is_ajax_request?
     content_type :json
-    if error
-      {:error => error}.to_json
-    else
-      {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
-    end
+    {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
   elsif is_api_request? 
     content_type :json
-    if error
-      {:error => error}.to_json
-    
-      {:item => @item, :tags => @item.tags}.to_json
-    end
+    {:item => @item, :tags => @item.tags}.to_json
   else
-    flash[:error] = error 
     redirect '/'
   end
 end
