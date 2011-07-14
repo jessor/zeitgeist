@@ -204,7 +204,7 @@ class Item
 
   def del_tags(tags)
     deleted_tags = []
-    del_tags.each do |tag|
+    tags.each do |tag|
       self.tags.each do |old_tag|
         if old_tag.tagname == tag
           self.tags.delete(old_tag) 
