@@ -75,11 +75,12 @@ class Item
     puts tempfile
 
     if not tempfile # remote upload!
-      @plugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@source)
+      @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
       if @plugin.url
-        downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(@plugin)
+        puts "Download remote content from url: #{@plugin.url}"
+        downloader = Sinatra::Remote::Downloader.new(@plugin.url)
         begin
           downloader.download!
         rescue
@@ -271,7 +272,7 @@ get '/about' do
 end
 
 post '/embed' do
-  remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(params['url'])
+  remoteplugin = Sinatra::Remote::Plugins::Loader::create(params['url'])
   remoteplugin.embed # returns html code for embedding
 end
 
@@ -354,7 +355,7 @@ get '/:id' do
   elsif @item.type == 'image'
     redirect @item.image
   else
-    remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@item.source)
+    remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
     remoteplugin.embed # returns html code for embedding
   end
 end

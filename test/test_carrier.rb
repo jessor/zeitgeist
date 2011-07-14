@@ -70,14 +70,14 @@ class TestCarrier < Test::Unit::TestCase
     image = store.retrieve!(identifier)
 
     # just for this test:
-    image_local = './public/'+settings.assetpath+image.to_s
-    thumbnail_local = './public/'+settings.assetpath+image.thumbnail
+    image_local = './public/'+image.to_s
+    thumbnail_local = './public/'+image.thumbnail
 
     puts image.inspect
 
     # obviously they should exist
-    assert(File.exists?(image_local), 'image does not exist!')
-    assert(File.exists?(thumbnail_local), 'thumbnail does not exist!')
+    assert(File.exists?(image_local), 'image does not exist! '+image_local)
+    assert(File.exists?(thumbnail_local), 'thumbnail does not exist!'+image_local)
     # and not empty
     assert_not_equal(0, File.size(image_local), 'image zero size')
     assert_not_equal(0, File.size(thumbnail_local), 'thumbnail zero size')
