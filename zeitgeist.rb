@@ -31,6 +31,8 @@ configure do
   set :haml, {:format => :html5}
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
   set :sinatra_authentication_view_path, 'views/auth_'
+  # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
+  disable :show_exceptions
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do
@@ -48,6 +50,15 @@ if settings.respond_to? 'datamapper_logger'
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
+
+
+class DuplicateError < Exception
+  attr_reader :id
+  def initialize(id)
+    @id = id
+    super("Duplicate image found based on checksum, id: #{id}")
+  end
+end
 
 class Item
   include DataMapper::Resource
@@ -116,7 +127,7 @@ class Item
         self.size = localtemp.filesize if not @plugin
 
         if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
-          raise "Duplicate image found based on checksum, id: #{item.id}"
+          raise DuplicateError.new(item.id)
         end
 
         # store file in configured storage
@@ -160,6 +171,35 @@ class Item
     title = attribute_get(:title)
     return nil if not title or title.empty?
     super
+  end
+
+  def add_tags(tags)
+    added_tags = []
+    tags.each do |tagname|
+      tag = Tag.first_or_create(:tagname => tagname)
+      if tag.save
+        self.tags << tag
+        added_tags << tag
+      else
+        raise 'error saving new tag: ' + tag.errors.first
+      end
+    end
+    self.save # save the new associations
+    return added_tags
+  end
+
+  def del_tags(tags)
+    deleted_tags = []
+    del_tags.each do |tag|
+      self.tags.each do |old_tag|
+        if old_tag.tagname == tag
+          self.tags.delete(old_tag) 
+          deleted_tags << old_tag
+        end
+      end
+    end
+    self.save # save the new associations
+    return deleted_tags
   end
 end
 
@@ -319,29 +359,27 @@ post '/new' do
   end
 
   # store in database, the before save hook downloads/proccess the file
-  @item = Item.new(:image => tempfile, :source => source)
-  if @item.save
-    # successful? append new tags:
-    tags.each do |tagname|
-      tag = Tag.first_or_create(:tagname => tagname)
-      if tag.save
-        @item.tags << tag
-      else
-        raise 'error saving new tag: ' + tag.errors.first
-      end
-    end
-    @item.save # save the new associations
+  begin
+    @item = Item.new(:image => tempfile, :source => source)
+    if @item.save
+      # successful? append new tags:
+      @item.add_tags(tags)
 
-    # success message, api returns item created and tags added
-    if is_ajax_request? or is_api_request? 
-      content_type :json
-      {:item => @item, :tags => @item.tags}.to_json
+      # success message, api returns item created and tags added
+      if is_ajax_request? or is_api_request? 
+        content_type :json
+        {:item => @item, :tags => @item.tags}.to_json
+      else
+        flash[:notice] = 'New item added successfully.'
+        redirect '/'
+      end
     else
-      flash[:notice] = 'New item added successfully.'
-      redirect '/'
+      raise 'new item error: ' + @item.errors.full_messages.inspect
     end
-  else
-    raise 'new item error: ' + @item.errors.full_messages.inspect
+  rescue DuplicateError => e
+    item = Item.get(e.id)
+    item.add_tags(tags)
+    raise "Duplicate image found based on checksum, id: #{e.id}"
   end
 end
 
@@ -367,38 +405,17 @@ post '/:id/update' do
   add_tags = (params[:add_tags] || '').split(',')
   del_tags = (params[:del_tags] || '').split(',')
 
-  added_tags = []
-  deleted_tags = []
-
   # get the item to edit
   @item = Item.get(id)
   raise "item with id #{id} not found!" if not @item
 
   # add tags (create them if not exists)
-  add_tags.each do |tag|
-    newtag = Tag.first_or_create(:tagname => tag)
-    # (try to) save tag
-    if not newtag or not newtag.save
-      raise "error saving tags: #{newtag.errors.inspect}" 
-    end
-    # create association
-    @item.tags << newtag
-    added_tags << newtag
-  end
+  added_tags = @item.add_tags(add_tags)
 
   # atm only allowed via api
   if is_api_request?
-    del_tags.each do |tag|
-      @item.tags.each do |old_tag|
-        if old_tag.tagname == tag
-          @item.tags.delete(old_tag) 
-          deleted_tags << old_tag
-        end
-      end
-    end
+    deleted_tags = @item.del_tags(del_tags)
   end
-
-  raise "error save item: #{@item.errors.inspect}" if not @item.save
 
   if is_ajax_request?
     content_type :json
@@ -433,7 +450,7 @@ get '/feed' do
   builder :itemfeed 
 end
 
-error 400..510 do # error RuntimeError do
+def do_error
   puts "error exception do"
   @error = env['sinatra.error'].message
   @code = response.status.to_s
@@ -447,6 +464,14 @@ error 400..510 do # error RuntimeError do
     flash[:error] = @error
     redirect '/'
   end
+end
+
+error RuntimeError do
+  do_error
+end
+
+error 400..510 do # error RuntimeError do
+  do_error
 end
 
 # compile sass stylesheet
