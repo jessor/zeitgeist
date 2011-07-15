@@ -40,10 +40,10 @@ yt
   private
 
   def video_id
-    id = match_one /'VIDEO_ID': "([^"]+)",/
-    if not id
-      id = @orig_url.match(/v=([^&]+)/)[1]
-    end
+    # id = match_one /'VIDEO_ID': "([^"]+)",/
+    # if not id
+    id = @orig_url.match(/v=([^&]+)/)[1] # reliable enough?
+    # end
     return id
   end
 end

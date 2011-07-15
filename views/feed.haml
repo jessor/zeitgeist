@@ -1,0 +1,31 @@
+!!! XML
+%rss{:version => "2.0"} 
+  %channel
+    %title= settings.pagetitle
+    %description= settings.pagedesc
+    %link= @base
+    - @items.each do |item|
+      %item
+        %title= (item.title || item.source)
+        %link= "#{@base}/#{item.id}" 
+        %guid= "#{@base}/#{item.id}"  
+        %pubDate= Time.parse(item.created_at.to_s).rfc822
+        %description
+          - if item.type == 'image'
+            -# <img src="#{@base+item.image.to_s}" alt="#{item.title || item.source}" />
+            -# <a href="#{@base+item.image.to_s}"><img src="#{@base+item.image.to_s}" alt="#{item.title || item.source}" /></a>
+            :escaped
+              <a href="#{@base+item.image.to_s}"><img src="#{@base+item.image.to_s}" alt="#{item.title || item.source}" /></a>
+          - else
+            -# just the raw embed tag: 
+            -# &= item.embed 
+            -# or the preview image with a link to the original content
+            -# (no embedding):
+            :escaped
+              <a href="#{item.source}"><img src="#{@base+item.image.thumbnail}" alt="#{item.title || item.source}" /></a>
+          - if item.tags and not item.tags.empty?
+            &= "<br/>tagged: "
+            - item.tags.each do |tag|
+              :escaped
+                <a href="#{@base}/filter/by/tag/#{escape tag.tagname}">#{tag.tagname}</a>
+      

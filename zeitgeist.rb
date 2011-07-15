@@ -182,6 +182,13 @@ class Item
     super
   end
 
+  # returns the embed code for this item
+  def embed
+    return if self.type == 'image'
+    remoteplugin = Sinatra::Remote::Plugins::Loader::create(self.source)
+    remoteplugin.embed # returns html code for embedding
+  end
+
   def add_tags(tags)
     tags = tags.split(',') if tags.class != Array
     return if tags.empty?
@@ -283,6 +290,10 @@ helpers do
 
   def pagination
     @items.pager.to_html(request.path, :size => 5)
+  end
+
+  def logger
+    request.logger
   end
 
 end
@@ -474,8 +485,11 @@ post '/:id/delete' do
 end
 
 get '/feed' do
+  @base = request.url.chomp(request.path_info)
   @items = Item.all(:limit => 10, :order => [:created_at.desc])
-  builder :itemfeed 
+  content_type :rss
+  haml :feed, :layout => false
+  # builder :itemfeed 
 end
 
 def do_error

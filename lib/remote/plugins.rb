@@ -52,7 +52,6 @@ module Plugins
 
     # the extracted content title or original filename
     def title
-      ""
     end
 
     def tags
