@@ -1,58 +1,20 @@
 //
-// Normalize
-//
-article, aside, details, figcaption, figure, footer, header, hgroup, nav, section { display: block; }
-audio[controls], canvas, video { display: inline-block; *display: inline; *zoom: 1; }
-abbr[title] { border-bottom: 1px dotted; }
-b, strong { font-weight: bold; }
-blockquote { margin: 1em 40px; }
-dfn { font-style: italic; }
-hr { display: block; height: 1px; border: 0; border-top: 1px solid #ccc; margin: 1em 0; padding: 0; }
-ins { background: #ff9; color: #000; text-decoration: none; }
-mark { background: #ff0; color: #000; font-style: italic; font-weight: bold; }
-pre, code, kbd, samp { font-family: monospace, monospace; _font-family: 'courier new', monospace; font-size: 1em; }
-pre { white-space: pre; white-space: pre-wrap; word-wrap: break-word; }
-q { quotes: none; }
-q:before, q:after { content: ""; content: none; }
-small { font-size: 85%; }
-sub, sup { font-size: 75%; line-height: 0; position: relative; vertical-align: baseline; }
-sup { top: -0.5em; }
-sub { bottom: -0.25em; }
-ul, ol { margin: 1em 0; padding: 0 0 0 40px; }
-dd { margin: 0 0 0 40px; }
-nav ul, nav ol { list-style: none; margin: 0; padding: 0; }
-form { margin: 0; }
-fieldset { border: 0; margin: 0; padding: 0; }
-legend { border: 0; *margin-left: -7px; padding: 0; }
-label { cursor: pointer; }
-button, input, select, textarea { font-size: 100%; margin: 0; vertical-align: baseline; *vertical-align: middle; }
-button, input { line-height: normal; *overflow: visible; }
-button, input[type="button"], input[type="reset"], input[type="submit"] { cursor: pointer; -webkit-appearance: button; }
-input[type="checkbox"], input[type="radio"] { box-sizing: border-box; }
-input[type="search"] { -moz-box-sizing: content-box; -webkit-box-sizing: content-box; box-sizing: content-box; }
-button::-moz-focus-inner, input::-moz-focus-inner { border: 0; padding: 0; }
-textarea { overflow: auto; vertical-align: top; }
-input:valid, textarea:valid {  }
-input:invalid, textarea:invalid { background-color: #f0dddd; }
-
-//
 // Includes
 //
 @import "fancybox";
+@import "norm";
 
 //
 // Colors \o/
 //
-$background: #272526; // brown
-$darkground: #141414; // dark gray
-$white: #eee; // white
-$border: #171717; // black
-$highlight: #e11a2d; // red
-$highlightnuance: #ea4d5d; // lighter red
-$higherlight: #f1848f; // light red
-$green: #2EE01A;
-$blue: #1A91E0;
-$lightblue: #1AE0CC;
+$background:    #272526;    // brown-ish
+$border:        #141414;    // dark gray
+$boxground:     #171717;    // darker gray
+$white:         #eee;       // white-ish
+
+$base: rgb(225, 26, 45);    // http://www.colourlovers.com/color/e11a2d
+$comp1: adjust-color($base, $hue: 210);
+$comp2: adjust-color($base, $hue: 150);
 
 //
 // Mixins
@@ -88,6 +50,30 @@ $lightblue: #1AE0CC;
     transition: $value;
 }
 
+@mixin gradient($top, $bottom) {
+    background-color: $bottom;
+    background: -webkit-gradient(linear, left top, left bottom, from($top), to($bottom));
+    background: -moz-linear-gradient(top, $top,  $bottom);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#{$top}', endColorstr='#{$bottom}');
+}
+
+@mixin color($this) {
+    border: solid 1px darken($this, 3%);
+    @include gradient(lighten($this, 13%), $this);
+    color: mix(#fff, $this, 90%);
+
+    &:hover {
+        @include gradient(lighten($this, 10%), darken($this, 5%));
+        border: 1px solid lighten($this, 10%);
+        @include hovershadow($this);
+    }
+
+    &:active {
+        @include gradient($this, lighten($this, 10%));
+        color: mix(#fff, $this, 70%);
+    }
+}
+
 //
 // General and Classes
 //
@@ -95,11 +81,12 @@ body {
     background: $background url('/images/bodybackground.png');
     color: $white;
     font-family: 'Helvetica', 'Arial';
+    font-size: 80%;
 }
 
 a {
     text-decoration: none;
-    color: $blue;
+    color: $comp1;
 }
 
 a:hover {
@@ -131,13 +118,13 @@ table th {
 }
 
 ::-moz-selection {
-    background: $highlight;
+    background: $base;
     color: #fff;
     text-shadow: none;
 }
 
 ::selection {
-    background: $highlight;
+    background: $base;
     color: #fff;
     text-shadow: none;
 }
@@ -155,28 +142,26 @@ header {
     position: absolute;
     top: 0;
     right: 0;
-    background: $border;
-    border: 3px solid $darkground;
+    background: $boxground;
+    border: 3px solid $border;
     padding: 2px;
     text-align: right;
-    font-size: 80%;
     z-index: 11;
 }
 
 // Header Ribbon
 // http://jsfiddle.net/Damion/VWRBU/
 .ribbon {
-    background-color: $border;
+    background-color: $boxground;
     /*background-image: -webkit-linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
     /*background-image: -moz-linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
     /*background-image: linear-gradient(top, rgba(255,255,255,0.1), rgba(0,0,0,.1));*/
     height: 64px;
     margin: 0 40px;
     position: relative;
-    /*padding: 2px 0;*/
-    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
-    -moz-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
-    box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $darkground, 0 1px 0 $background inset;
+    -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $border, 0 1px 0 $background inset;
+    -moz-box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $border, 0 1px 0 $background inset;
+    box-shadow: 0 1px 3px rgba(0,0,0,.3), 0 0 0 1px $border, 0 1px 0 $background inset;
 }
 
 .ribbon:before,
@@ -192,20 +177,20 @@ header {
 
 .ribbon:before{
     left: 0;
-    border-top-color: $border;
+    border-top-color: $boxground;
     border-left-width: 7px;
     border-right-width: 0;
 }
 
 .ribbon:after {
     right: 0;
-    border-top-color: $border;
+    border-top-color: $boxground;
     border-right-width: 7px;
     border-left-width: 0;
 }
 
 .ribbon .right, .ribbon .left{
-    border: 30px solid $darkground;
+    border: 30px solid $border;
     position: absolute;
     display: block;
     width:0; height:0;
@@ -255,9 +240,8 @@ nav {
 
 .ac_results {
     padding: 0px;
-    /*border: 1px solid black;*/
     background-color: $white;
-    color: $border;
+    color: $boxground;
     overflow: hidden;
     width: 190px !important;
     z-index: 99999;
@@ -275,7 +259,6 @@ nav {
         padding: 2px 5px;
         cursor: default;
         display: block;
-        /*width: 100%;*/
         line-height: 16px;
         overflow: hidden;
     }
@@ -285,12 +268,9 @@ nav {
     }
 
     .ac_odd {
-        /*background-color: #eee;*/
     }
 
     .ac_over {
-        /*background-color: #0A246A;*/
-        /*color: white;*/
         text-decoration: underline;
     }
 }
@@ -301,10 +281,10 @@ nav {
 .items li {
     list-style-type: none;
     display: inline-block;
-    background: $border;
+    background: $boxground;
     margin: 10px;
     padding: 10px;
-    border: 3px solid $darkground;
+    border: 3px solid $border;
     position: relative;
 
     .overlay {
@@ -313,11 +293,12 @@ nav {
 
     .thumbnail {
         display: block;
+        margin: 0 auto;
     }
 
     .overlay:hover,
     .thumbnail:hover {
-        @include hovershadow($blue);
+        @include hovershadow($comp1);
     }
 }
 
@@ -331,7 +312,6 @@ nav {
     margin: 10px 0;
     height: 25px;
     overflow: hidden;
-    font-size: 80%;
 
     ul.taglist {
         list-style: none; 
@@ -343,7 +323,7 @@ nav {
             float: left;
             border: 0;
             background: $background;
-            border: 1px solid $darkground;
+            border: 1px solid $border;
             @include rounded(5px);
             padding: 3px;
             margin: 0;
@@ -354,8 +334,7 @@ nav {
         }
 
         li:hover {
-            background: $highlight;
-            border-color: $highlightnuance;
+            border: $background;
 
             a{
                 color: $white !important;
@@ -395,12 +374,12 @@ nav {
         text-align: center;
 
         li {
-            border: 1px solid $darkground;
+            border: 1px solid $border;
             display: block;
             float: left;
             position: relative;
             right: 50%;
-            background: $border;
+            background: $boxground;
 
             a {
                 display: block;
@@ -411,7 +390,7 @@ nav {
 
         li.active {
             a {
-                color: $highlight;
+                color: $base;
             }
         }
     }
@@ -451,47 +430,37 @@ form ol {
 
 input {
     background-color: $white;
-    color: $darkground;
+    color: $border;
     border: 1px solid $white;
     padding: 2px 4px;
     @include rounded(5px);
-    /*@include boxshadow;*/
 }
             
 input:focus {
-    @include hovershadow($highlight);
+    @include hovershadow($base);
 }
  
 input[type="text"],
 input[type="password"] {
     background-repeat: no-repeat;
-    background-position: 4px 4px;
+    background-position: 3px 2px;
     padding-left: 25px;
 }
 
 input[type="submit"] {
-    background-color: $highlight;
     color: #fff;
     cursor: pointer;
     padding: 2px 8px;
     width: auto;
-    background: -moz-linear-gradient(top, $highlight, $highlightnuance);
-    background: -webkit-gradient(linear, left top, left bottom,
-    color-stop(0, #e1001a), color-stop(1, $highlightnuance));
-    border: 1px solid $darkground;
+    border: 1px solid $border;
     text-shadow: 1px 1px 3px #333;
+    @include color($base);
     @include rounded(5px);
 }
 
-input[type="submit"]:hover {
-    background: $highlight;
-    border: 1px solid $highlightnuance;
-    @include hovershadow($highlight);
-}
-
 .formbox {
-    background: $border;
-    border: 3px solid $darkground;
+    background: $boxground;
+    border: 3px solid $border;
     padding: 3px 0 0;
     margin: auto;
     width: 400px;
@@ -633,6 +602,5 @@ footer {
 
     div {
         text-align: center;
-        font-size: 80%;
     }
 }
