@@ -198,7 +198,7 @@ class Item
       Tag.cleanup! tagname
       tag = Tag.first_or_create(:tagname => tagname)
       puts "First or create for tagname:#{tagname}: id=#{tag.id}"
-      if tag.errors
+      if not tag.errors.empty?
         puts "Errors occured: DataMapper first_or_create: " + 
           tag.errors.full_messages.join(',')
         next # just try the next one ;)
