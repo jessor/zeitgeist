@@ -91,25 +91,19 @@ class Item
       @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
-      begin
-        if @plugin.url
-          puts "Download remote content from url: #{@plugin.url}"
-          downloader = Sinatra::Remote::Downloader.new(@plugin.url)
-          begin
-            downloader.download!
-          rescue
-            puts "error downloading remote URL(#{@source}): #{$!.message}"
-            puts $@
-            raise 'error downloading remote: ' + $!.message
-          else
-            tempfile = downloader.tempfile
-            self.size = downloader.filesize
-          end
+      if @plugin.url
+        puts "Download remote content from url: #{@plugin.url}"
+        downloader = Sinatra::Remote::Downloader.new(@plugin.url)
+        begin
+          downloader.download!
+        rescue Exception => e
+          puts "error downloading remote URL(#{@source}): #{e.message}"
+          puts e.backtrace
+          raise 'error downloading remote: ' + e.message
+        else
+          tempfile = downloader.tempfile
+          self.size = downloader.filesize
         end
-      rescue
-        puts "error with remote plugin URL(#{@source}): #{$!.message}"
-        puts $@
-        raise 'error with remote plugin: ' + $!.message
       end
 
       self.type = @plugin.type
@@ -146,10 +140,10 @@ class Item
 
         # store file in configured storage
         self.image = localtemp.store!
-      rescue
-        puts $!.message
-        puts $@
-        raise $!.message
+      rescue Exception => e
+        puts e.message
+        puts e.backtrace
+        raise e.message
       ensure
         # to make sure tempfiles are deleted in case of an error 
         localtemp.cleanup! 

@@ -126,10 +126,10 @@ module ::Zeitgeist
           response = JSON.parse(page.body)
           debug response.inspect
           return response
-        rescue
-          debug "zeitgeist response not valid json? #{$!.message}"
-          debug $@.join "\n"
-          raise $!
+        rescue Exception => e
+          debug "zeitgeist response not valid json? #{e.message}"
+          debug e.backtrace.join "\n"
+          raise e
         end
       else
         debug 'empty http response from zeitgeist'

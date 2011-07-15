@@ -191,9 +191,9 @@ module Plugins
               @@loaded_plugins << plugin_class
               puts "Loaded #{plugin_class}"
             end
-          rescue
-            puts "Error loading plugin #{plugin_file}: #{$!.message}"
-            puts $@
+          rescue Exception => e
+            puts "Error loading plugin #{plugin_file}: #{e.message}"
+            puts e.backtrace
           end
         end
       end
