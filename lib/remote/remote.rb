@@ -16,18 +16,16 @@ require 'uri'
 require File.dirname(File.expand_path(__FILE__)) + '/plugins.rb'
 
 module Sinatra
-module ZeitgeistRemote
+module Remote
 
 class RemoteException < Exception
 end
 
-class RemoteDownloader
-  attr_reader :plugin, :type, :tempfile, :mimetype, :filesize 
+class Downloader
+  attr_reader :tempfile, :mimetype, :filesize 
 
-  def initialize(plugin)
-    plugin = Plugins::plugin_by_url(plugin) if plugin.class == String
-    @plugin = plugin
-    @type = @plugin.class::TYPE
+  def initialize(url)
+    @url = url
     @tempfile = nil
     @mimetype = nil
     @filesize = nil
@@ -46,7 +44,7 @@ class RemoteDownloader
   def download!
     # generate temp name:
     begin
-      @tempfile = "#{settings.remote_temp_path}/zg-remote-" + 
+      @tempfile = "#{settings.temppath}/zg-remote-" + 
         "#{Time.now.strftime("%y%m%d%H%M%S")}-#{rand(100)}"
     end while File.exists? @tempfile
 
@@ -73,9 +71,9 @@ class RemoteDownloader
       end
     end
 
-    puts "fetch #{@plugin.url}"
+    puts "fetch #{@url}"
     begin
-      open(@plugin.url, 'r', open_args) do |input|
+      open(@url, 'r', open_args) do |input|
         # first read the image header/signature to verify image
         # very preliminary test, but doesnt really matter
         max_sigsize = IMAGE_SIGNATURE.values.max { |a, b| a.length <=> b.length }.length
@@ -111,21 +109,21 @@ class RemoteDownloader
       end # end uri-open
     rescue OpenURI::HTTPError => e
       raise RemoteException.new(
-        "http error occured, downloading remote url (#{@plugin.url}) failed: #{e.message}")
+        "http error occured, downloading remote url (#{@url}) failed: #{e.message}")
     rescue URI::InvalidURIError => e
       raise RemoteException.new(
-        "looks like an invalid url (#{@plugin.url}), failed: #{e.message}")
+        "looks like an invalid url (#{@url}), failed: #{e.message}")
     rescue Exception => e
       raise RemoteException.new(
-        "something went wrong during downloading of url (#{@plugin.url}): #{e.message}")
+        "something went wrong during downloading of url (#{@url}): #{e.message}")
     end
   end 
 end
 
 # set default configuration
 def self.registered(app)
-  app.set :remote_chunk => 1024 * 128 # 16 KiB
-  app.set :remote_temp_path => '/tmp'
+  app.set :temppath => '/tmp'
+  app.set :remote_chunk => 1024 * 128 # 128 KiB
   app.set :remote_max_filesize => 1024 ** 2 * 8 # 8 MiB
   app.set :remote_proxy_host => nil
   app.set :remote_proxy_port => nil
@@ -137,10 +135,10 @@ def self.registered(app)
   OEmbed::Providers.register_all
 end
 
-end # end namespace ZeitgeistRemote
+end # end namespace Remote
 
 # register zeitgeist remote as sinatra extension
-register ZeitgeistRemote
+register Remote
 
 end # end namespace Sinatra
 

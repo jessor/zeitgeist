@@ -31,6 +31,10 @@ configure do
   set :haml, {:format => :html5}
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
   set :sinatra_authentication_view_path, 'views/auth_'
+  # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
+  disable :show_exceptions
+  disable :dump_errors
+  disable :raise_errors 
 
   if settings.pagespeed
     use Rack::PageSpeed, :public => 'public' do
@@ -48,6 +52,15 @@ if settings.respond_to? 'datamapper_logger'
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
+
+
+class DuplicateError < Exception
+  attr_reader :id
+  def initialize(id)
+    @id = id
+    super("Duplicate image found based on checksum, id: #{id}")
+  end
+end
 
 class Item
   include DataMapper::Resource
@@ -75,31 +88,44 @@ class Item
     puts tempfile
 
     if not tempfile # remote upload!
-      @plugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@source)
+      @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
-      if @plugin.url
-        downloader = Sinatra::ZeitgeistRemote::RemoteDownloader.new(@plugin)
-        begin
-          downloader.download!
-        rescue
-          puts "error downloading remote URL(#{@source}): #{$!.message}"
-          puts $@
-          raise 'error downloading remote: ' + $!.message
-        else
-          tempfile = downloader.tempfile
-          self.size = downloader.filesize
+      begin
+        if @plugin.url
+          puts "Download remote content from url: #{@plugin.url}"
+          downloader = Sinatra::Remote::Downloader.new(@plugin.url)
+          begin
+            downloader.download!
+          rescue
+            puts "error downloading remote URL(#{@source}): #{$!.message}"
+            puts $@
+            raise 'error downloading remote: ' + $!.message
+          else
+            tempfile = downloader.tempfile
+            self.size = downloader.filesize
+          end
         end
+      rescue
+        puts "error with remote plugin URL(#{@source}): #{$!.message}"
+        puts $@
+        raise 'error with remote plugin: ' + $!.message
       end
 
       self.type = @plugin.type
       self.title = @plugin.title[0..49]
       if @plugin.tags
         @plugin.tags.each do |tagname|
-          # only add existing tags as association:
-          tagname.downcase!; tagname.strip!
-          tag = Tag.first(:tagname => tagname)
-          self.tags << tag if tag
+          if @plugin.only_existing_tags
+            # only add existing tags as association:
+            tagname.downcase!; tagname.strip!
+            tag = Tag.first(:tagname => tagname)
+            self.tags << tag if tag
+          else
+            tagname.downcase!; tagname.strip!
+            tag = Tag.first_or_create(:tagname => tagname)
+            self.tags << tag if tag
+          end
         end
       end
     end
@@ -115,7 +141,7 @@ class Item
         self.size = localtemp.filesize if not @plugin
 
         if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
-          raise "Duplicate image found based on checksum, id: #{item.id}"
+          raise DuplicateError.new(item.id)
         end
 
         # store file in configured storage
@@ -123,7 +149,7 @@ class Item
       rescue
         puts $!.message
         puts $@
-        raise 'carrier error: ' + $!.message
+        raise $!.message
       ensure
         # to make sure tempfiles are deleted in case of an error 
         localtemp.cleanup! 
@@ -145,7 +171,7 @@ class Item
     # this creates a storage object, which one is based on the
     # identification, this means the store can be switched in an
     # running installation. New images will be stored in the new
-    # storage, but old not mitigated ones are still availible.
+    # storage, but old not mitigated ones are still available.
     if not @image_obj
       identifier = attribute_get(:image)
       return nil if not identifier
@@ -156,11 +182,38 @@ class Item
   end
 
   def title
-    if not attribute_get(:title)
-      attribute_get(:source)
-    else
-      attribute_get(:title)
+    title = attribute_get(:title)
+    return nil if not title or title.empty?
+    super
+  end
+
+  def add_tags(tags)
+    added_tags = []
+    tags.each do |tagname|
+      tag = Tag.first_or_create(:tagname => tagname)
+      if tag.save
+        self.tags << tag
+        added_tags << tag
+      else
+        raise 'error saving new tag: ' + tag.errors.first
+      end
     end
+    self.save # save the new associations
+    return added_tags
+  end
+
+  def del_tags(tags)
+    deleted_tags = []
+    tags.each do |tag|
+      self.tags.each do |old_tag|
+        if old_tag.tagname == tag
+          self.tags.delete(old_tag) 
+          deleted_tags << old_tag
+        end
+      end
+    end
+    self.save # save the new associations
+    return deleted_tags
   end
 end
 
@@ -172,8 +225,11 @@ class Tag
 
   has n, :items, :through => Resource
 
-  def tagname=(tag) # overwrite assignment
-    tag.downcase!; tag.strip!
+  def tagname=(tag)
+    # cleanup:
+    tag.gsub!(%r{[<>/~\^,+]}, '')
+    tag.strip!
+    tag.downcase!
     super
   end
 end
@@ -235,20 +291,6 @@ end
 # Routes
 # 
 
-error RuntimeError do
-  @error = env['sinatra.error'].message
-  if request.get?
-    haml :error, :layout => false
-  elsif is_ajax_request? or is_api_request? 
-    status 200 # much easier to handle when it response normally
-    content_type :json
-    {:error => @error}.to_json
-  else
-    flash[:error] = @error
-    redirect '/'
-  end
-end
-
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
   @items = Item.page(params['page'],
@@ -285,7 +327,7 @@ get '/about' do
 end
 
 post '/embed' do
-  remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(params['url'])
+  remoteplugin = Sinatra::Remote::Plugins::Loader::create(params['url'])
   remoteplugin.embed # returns html code for embedding
 end
 
@@ -331,29 +373,27 @@ post '/new' do
   end
 
   # store in database, the before save hook downloads/proccess the file
-  @item = Item.new(:image => tempfile, :source => source)
-  if @item.save
-    # successful? append new tags:
-    tags.each do |tagname|
-      tag = Tag.first_or_create(:tagname => tagname)
-      if tag.save
-        @item.tags << tag
-      else
-        raise 'error saving new tag: ' + tag.errors.first
-      end
-    end
-    @item.save # save the new associations
+  begin
+    @item = Item.new(:image => tempfile, :source => source)
+    if @item.save
+      # successful? append new tags:
+      @item.add_tags(tags)
 
-    # success message, api returns item created and tags added
-    if is_ajax_request? or is_api_request? 
-      content_type :json
-      {:item => @item, :tags => @item.tags}.to_json
+      # success message, api returns item created and tags added
+      if is_ajax_request? or is_api_request? 
+        content_type :json
+        {:item => @item, :tags => @item.tags}.to_json
+      else
+        flash[:notice] = 'New item added successfully.'
+        redirect '/'
+      end
     else
-      flash[:notice] = 'New item added successfully.'
-      redirect '/'
+      raise 'new item error: ' + @item.errors.full_messages.inspect
     end
-  else
-    raise 'new item error: ' + @item.errors.full_messages.inspect
+  rescue DuplicateError => e
+    item = Item.get(e.id)
+    item.add_tags(tags)
+    raise "Duplicate image found based on checksum, id: #{e.id}"
   end
 end
 
@@ -368,7 +408,7 @@ get '/:id' do
   elsif @item.type == 'image'
     redirect @item.image
   else
-    remoteplugin = Sinatra::ZeitgeistRemote::Plugins::plugin_by_url(@item.source)
+    remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
     remoteplugin.embed # returns html code for embedding
   end
 end
@@ -376,64 +416,28 @@ end
 # adds or removes tags from an item
 post '/:id/update' do
   id = params[:id]
-  add_tags = (params[:add_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
-  del_tags = (params[:del_tags] || '').split(',').map { |tag| tag.strip!; tag.gsub(/<\/?[^>]*>/,'') }
-
-  added_tags = []
-  deleted_tags = []
+  add_tags = (params[:add_tags] || '').split(',')
+  del_tags = (params[:del_tags] || '').split(',')
 
   # get the item to edit
   @item = Item.get(id)
-  if not @item
-    error = "item with id #{id} not found!"
-  else
-    add_tags.each do |tag|
-      puts add_tags.inspect
-      newtag = Tag.first_or_create(:tagname => tag)
-      puts newtag.inspect
-      # (try to) save tag
-      if not newtag or not newtag.save
-        error = "#{newtag.errors}"
-        break
-      end
-      # create association
-      @item.tags << newtag
-      added_tags << newtag
-    end
+  raise "item with id #{id} not found!" if not @item
 
-    # atm only allowed via api
-    if is_api_request?
-      del_tags.each do |tag|
-        @item.tags.each do |old_tag|
-          if old_tag.tagname == tag 
-            @item.tags.delete(old_tag) 
-            deleted_tags << old_tag
-          end
-        end
-      end
-    end
+  # add tags (create them if not exists)
+  added_tags = @item.add_tags(add_tags)
 
-    if not @item.save
-      error = @item.errors
-    end
+  # atm only allowed via api
+  if is_api_request?
+    deleted_tags = @item.del_tags(del_tags)
   end
 
   if is_ajax_request?
     content_type :json
-    if error
-      {:error => error}.to_json
-    else
-      {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
-    end
+    {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
   elsif is_api_request? 
     content_type :json
-    if error
-      {:error => error}.to_json
-    
-      {:item => @item, :tags => @item.tags}.to_json
-    end
+    {:item => @item, :tags => @item.tags}.to_json
   else
-    flash[:error] = error 
     redirect '/'
   end
 end
@@ -460,9 +464,28 @@ get '/feed' do
   builder :itemfeed 
 end
 
-error 400..510 do
+def do_error
+  puts "error exception do"
+  @error = env['sinatra.error'].message
   @code = response.status.to_s
-  haml :error, :layout => false
+  if is_ajax_request? or is_api_request? 
+    status 200 # much easier to handle when it response normally
+    content_type :json
+    {:error => @error}.to_json
+  elsif request.get?
+    haml :error, :layout => false 
+  else
+    flash[:error] = @error
+    redirect '/'
+  end
+end
+
+error RuntimeError do
+  do_error
+end
+
+error 400..510 do # error RuntimeError do
+  do_error
 end
 
 # compile sass stylesheet

@@ -171,7 +171,8 @@ jQuery(function(){
                 dataType:   'json',
                 success:    function(data) {
                                 $.each(data.added_tags, function(i,tag) {
-                                    $(tagtarget).prepend('<li><a href="/filter/by/tag/' + tag.tagname + '">' + tag.tagname + '</a></li>');
+                                  var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
+                                  $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagname + '</a></li>');
                                 });
                             },
                 resetForm:  true

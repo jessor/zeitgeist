@@ -10,21 +10,21 @@
             - image = "images/#{item.type}.png"
 
           - if item.type == "image"
-            %a{ :href => item.image, :class => 'fancy', :title => "\##{item.id}: #{item.title} at #{item.dimensions}", :rel => 'group' }
+            %a{ :href => item.image, :class => 'fancy', :title => "\##{item.id}: #{item.title || item.source} at #{item.dimensions}", :rel => 'group' }
               %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
           - elsif item.type == "video"
-            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title}", :rel => 'group' }
+            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title || item.source}", :rel => 'group' }
               %img{ :src => '/images/video-overlay.png', :class => 'overlay' }
               %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
           - else
-            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title}", :rel => 'group' }
+            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title || item.source}", :rel => 'group' }
               %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
 
           .item-meta
             %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
               - item.tags.each do |tag|
                 %li 
-                  %a{ :href => "/filter/by/tag/#{tag.tagname}", :class => 'taglink' }> #{tag.tagname}
+                  %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'taglink' }> #{tag.tagname}
               %div.clear
           %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }

@@ -224,6 +224,8 @@ class ZeitgeistBotPlugin < Plugin
     urls = message.scan(PATTERN_LISTEN_URL)
     debug "message (#{message}) pattern match PATTERN_LISTEN_URL: #{urls.inspect}"
     urls.each do |url|
+      url = url.first if url.class == Array
+      next if url.match @bot.config['zeitgeist.base_url']
       # ... and tags:
       if urls.length == 1 and message.match PATTERN_LISTEN_TAGS
         debug "message (#{message}) pattern match PATTERN_LISTEN_TAGS: #{$1}"
@@ -255,6 +257,10 @@ class ZeitgeistBotPlugin < Plugin
 
       offset_or_id = $2 ? $2.strip : ''
       tags = $3 ? $3.strip : ''
+      if offset_or_id.empty? and tags.match /^\d+$/
+        offset_or_id = tags
+        tags = ''
+      end
       offset_or_id = -1 if offset_or_id.empty?
       offset_or_id = offset_or_id.to_i if offset_or_id.class == String
 
