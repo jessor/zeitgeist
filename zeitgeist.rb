@@ -238,9 +238,27 @@ class Tag
 
   has n, :items, :through => Resource
 
-  def tagname=(tag)
-    self.class::cleanup! tag
+  def tagname=(tagname)
+    if not tagname.valid_encoding?
+      puts "Invalid Encoding tagname(#{tagname.inspect})!"
+      tagname = tagname.force_encoding('ISO-8859-1').encode('UTF-8')
+      raise 'Broken Encoding!' if not tagname.valid_encoding?
+    end
+    self.class::cleanup! tagname
     super
+  end
+
+  def tagname
+    tagname = super
+    if not tagname.valid_encoding?
+      puts "Invalid Encoding tagname(#{tagname.inspect})"
+      tagname = tagname.force_encoding('ISO-8859-1').encode('UTF-8')
+      puts "Save fixed tagname(#{tagname.inspect})"
+      self.tagname = tagname # save the fixed version
+      self.save
+      raise 'Broken Encoding!' if not tagname.valid_encoding?
+    end
+    return tagname
   end
 
   def self.cleanup!(tag)
