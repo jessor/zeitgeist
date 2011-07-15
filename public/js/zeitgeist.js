@@ -137,6 +137,7 @@ jQuery(function(){
     // Autocomplete
     $(':input.autocomplete').livequery(function() {
         $(this).autocomplete('/search', {
+            selectFirst:    false,
             width:          300,
             dataType:       'json',
             // parse json response
