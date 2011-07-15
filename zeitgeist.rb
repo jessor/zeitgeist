@@ -49,6 +49,7 @@ end
 # Models
 #
 if settings.respond_to? 'datamapper_logger'
+  puts "Setup DataMapper logging: #{settings.datamapper_logger}"
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
@@ -182,25 +183,36 @@ class Item
   end
 
   def add_tags(tags)
+    tags = tags.split(',') if tags.class != Array
+    return if tags.empty?
+    puts "Append tags to item(##{self.id}): #{tags.join('|')}"
     added_tags = []
     tags.each do |tagname|
+      Tag.cleanup! tagname
       tag = Tag.first_or_create(:tagname => tagname)
-      if tag.save
-        self.tags << tag
-        added_tags << tag
-      else
-        raise 'error saving new tag: ' + tag.errors.first
+      puts "First or create for tagname:#{tagname}: id=#{tag.id}"
+      if tag.errors
+        puts "Errors occured: DataMapper first_or_create: " + 
+          tag.errors.full_messages.join(',')
+        next # just try the next one ;)
       end
+      self.tags << tag
+      added_tags << tag
     end
     self.save # save the new associations
     return added_tags
   end
 
   def del_tags(tags)
+    tags = tags.split(',') if tags.class != Array
+    return if tags.empty?
+    puts "Drop tags from item(##{self.id}): #{tags.join('|')}"
     deleted_tags = []
     tags.each do |tag|
+      Tag.cleanup! tag
       self.tags.each do |old_tag|
         if old_tag.tagname == tag
+          puts "Drop existing tag #{old_tag.tagname}!"
           self.tags.delete(old_tag) 
           deleted_tags << old_tag
         end
@@ -220,11 +232,14 @@ class Tag
   has n, :items, :through => Resource
 
   def tagname=(tag)
-    # cleanup:
-    tag.gsub!(%r{[<>/~\^,+]}, '')
+    self.class::cleanup! tag
+    super
+  end
+
+  def self.cleanup!(tag)
+    tag.gsub!(%r{[<>/~\^,]}, '')
     tag.strip!
     tag.downcase!
-    super
   end
 end
 
@@ -359,7 +374,7 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
-  tags = params[:tags] ? params[:tags].split(',') : []
+  tags = params.has_key?(:tags) ? params[:tags] : ''
 
   tempfile = nil # stays nil for remote url
   if params[:image_upload]
@@ -464,8 +479,10 @@ get '/feed' do
 end
 
 def do_error
-  puts "error exception do"
-  @error = env['sinatra.error'].message
+  error = env['sinatra.error']
+  puts "Zeitgeist application error occured: #{error.inspect}"
+  puts "Backtrace: " + error.backtrace.join("\n")
+  @error = error.message
   @code = response.status.to_s
   if is_ajax_request? or is_api_request? 
     status 200 # much easier to handle when it response normally
