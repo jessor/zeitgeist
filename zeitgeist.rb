@@ -301,6 +301,7 @@ get '/' do
 end
 
 get '/filter/by/type/:type' do
+  @title = "Filtered by type #{params[:type]} on #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
                      :type => params[:type],
@@ -310,6 +311,7 @@ get '/filter/by/type/:type' do
 end
 
 get '/filter/by/tag/:tag' do
+  @title = "Filtered by tag '#{params[:tag]}' on #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
                      Item.tags.tagname => params[:tag],
@@ -319,6 +321,7 @@ get '/filter/by/tag/:tag' do
 end
 
 get '/about' do
+  @title = "About #{settings.pagetitle}"
   if is_ajax_request?
     haml :about, :layout => false
   else
@@ -332,6 +335,7 @@ post '/embed' do
 end
 
 get '/search' do
+  @title = "Search #{settings.pagetitle}"
   if is_ajax_request?
     haml :search, :layout => false
   else
@@ -350,6 +354,7 @@ post '/search' do
 end
 
 get '/new' do
+  @title = "Upload something to #{settings.pagetitle}"
   if is_ajax_request?
     haml :new, :layout => false
   else
