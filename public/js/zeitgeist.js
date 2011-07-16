@@ -137,6 +137,7 @@ jQuery(function(){
     // Autocomplete
     $(':input.autocomplete').livequery(function() {
         $(this).autocomplete('/search', {
+            minChars:       2,
             selectFirst:    false,
             width:          300,
             dataType:       'json',
@@ -172,11 +173,13 @@ jQuery(function(){
                 dataType:   'json',
                 success:    function(data) {
                                 $.each(data.added_tags, function(i,tag) {
-                                  var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
-                                  $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagname + '</a></li>');
+                                    var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
+                                    var tagshort = tagname.substr(0, 10) + (tagname.length > 11 ? '...' : '');
+                                    $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
                                 });
                             },
-                resetForm:  true
+                resetForm:  true,
+                clearForm:  true
             };
 
             $(this).ajaxSubmit(options);

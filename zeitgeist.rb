@@ -314,6 +314,15 @@ helpers do
     request.logger
   end
 
+  def shorten(str)
+    if str.slice!(11 ..-1)
+      str += '...'
+    else
+      str
+    end
+  end
+
+
 end
 
 #
