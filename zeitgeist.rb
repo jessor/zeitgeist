@@ -514,8 +514,9 @@ end
 get '/feed' do
   @base = request.url.chomp(request.path_info)
   @items = Item.all(:limit => 10, :order => [:created_at.desc])
-  content_type :rss
-  haml :feed, :layout => false
+  content_type :xml
+  haml :feed, :layout => false, :format => :xhtml
+
   # builder :itemfeed 
 end
 
