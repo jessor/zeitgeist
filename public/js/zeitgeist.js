@@ -229,12 +229,20 @@ jQuery(function(){
 
 
 //
-// Zeitgeist Clock Overlay
+// Analog Clock using Canvas, Zeitgeist Logo Overlay
+// More recent browsers support canvas, drawing surfaces:
+// http://diveintohtml5.org/canvas.html
 //
 var ZeitgeistClock = {
     init: 
         function() {
+            if(!document.createElement('canvas').getContext) {
+              return; /* no canvas support */
+            }
             this.canvas = document.getElementById('zeitgeist-clock');
+            // lay image between logo and canvas, the canvas is transparent
+            // the clean_zg_clock.png image contains the clock dial without
+            // the clockhands:
             $('#zeitgeist-clock').parent().append(
                 '<img src="/images/clean_zg_clock.png" style="position: ' + 
                     'absolute; left: 318px; top: 4px; z-index: 10;" />');
@@ -243,7 +251,7 @@ var ZeitgeistClock = {
             this.width = this.canvas.width;
             this.height = this.canvas.height;
             this.center_x = this.width/2;
-            this.center_y = this.height/2;
+            this.center_y = this.height/2+2;
 
             this.updateClock();
         },
@@ -254,9 +262,10 @@ var ZeitgeistClock = {
             this.context.translate(this.center_x, this.center_y);
             this.context.rotate(angle*Math.PI/180);
             this.context.strokeStyle = style;
+            this.context.lineWidth = 1;
 
             this.context.beginPath();
-            this.context.moveTo(0, 0);
+            this.context.moveTo(0, 1);
             this.context.lineTo(0, -radius);
             this.context.stroke();
 
