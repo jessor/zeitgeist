@@ -1,14 +1,14 @@
 !!! XML
 %rss{:version => "2.0"} 
   %channel
-    %title= settings.pagetitle
-    %description= settings.pagedesc
-    %link= @base
+    %title&= settings.pagetitle
+    %description&= settings.pagedesc
+    %link&= @base
     - @items.each do |item|
       %item
-        %title= (item.title || item.source)
-        %link= "#{@base}/#{item.id}" 
-        %guid= "#{@base}/#{item.id}"  
+        %title&= (item.title || item.source)
+        %link&= "#{@base}/#{item.id}" 
+        %guid&= "#{@base}/#{item.id}"  
         %pubDate= Time.parse(item.created_at.to_s).rfc822
         %description
           - if item.type == 'image'

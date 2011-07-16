@@ -516,8 +516,6 @@ get '/feed' do
   @items = Item.all(:limit => 10, :order => [:created_at.desc])
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
-
-  # builder :itemfeed 
 end
 
 def do_error
