@@ -108,7 +108,7 @@ class Item
       end
 
       self.type = @plugin.type
-      self.title = @plugin.title[0..49]
+      self.title = @plugin.title[0..49] if @plugin.title 
       if @plugin.tags
         @plugin.tags.each do |tagname|
           if @plugin.only_existing_tags
