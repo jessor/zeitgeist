@@ -315,8 +315,8 @@ helpers do
   end
 
   def shorten(str)
-    if str.slice!(11 ..-1)
-      str += '...'
+    if str.length > 11
+      "#{str[0..(10)]}..."
     else
       str
     end

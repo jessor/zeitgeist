@@ -174,7 +174,7 @@ jQuery(function(){
                 success:    function(data) {
                                 $.each(data.added_tags, function(i,tag) {
                                     var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
-                                    var tagshort = tagname.substr(0, 10) + (tagname.length > 11 ? '...' : '');
+                                    var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
                                     $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
                                 });
                             },
