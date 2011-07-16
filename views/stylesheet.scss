@@ -218,6 +218,16 @@ nav {
     text-align: center;
     margin-bottom: 20px;
 }
+
+//
+// Zeitgeist Clock Canvas
+//
+#zeitgeist-clock {
+    position: absolute;
+    left: 318px;
+    top: 3px;
+    z-index: 11;
+}
  
 //
 // Search

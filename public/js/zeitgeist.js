@@ -222,3 +222,69 @@ jQuery(function(){
     });            
 
 });
+
+
+//
+// Zeitgeist Clock Overlay
+//
+var ZeitgeistClock = {
+    init: 
+        function() {
+            this.canvas = document.getElementById('zeitgeist-clock');
+            $('#zeitgeist-clock').parent().append(
+                '<img src="/images/clean_zg_clock.png" style="position: ' + 
+                    'absolute; left: 318px; top: 4px; z-index: 10;" />');
+
+            this.context = this.canvas.getContext('2d');
+            this.width = this.canvas.width;
+            this.height = this.canvas.height;
+            this.center_x = this.width/2;
+            this.center_y = this.height/2;
+
+            this.updateClock();
+        },
+
+    drawClockhand: 
+        function(radius, angle, style) {
+            this.context.save();
+            this.context.translate(this.center_x, this.center_y);
+            this.context.rotate(angle*Math.PI/180);
+            this.context.strokeStyle = style;
+
+            this.context.beginPath();
+            this.context.moveTo(0, 0);
+            this.context.lineTo(0, -radius);
+            this.context.stroke();
+
+            this.context.restore();
+        },
+
+    updateClock:
+        function() {
+            var date = new Date(),
+                second = date.getSeconds(),
+                minute = date.getMinutes(),
+                hour = date.getHours();
+
+            // "clear screen"
+            this.context.clearRect(0, 0, this.width-1, this.height-1);
+
+            // second: 20px
+            this.drawClockhand(20, second * 6, '#a72f2f');
+
+            // minute: 22px
+            this.drawClockhand(22, minute * 6, '#242323');
+
+            // hour: 14px
+            this.drawClockhand(14, 30 * hour + (minute/2.5), '#242323');
+
+            var self = this;
+            window.setTimeout(function() { self.updateClock(); }, 1000);
+        }
+};
+
+$(document).ready(function() {
+    ZeitgeistClock.init();
+});
+    
+
