@@ -236,22 +236,19 @@ jQuery(function(){
 var ZeitgeistClock = {
     init: 
         function() {
-            if(!document.createElement('canvas').getContext) {
+            this.canvas = document.getElementById('logo_canvas_clock');
+            if(!this.canvas.getContext) {
               return; /* no canvas support */
             }
-            this.canvas = document.getElementById('zeitgeist-clock');
-            // lay image between logo and canvas, the canvas is transparent
-            // the clean_zg_clock.png image contains the clock dial without
-            // the clockhands:
-            $('#zeitgeist-clock').parent().append(
-                '<img src="/images/clean_zg_clock.png" style="position: ' + 
-                    'absolute; left: 318px; top: 4px; z-index: 10;" />');
+            /* make visible the blank version (without clockhands) of 
+             * the clock dial in the logo */
+            $('#logo_blank_clock').show();
 
             this.context = this.canvas.getContext('2d');
             this.width = this.canvas.width;
             this.height = this.canvas.height;
             this.center_x = this.width/2;
-            this.center_y = this.height/2+2;
+            this.center_y = this.height/2+1;
 
             this.updateClock();
         },
@@ -262,7 +259,6 @@ var ZeitgeistClock = {
             this.context.translate(this.center_x, this.center_y);
             this.context.rotate(angle*Math.PI/180);
             this.context.strokeStyle = style;
-            this.context.lineWidth = 1;
 
             this.context.beginPath();
             this.context.moveTo(0, 1);

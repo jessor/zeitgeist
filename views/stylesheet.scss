@@ -222,11 +222,20 @@ nav {
 //
 // Zeitgeist Clock Canvas
 //
-#zeitgeist-clock {
+#logo_canvas_clock {
     position: absolute;
-    left: 318px;
+    left: 319px;
     top: 3px;
     z-index: 11;
+}
+#logo_blank_clock {
+    display: none;
+    position: absolute;
+    width: 59px;
+    height: 59px;
+    left: 319px; 
+    top: 3px; 
+    z-index: 10;
 }
  
 //
