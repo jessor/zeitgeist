@@ -412,7 +412,10 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
-  tags = params.has_key?(:tags) ? params[:tags] : ''
+  puts "post /new"
+  puts params.inspect
+  tags = params.has_key?('tags') ? params['tags'] : ''
+  puts tags.inspect
 
   tempfile = nil # stays nil for remote url
   if params[:image_upload]

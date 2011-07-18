@@ -12,8 +12,8 @@ module Plugins
     TYPE = 'image' 
 
     AUTOTAGGING = {
-      'xkcd.com' => ['xkcd'],
-      'explosm.net' => ['explosm'] # , 'cyanide & happiness']
+      'xkcd.com' => ['comic', 'xkcd'],
+      'explosm.net' => ['comic', 'explosm'] # , 'cyanide & happiness']
     }
 
     def self.pattern_test(pattern, url)
@@ -206,6 +206,7 @@ module Plugins
           puts "warning! plugin without PATTERN ignored!"
           next
         end
+        puts "Use plugin: #{plugin.inspect}"
         return plugin.new url
       end
       return Plugin.new url
