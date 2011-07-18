@@ -14,9 +14,9 @@ Current Features
 * Upload items or just post the URL
 * Non-image URLs currently supported: YouTube, Vimeo, Soundcloud (easily extendable)
 * Porn Mode: Use cursor keys in Fancybox, it even switches to the next page for you
-* Tags: easily add and filter by tags
-* Host images on S3 or Google Storage or locally (CarrierWave)
-* IRC Bot for watching URLs posted in channels and adding/removing of tags (not released yet)
+* Tags: easily add and filter by tags, autotagging by URL
+* Submitted URLs are parsed for the title and tags
+* [rubybot](http://ruby-rbot.org/) IRC plugin post URLs in channels, view items and add/remove tags
 
 
 Development
@@ -31,7 +31,7 @@ Development
 * cd zeitgeist
 * gem install bundler && bundle install
 * cp config.yaml.sample config.yaml
-* shotgun -E production zeitgeist.rb
+* shotgun -E production config.ru
 
 Ignore "DataObjects::URI.new with arguments is deprecated", it's not our bug, see [dm-do-adapter/issues/4](https://github.com/datamapper/dm-do-adapter/issues/4)
 
