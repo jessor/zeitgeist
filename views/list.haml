@@ -1,0 +1,16 @@
+#content
+
+  %h2
+    = @title
+
+  - if @items
+    %ul.list
+      - @items.each do |item|
+        %li
+          - case params[:attribute]
+          - when 'tags'
+            %a{ :href => "/filter/by/tag/#{item.tagname}" }
+              = "#{item.tagname}"
+          - when 'dimensions'
+            %a{ :href => "/filter/by/dimensions/#{item.dimensions}" }
+              = "#{item.dimensions}"

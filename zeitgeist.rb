@@ -367,6 +367,32 @@ get '/filter/by/tag/:tag' do
   haml :index
 end
 
+get '/filter/by/dimensions/:dimension' do
+  @title = "Filtered by dimensions '#{params[:tag]}' on #{settings.pagetitle}"
+  @items = Item.page(params['page'],
+                     :per_page => settings.items_per_page,
+                     :dimensions => params[:dimension],
+                     :order => [:created_at.desc])
+  pagination
+  haml :index
+end
+
+get '/list/:attribute' do
+  @title = "List of #{params[:attribute]} on #{settings.pagetitle}"
+
+  case params[:attribute]
+  when 'tags'
+    @items = Tag.all(:order => [:tagname.asc])
+  when 'dimensions'
+    @items = Item.all(:fields => [:dimensions], :unique => true, :order => [:dimensions.asc])
+  else
+    flash[:error] = "Currently unsupported"
+    redirect '/'
+  end
+
+  haml :list
+end
+
 get '/about' do
   @title = "About #{settings.pagetitle}"
   if is_ajax_request?
