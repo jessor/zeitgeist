@@ -27,7 +27,12 @@ module Carrier
     end
 
     def image_dimensions(img)
-      img['dimensions'].join 'x'
+      dimensions = img['%wx%h']
+      if dimensions.match /\d+x\d+/
+        dimensions
+      else
+        ''
+      end
     end
 
     def image_thumbnail!(image, width=200, height=200)
