@@ -7,7 +7,7 @@
           - if item.image
             - image = item.image.thumbnail
           - else
-            - image = "images/#{item.type}.png"
+            - image = "/images/#{item.type}.png"
 
           - if item.type == "image"
             %a{ :href => item.image, :class => 'fancy', :title => "\##{item.id}: #{item.title || item.source} at #{item.dimensions}", :rel => 'group' }
