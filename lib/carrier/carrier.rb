@@ -27,7 +27,7 @@ module Carrier
     end
 
     def image_dimensions(img)
-      dimensions = img['%wx%h']
+      dimensions = img['%wx%h\n']
       if dimensions.match /\d+x\d+/
         dimensions
       else
