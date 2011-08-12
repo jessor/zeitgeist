@@ -68,10 +68,12 @@ class TestRemotePlugins < Test::Unit::TestCase
     assert_equal(plugin.tags, ["thegame", "animals", "tbag8uk"])
   end  
 
+=begin they delete images after a few weeks anyway
   def test_picpaste
     plugin = Loader::create 'http://picpaste.com/test_42x42.png'
     assert_match(plugin.url, %r{http://picpaste.com/pics/test_42x42.\d+.png})
   end  
+=end
 
   def test_imageshack
     plugin = Loader::create 'http://imageshack.us/photo/my-images/20/test42x42.png/'

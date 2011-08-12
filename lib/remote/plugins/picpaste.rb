@@ -4,7 +4,8 @@ class Picpaste < Plugin
   PATTERN = %r{http://(www\.)?picpaste\.com}
 
   def url
-    'http://picpaste.com' + search_one('.picture a[1]/@href')
+    path = search_one('.picture a[1]/@href') 
+    ('http://picpaste.com' + path) if path
   end
 end
 

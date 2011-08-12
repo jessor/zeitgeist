@@ -17,6 +17,7 @@ module Plugins
     }
 
     def self.pattern_test(pattern, url)
+      return false if not url
       if pattern.class == String
         host = URI.parse(url).host
         puts "test host: #{host} (pattern: #{pattern})"
@@ -100,7 +101,11 @@ module Plugins
         puts "get url: #{url}"
         @page = agent.get url
       end
-      @page
+      if @page.class != Mechanize::Page # text/html
+        @page = nil
+      else
+        @page
+      end
     end
 
     def scan(pattern)
@@ -120,10 +125,14 @@ module Plugins
     end
 
     def match(pattern)
+      get if not @page
+      return if not @page
       scan(pattern).first || []
     end
 
     def match_one(pattern)
+      get if not @page
+      return if not @page
       match(pattern).first || ''
     end
 
@@ -157,10 +166,14 @@ module Plugins
     end
 
     def search_one(selector)
+      get if not @page
+      return if not @page
       search(selector).first || '' 
     end
 
     def og_search(property)
+      get if not @page
+      return if not @page
       search_one 'meta[@property="og:' + property + '"]/@content' 
     end
 

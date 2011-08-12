@@ -4,11 +4,11 @@ class Fukung < Plugin
   PATTERN = %r{http[s]?://(www\.)?fukung\.net/}
 
   def url
-    search_one 'link[@rel="image_src"]/@href' 
+    search_one('link[@rel="image_src"]/@href') || super 
   end
 
   def tags
-    search '#taglist a/text()'
+    search('#taglist a/text()') || super
   end
 end
 

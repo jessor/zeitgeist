@@ -4,7 +4,7 @@ class Imageshack < Plugin
   PATTERN = %r{http[s]?://(www\.)?imageshack\.us/photo/}
 
   def url
-    search_one 'link[@rel="image_src"]/@href' 
+    search_one('link[@rel="image_src"]/@href') || super 
   end
 end
 
