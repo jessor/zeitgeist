@@ -8,13 +8,13 @@
             :class => (item.type=='image' ? 'fancy' : 'embed'), 
             :data => {:htmltitle => item.html_title},
             :title => (item.title || item.source),
-            :rel => 'group' }
+            :rel => 'external' }
             - if item.type == 'video'
-              %img{ :src => '/images/video-overlay.png', :class => 'overlay' }
+              %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
             %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
               :alt => (item.title || item.source),
-              :width => '200px',
-              :height => '200px',
+              :width => '200',
+              :height => '200',
               :class => 'thumbnail' }
 
           .item-meta
@@ -22,7 +22,7 @@
               - item.tags.each do |tag|
                 %li 
                   %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}
-              %div.clear
+            %div.clear
           %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}" }
             %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }
             %input.tagpush{ :type => 'submit', :value => 'tag!' }
