@@ -4,21 +4,18 @@
     %ul.items
       - @items.each do |item|
         %li
-          - if item.image
-            - image = item.image.thumbnail
-          - else
-            - image = "/images/#{item.type}.png"
-
-          - if item.type == "image"
-            %a{ :href => item.image, :class => 'fancy', :title => "\##{item.id}: #{item.title || item.source} at #{item.dimensions}", :rel => 'group' }
-              %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
-          - elsif item.type == "video"
-            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title || item.source}", :rel => 'group' }
+          %a{ :href => (item.type=='image' ? item.image : item.source), 
+            :class => (item.type=='image' ? 'fancy' : 'embed'), 
+            :data => {:htmltitle => item.html_title},
+            :title => (item.title || item.source),
+            :rel => 'group' }
+            - if item.type == 'video'
               %img{ :src => '/images/video-overlay.png', :class => 'overlay' }
-              %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
-          - else
-            %a{ :href => item.source, :class => 'embed', :title => "\##{item.id}: #{item.title || item.source}", :rel => 'group' }
-              %img{ :src => image, :width => '200px', :height => '200px', :class => 'thumbnail' }
+            %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+              :alt => (item.title || item.source),
+              :width => '200px',
+              :height => '200px',
+              :class => 'thumbnail' }
 
           .item-meta
             %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 

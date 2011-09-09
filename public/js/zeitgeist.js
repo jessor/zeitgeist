@@ -45,6 +45,7 @@ jQuery(function(){
             'speedOut':         200,
             'href':             $(this).attr('href'),
             'type':             'image',
+            'title':            $(this).attr('data-htmltitle'),
             'paginatenext':     function() {
                 if ($('div#pagination .next a').length) {
                     window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
@@ -68,7 +69,8 @@ jQuery(function(){
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
             'showNavArrows':    false,
-            'href':     '/embed',
+            'href':             '/embed',
+            'title':            $(this).attr('data-htmltitle'),
             ajax:       {
                         type:   "POST",
                         data:   { 'url': this.href }

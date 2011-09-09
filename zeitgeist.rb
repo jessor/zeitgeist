@@ -182,6 +182,22 @@ class Item
     super
   end
 
+  # build html title/alternate text
+  def html_title
+    html_title = "#{self.id}: "
+    title = (self.title || self.source)
+    if self.source =~ /^http/
+      html_title += '<a href="%s">%s</a>' % [self.source, title]
+    else
+      html_title += title
+    end
+    # dimensions (only relevant for images)
+    if self.type == 'image'
+      html_title += (' at <a href="/filter/by/dimensions/%s">%s</a>' % 
+          [self.dimensions, self.dimensions])
+    end
+  end
+
   # returns the embed code for this item
   def embed
     return if self.type == 'image'
