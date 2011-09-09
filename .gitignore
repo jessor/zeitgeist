@@ -5,3 +5,5 @@ public/asset
 public/uploads
 public/rack-pagespeed*
 public/bundle*
+config.yaml
+*.swp
