@@ -35,6 +35,16 @@ module Carrier
       end
     end
 
+    def image_animated?(img)
+      frames = img['%w,'].strip
+      frames.slice!(-1)
+      if not frames or frames.split(',').length <= 1
+        false
+      else
+        true
+      end
+    end
+
     def image_thumbnail!(image, width=200, height=200)
       img = ::MiniMagick::Image.open(image)
 
@@ -73,7 +83,7 @@ module Carrier
   class LocalTemp
     include ImageProcessor
 
-    attr_reader :image, :thumbnail, :checksum, :mimetype, :dimensions
+    attr_reader :image, :thumbnail, :checksum, :mimetype, :dimensions, :animated
 
     # created_at is used for the storage directories
     def initialize(image, created_at=Time.now)
@@ -105,6 +115,7 @@ module Carrier
       # create thumbnail
       @thumbnail = image_thumbnail!(@image) do |img|
         @dimensions = image_dimensions(img)
+        @animated = image_animated?(img)
       end
     end
 

@@ -134,6 +134,9 @@ class Item
         self.mimetype = localtemp.mimetype
         self.checksum = localtemp.checksum
         self.size = localtemp.filesize if not @plugin
+    
+        # animated autotagging
+        self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
 
         if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
           raise DuplicateError.new(item.id)
