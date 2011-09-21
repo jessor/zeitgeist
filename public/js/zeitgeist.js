@@ -298,4 +298,10 @@ $(document).ready(function() {
     ZeitgeistClock.init();
 });
     
+// Resize images on item pages
+$(window).load(function(){
+    $('.resized').imagefit();
+});
+
+
 

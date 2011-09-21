@@ -505,11 +505,12 @@ get '/:id' do
   if is_ajax_request? or is_api_request? 
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
-  elsif @item.type == 'image'
-    redirect @item.image
   else
-    remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
-    remoteplugin.embed # returns html code for embedding
+    if @item.type != 'image'
+      remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
+      @embedcode = remoteplugin.embed # returns html code for embedding
+    end
+    haml :item
   end
 end
 
