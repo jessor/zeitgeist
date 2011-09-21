@@ -1,0 +1,11 @@
+#content
+
+  #itemwrapper
+    %div{ :id => "item-#{@item.id}", :class => 'item resized' }
+      = @embedcode
+      %br
+      - if @item.type == 'image'
+        %a{ :href => '@item.image' }
+          %img{ :src => @item.image }
+      %br
+      = @item.html_title
