@@ -10,7 +10,7 @@ class Youtube < Plugin
   def url # return url to preview image
     preview_url = og_search 'image'
     if preview_url.include? 'ytimg.com'
-      preview_url.gsub(/default\.jpg/, 'hqdefault.jpg')
+      preview_url.gsub(/\/default\.jpg/, '/hqdefault.jpg')
     else
       nil
     end
