@@ -559,9 +559,24 @@ post '/:id/delete' do
   end
 end
 
-get '/feed' do
+get %r{/feed(/nsfw)?} do
+  nsfw = params[:captures] ? true : false
+
   @base = request.url.chomp(request.path_info)
-  @items = Item.all(:limit => 10, :order => [:created_at.desc])
+
+  # I really hate to repeat that ":limit => 10, :order => [:created_at.desc]"
+  # 4 times, if anyone knows how to get rid of this redundancy please tell
+  # me. pretty please :) -- apoc
+  if nsfw
+    @items = Item.all(:limit => 10, :order => [:created_at.desc])
+  else
+    # this also excludes all items without any tag
+    items_without_nsfw = Item.all(:limit => 10, :order => [:created_at.desc], :tags => {:tagname.not => 'nsfw'}) 
+    # we need to include them afterwards:
+    items_without_tags = Item.all(:limit => 10, :order => [:created_at.desc], :tags => nil)
+    @items = (items_without_nsfw + items_without_tags).all(:limit => 10, :order => [:created_at.desc])
+  end
+
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
 end
