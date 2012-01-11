@@ -105,6 +105,10 @@ class Item
           tempfile = downloader.tempfile
           self.size = downloader.filesize
         end
+      elsif @plugin.type == 'image'
+        # plugins for image hosting providers need to return a media url,
+        # and can not just live with their source url alone
+        raise "selected plugin (#{@plugin.class.to_s}) doesn't found image"
       end
 
       self.type = @plugin.type
