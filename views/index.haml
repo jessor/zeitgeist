@@ -17,6 +17,16 @@
               :height => '200',
               :class => 'thumbnail' }
 
+          - if logged_in?
+            .upvote
+              %form{ :action => "/upvote", :method => 'post' }
+                - if item_upvoted? item
+                  %input{ :type => 'hidden', :name => 'remove', :value => 'true' }
+                %input{ :type => 'hidden', :name => 'id', :value => item.id }
+                  %input{ :type => 'image', :src => "/images/upvote#{item_upvoted?(item) ? '_on' : ''}.png", :alt => 'up', :width => '16', :height => '16'}
+
+          #{item.score.inspect}
+
           .item-meta
             %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
               - item.tags.each do |tag|

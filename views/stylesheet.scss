@@ -326,6 +326,19 @@ nav {
     clear: both;
 }
 
+.upvote {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    input[type="image"] {
+        color: transparent;
+        background-color: transparent;
+        border: transparent;
+        padding: 0;
+        margin: 0;
+    }
+}
+
 .item-meta {
     width: 200px;
     margin: 10px 0;

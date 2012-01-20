@@ -72,6 +72,7 @@ class Item
   property :source,     Text   # set to original (remote) url
   property :title,      Text
   property :created_at, DateTime
+  property :score,      Float, :default => 0.0 # gets updated everytime the item is upvoted
 
   # image meta information
   property :size,       Integer
@@ -82,13 +83,15 @@ class Item
   # taggings
   has n, :tags, :through => Resource
 
+  # upvotes
+  has n, :upvotes
+
   # hooks for processing either the upload or remote url
   # NOTE: raise a RuntimeError if something went wrong!
-  before :save do
+  before :create do
     tempfile = @image
-    puts tempfile
 
-    if not tempfile # remote upload!
+    if not tempfile and @source # remote upload!
       @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
@@ -251,6 +254,30 @@ class Item
     self.save # save the new associations
     return deleted_tags
   end
+
+  # score needs to update whenever new scores are added or the scores
+  # need to be updated before sorting
+  SCORE_GRAVITY = 0.9 # Default: 1.8
+  SCORE_THRESHOLD = 0.01
+  def update_score
+    self.reload
+    votes = self.upvotes.count
+    # votes = Upvote.count(:item => self)
+    item_hour_age = (Time.now.to_i - self.created_at.to_time.to_i) / 60.0 / 60.0
+    # hacker news like distribution of item
+    score = (votes) / ((item_hour_age + 2) ** SCORE_GRAVITY)
+    # score = 0.0 if score <= SCORE_THRESHOLD
+    puts "Update item##{self.id} score: #{score}"
+    if not self.update(:score => score)
+      raise 'error saving new item score?'
+    end
+  end
+
+  def self.update_all_scores
+    Item.all(:score.not => 0.0).each do |item|
+      item.update_score
+    end
+  end
 end
 
 class Tag
@@ -288,6 +315,23 @@ class Tag
     tag.gsub!(%r{[<>/~\^,]}, '')
     tag.strip!
     tag.downcase!
+  end
+end
+
+class Upvote
+  include DataMapper::Resource
+
+  property :id,       Serial
+  property :hostmask, String
+  belongs_to :dm_user
+  belongs_to :item
+end
+
+class DmUser
+  has n, :upvotes
+
+  def to_ary
+    [self]
   end
 end
 
@@ -345,6 +389,11 @@ helpers do
     end
   end
 
+  # used as a helper function to test if this item
+  # has been upvoted by the current user
+  def item_upvoted?(item)
+    item.upvotes.count(:dm_user_id => current_user.id) > 0
+  end
 
 end
 
@@ -363,9 +412,10 @@ end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
+  Item.update_all_scores
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
-                     :order => [:created_at.desc])
+                     :order => [:score.desc, :created_at.desc])
   pagination
   haml :index
 end
@@ -517,6 +567,51 @@ get '/:id' do
   end
 end
 
+post '/upvote' do
+  item_id = params[:id]
+  item = Item.get(item_id)
+
+  user_id = hostmask = nil
+  if is_api_request?
+    # hostmask...
+  elsif logged_in?
+    user_id = current_user.id
+  end
+
+  if not user_id and not hostmask
+    raise 'you need to login to upvote'
+  end
+
+  if params[:remove]
+    upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask])
+    raise 'upvote not found!' if not upvote
+    if upvote.destroy
+      item.update_score
+      flash[:notice] = 'Upvote removed.'
+      redirect '/'
+      return
+    else
+      raise 'upvote not removed, error occured'
+    end
+  end
+
+  # upvote only once:
+  if Upvote.count(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask]) > 0
+    raise 'you cannot upvote twice'
+  end
+
+  upvote = Upvote.new(:item => item, 
+                      :dm_user_id => user_id, 
+                      :hostmask => hostmask)
+  if upvote.save
+    item.update_score
+    flash[:notice] = 'Item upvoted.'
+    redirect '/'
+  else
+    raise 'upvote error: ' + upvote.errors.full_messages.inspect
+  end
+end
+
 # adds or removes tags from an item
 post '/:id/update' do
   id = params[:id]
@@ -585,7 +680,7 @@ get %r{/feed(/nsfw)?} do
   haml :feed, :layout => false, :format => :xhtml
 end
 
-def do_error
+def handle_error
   error = env['sinatra.error']
   puts "Zeitgeist application error occured: #{error.inspect}"
   puts "Backtrace: " + error.backtrace.join("\n")
@@ -604,11 +699,11 @@ def do_error
 end
 
 error RuntimeError do
-  do_error
+  handle_error
 end
 
 error 400..510 do # error RuntimeError do
-  do_error
+  handle_error
 end
 
 # compile sass stylesheet
