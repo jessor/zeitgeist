@@ -168,24 +168,46 @@ jQuery(function(){
     // Tag Form
     $('form.tag').livequery(function() {
         $(this).submit(function() {
-            var Id = $(this).attr("id")
+
+            // detect -tags and move them into del_tags:
+            var add_tags = $('input[name="add_tags"]'),
+                del_tags = $('input[name="del_tags"]'),
+                taglist = add_tags.val().split(','),
+                add_taglist = [], del_taglist = [];
+            $.each(taglist, function (i, tag) {
+                tag = tag.replace(/^\s+|\s+$/g, ''); // trims the tag
+                if (/^-.*/.test(tag)) {
+                    del_taglist.push(tag.substr(1));
+                }
+                else {
+                    add_taglist.push(tag);
+                }
+            });
+            add_tags.val(add_taglist.join(','));
+            del_tags.val(del_taglist.join(','));
+
+            var Id = $(this).attr("id");
             var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')
             var options = {
                 target:     tagtarget,
                 dataType:   'json',
                 success:    function(data) {
-                                $.each(data.added_tags, function(i,tag) {
-                                    var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
-                                    var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
-                                    $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
-                                });
-                            },
+                    var taglist = $(tagtarget);
+
+                    // reset
+                    taglist.html('');
+                    $.each(data.tags, function (i, tag) {
+                        var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
+                        var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
+                        taglist.append('<li><a href="/show/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
+                    });
+                },
                 resetForm:  true,
                 clearForm:  true
             };
 
-            $(this).ajaxSubmit(options);
-            return false;
+        $(this).ajaxSubmit(options);
+        return false;
         });
     });
 

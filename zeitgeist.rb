@@ -77,6 +77,9 @@ class Item
   property :source,     Text   # set to original (remote) url
   property :title,      Text
   property :created_at, DateTime
+  # currently this only 'caches' if this item has the nsfw tag or not
+  # otherwise its stupidly difficult with dm to query non-nsfw tagged items
+  property :nsfw,       Boolean, :default => false
 
   # image meta information
   property :size,       Integer
@@ -234,6 +237,10 @@ class Item
           tag.errors.full_messages.join(',')
         next # just try the next one ;)
       end
+
+      # nsfw item cache property
+      self.nsfw = true if tagname == 'nsfw'
+
       self.tags << tag
       added_tags << tag
     end
@@ -253,6 +260,9 @@ class Item
           puts "Drop existing tag #{old_tag.tagname}!"
           self.tags.delete(old_tag) 
           deleted_tags << old_tag
+
+          # nsfw item cache property
+          self.nsfw = false if tag == 'nsfw'
         end
       end
     end
@@ -406,6 +416,7 @@ get '/' do
 
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
+                     :nsfw => false,
                      :order => [:created_at.desc])
   pagination
   haml :index
@@ -419,12 +430,12 @@ get '/show/:type' do
     @items = Item.page(params[:page],
                        :per_page => settings.items_per_page,
                        :type => type,
+                       :nsfw => false,
                        :order => [:created_at.desc]) 
   elsif type == 'nsfw'
     @title = "nsfw at #{settings.pagetitle}"
     @items = Item.page(params[:page],
                        :per_page => settings.items_per_page,
-                       Item.tags.tagname => 'nsfw',
                        :order => [:created_at.desc])
   elsif type == 'voted'
     @title = "popular at #{settings.pagetitle}"
@@ -445,6 +456,7 @@ get '/show/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
+                     :nsfw => false,
                      Item.tags.tagname => params[:tag],
                      :order => [:created_at.desc])
   pagination
@@ -456,6 +468,7 @@ get '/show/dimensions/:dimensions' do
   @title = "#{dimensions} at #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
+                     :nsfw => false,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
   pagination
@@ -631,16 +644,9 @@ post '/:id/update' do
 
   # add tags (create them if not exists)
   added_tags = @item.add_tags(add_tags)
+  deleted_tags = @item.del_tags(del_tags)
 
-  # atm only allowed via api
-  if is_api_request?
-    deleted_tags = @item.del_tags(del_tags)
-  end
-
-  if is_ajax_request?
-    content_type :json
-    {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
-  elsif is_api_request? 
+  if is_ajax_request? or is_api_request?
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
   else
@@ -670,17 +676,10 @@ get %r{/feed(/nsfw)?} do
 
   @base = request.url.chomp(request.path_info)
 
-  # I really hate to repeat that ":limit => 10, :order => [:created_at.desc]"
-  # 4 times, if anyone knows how to get rid of this redundancy please tell
-  # me. pretty please :) -- apoc
   if nsfw
     @items = Item.all(:limit => 10, :order => [:created_at.desc])
   else
-    # this also excludes all items without any tag
-    items_without_nsfw = Item.all(:limit => 10, :order => [:created_at.desc], :tags => {:tagname.not => 'nsfw'}) 
-    # we need to include them afterwards:
-    items_without_tags = Item.all(:limit => 10, :order => [:created_at.desc], :tags => nil)
-    @items = (items_without_nsfw + items_without_tags).all(:limit => 10, :order => [:created_at.desc])
+    @items = Item.all(:limit => 10, :nsfw => false, :order => [:created_at.desc])
   end
 
   content_type :xml

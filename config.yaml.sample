@@ -22,6 +22,14 @@ carrier:
     # public url base the store is accessible:
     url_base: '/asset'
 
+# uses rbot remote interface for this (drb)
+irc_announce:
+  active: false
+  uri: 'druby://127.0.0.1:7268'
+  username: 'zeitgeist'
+  password: 'changeme'
+  channel: '#woot'
+
 # environment dependent configuration, merged based on env
 production:
   session_secret: 'change this!'
