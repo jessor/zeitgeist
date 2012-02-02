@@ -20,7 +20,12 @@ require './lib/carrier/carrier.rb'
 # Config
 #
 configure do
-  yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
+  # configure by yaml file:
+  yaml = YAML.load_file('config.yaml')
+
+  # apply environment specific options:
+  yaml = yaml.merge yaml[settings.environment.to_s]
+
   yaml.each_pair do |key, value|
     set(key.to_sym, value)
   end
@@ -72,7 +77,6 @@ class Item
   property :source,     Text   # set to original (remote) url
   property :title,      Text
   property :created_at, DateTime
-  property :score,      Float, :default => 0.0 # gets updated everytime the item is upvoted
 
   # image meta information
   property :size,       Integer
@@ -83,8 +87,9 @@ class Item
   # taggings
   has n, :tags, :through => Resource
 
-  # upvotes
+  # upvotes, count of upvotes for this item, (caching)
   has n, :upvotes
+  property :upvote_count, Integer, :default => 0
 
   # hooks for processing either the upload or remote url
   # NOTE: raise a RuntimeError if something went wrong!
@@ -203,7 +208,7 @@ class Item
     end
     # dimensions (only relevant for images)
     if self.type == 'image'
-      html_title += (' at <a href="/filter/by/dimensions/%s">%s</a>' % 
+      html_title += (' at <a href="/show/dimensions/%s">%s</a>' % 
           [self.dimensions, self.dimensions])
     end
   end
@@ -254,30 +259,6 @@ class Item
     self.save # save the new associations
     return deleted_tags
   end
-
-  # score needs to update whenever new scores are added or the scores
-  # need to be updated before sorting
-  SCORE_GRAVITY = 0.9 # Default: 1.8
-  SCORE_THRESHOLD = 0.01
-  def update_score
-    self.reload
-    votes = self.upvotes.count
-    # votes = Upvote.count(:item => self)
-    item_hour_age = (Time.now.to_i - self.created_at.to_time.to_i) / 60.0 / 60.0
-    # hacker news like distribution of item
-    score = (votes) / ((item_hour_age + 2) ** SCORE_GRAVITY)
-    # score = 0.0 if score <= SCORE_THRESHOLD
-    puts "Update item##{self.id} score: #{score}"
-    if not self.update(:score => score)
-      raise 'error saving new item score?'
-    end
-  end
-
-  def self.update_all_scores
-    Item.all(:score.not => 0.0).each do |item|
-      item.update_score
-    end
-  end
 end
 
 class Tag
@@ -325,6 +306,16 @@ class Upvote
   property :hostmask, String
   belongs_to :dm_user
   belongs_to :item
+
+  after :create do
+    # item = self.item
+    item.update(:upvote_count => item.upvote_count + 1)
+  end
+
+  after :destroy do
+    # item = self.item
+    item.update(:upvote_count => item.upvote_count - 1)
+  end
 end
 
 class DmUser
@@ -412,26 +403,46 @@ end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
-  Item.update_all_scores
-  @items = Item.page(params['page'],
-                     :per_page => settings.items_per_page,
-                     :order => [:score.desc, :created_at.desc])
-  pagination
-  haml :index
-end
 
-get '/filter/by/type/:type' do
-  @title = "Filtered by type #{params[:type]} on #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
-                     :type => params[:type],
                      :order => [:created_at.desc])
   pagination
   haml :index
 end
 
-get '/filter/by/tag/:tag' do
-  @title = "Filtered by tag '#{params[:tag]}' on #{settings.pagetitle}"
+get '/show/:type' do
+  type = params[:type]
+
+  if %w{video audio image}.include? type
+    @title = "#{type.capitalize}s at #{settings.pagetitle}"
+    @items = Item.page(params[:page],
+                       :per_page => settings.items_per_page,
+                       :type => type,
+                       :order => [:created_at.desc]) 
+  elsif type == 'nsfw'
+    @title = "nsfw at #{settings.pagetitle}"
+    @items = Item.page(params[:page],
+                       :per_page => settings.items_per_page,
+                       Item.tags.tagname => 'nsfw',
+                       :order => [:created_at.desc])
+  elsif type == 'voted'
+    @title = "popular at #{settings.pagetitle}"
+    @items = Item.page(params[:page], 
+                       :per_page => settings.items_per_page,
+                       :upvote_count.gt => 0,
+                       :order => [:upvote_count.desc])
+  else
+    raise 'show what?'
+  end
+
+  pagination
+  haml :index
+end
+
+get '/show/tag/:tag' do
+  tag = params[:tag]
+  @title = "#{tag} at #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
                      Item.tags.tagname => params[:tag],
@@ -440,11 +451,12 @@ get '/filter/by/tag/:tag' do
   haml :index
 end
 
-get '/filter/by/dimensions/:dimension' do
-  @title = "Filtered by dimensions '#{params[:tag]}' on #{settings.pagetitle}"
+get '/show/dimensions/:dimensions' do
+  dimensions = params[:dimensions]
+  @title = "#{dimensions} at #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
-                     :dimensions => params[:dimension],
+                     :dimensions => dimensions,
                      :order => [:created_at.desc])
   pagination
   haml :index
@@ -495,7 +507,7 @@ post '/search' do
     content_type :json
     @items.to_json
   else
-    redirect "/filter/by/tag/#{params['searchquery']}"
+    redirect "/show/tag/#{params['searchquery']}"
   end
 end
 
@@ -511,10 +523,7 @@ end
 # we got ourselves an upload, sir
 # with params for image_upload or remote_url
 post '/new' do
-  puts "post /new"
-  puts params.inspect
   tags = params.has_key?('tags') ? params['tags'] : ''
-  puts tags.inspect
 
   tempfile = nil # stays nil for remote url
   if params[:image_upload]
@@ -586,7 +595,6 @@ post '/upvote' do
     upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask])
     raise 'upvote not found!' if not upvote
     if upvote.destroy
-      item.update_score
       flash[:notice] = 'Upvote removed.'
       redirect '/'
       return
@@ -604,7 +612,6 @@ post '/upvote' do
                       :dm_user_id => user_id, 
                       :hostmask => hostmask)
   if upvote.save
-    item.update_score
     flash[:notice] = 'Item upvoted.'
     redirect '/'
   else

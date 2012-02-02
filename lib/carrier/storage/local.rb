@@ -3,40 +3,31 @@ module Sinatra::Carrier
   
   module Storage
 
-    class LocalStore < AbstractStore
+    class LocalStore < Store
+      @@options = nil
       def initialize
-        assetpath = './public/' + settings.assetpath
-        if not Dir.exists? assetpath
-          Dir.mkdir assetpath
+        @@options = settings.carrier[:local] if not @@options
+        if not Dir.exists? @@options[:path]
+          Dir.mkdir @@options[:path]
         end
       end
 
       def store!(temp)
-        image = temp.filename
-        thumbnail = temp.filename('_200')
+        image = gen_filename(temp)
+        thumbnail = gen_filename(temp, '_200')
 
-        # move image and thumbnail to final local directory
+        # the full local path: (including the path setting)
         image_local = localpath image
         thumbnail_local = localpath thumbnail
-        puts "move temporary image to local storage: #{image_local}"
-        puts "move temporary thumbnail to local storage: #{thumbnail_local}"
 
-        if settings.delete_tmp_file_after_storage
-          if not File.exists? image_local
-            FileUtils.mv(temp.image, image_local)
-          end
-          if not File.exists? thumbnail_local
-            FileUtils.mv(temp.thumbnail, thumbnail_local)
-          end
-        else
-          if not File.exists? image_local
-            FileUtils.copy(temp.image, image_local)
-          end
-          if not File.exists? thumbnail_local
-            FileUtils.copy(temp.thumbnail, thumbnail_local)
-          end
-        end
+        # move temporary files into position, another storage
+        # type might upload it here to another server or alike
+        FileUtils.mv(temp.image, image_local)
+        FileUtils.mv(temp.thumbnail, thumbnail_local)
 
+        # this returns the string to store in the database,
+        # the base class returns the identifier with the name
+        # of this storage(<store:local>) (@see retrieve!)
         super + [image, thumbnail].join('|')
       end
 
@@ -60,11 +51,34 @@ module Sinatra::Carrier
       private
 
       def localpath(storepath)
-        File.expand_path('./'+storepath, './public/'+settings.assetpath)
+        File.expand_path('./' + storepath, @@options[:path])
       end
 
       def webpath(storepath)
-        File.expand_path('./'+storepath, '/'+settings.assetpath)
+        @@options[:url_base] + storepath
+      end
+
+      def gen_filename(temp, suffix='')
+        def base64_filename(path, hash, suffix, prefix='zg.')
+          path += '/' if path[-1] != '/'
+          (1..6).each do |k|
+            partial = hash[0...(k*3)]
+            partial = partial.ljust(k*3) if k == 6 # "impossible"
+            encoded = Base64::urlsafe_encode64(partial).downcase
+            filename = prefix + encoded + suffix
+            return filename if not File.exists?(File.expand_path(filename, path))
+          end
+          return nil
+        end
+
+        date_dir = temp.created_at.strftime('%Y%m')
+        full_path = localpath date_dir
+        # create directory for year/month if not existing:
+        Dir.mkdir full_path if not Dir.exists? full_path
+
+        filename = base64_filename(full_path, temp.md5obj.digest, suffix+'.'+temp.extension)
+
+        "/#{date_dir}/#{filename}"
       end
     end
 
