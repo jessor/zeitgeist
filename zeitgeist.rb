@@ -9,6 +9,7 @@ require 'digest/md5'
 require 'json'
 require 'uri'
 require 'yaml'
+require 'drb'
 
 # remote url download library
 require './lib/remote/remote.rb'
@@ -16,18 +17,33 @@ require './lib/remote/remote.rb'
 # upload, validate, process tempfile
 require './lib/carrier/carrier.rb'
 
+# used to symbolize the yaml config file
+module HashExtensions
+  def symbolize_keys
+    inject({}) do |acc, (k,v)|
+      key = String === k ? k.to_sym : k
+    value = Hash === v ? v.symbolize_keys : v
+    acc[key] = value
+    acc
+    end
+  end
+end
+Hash.send(:include, HashExtensions)
+
 #
 # Config
 #
 configure do
   # configure by yaml file:
-  yaml = YAML.load_file('config.yaml')
+  yaml = YAML.load_file('config.yaml').symbolize_keys
 
   # apply environment specific options:
-  yaml = yaml.merge yaml[settings.environment.to_s]
+  yaml = yaml.merge yaml[settings.environment.to_sym]
+  yaml.delete :production
+  yaml.delete :development
 
   yaml.each_pair do |key, value|
-    set(key.to_sym, value)
+    set(key, value)
   end
 
   #use Rack::Session::Cookie, :secret => settings.racksession_secret
@@ -554,6 +570,15 @@ post '/new' do
     if @item.save
       # successful? append new tags:
       @item.add_tags(tags)
+
+      # announce in irc:
+      if settings.irc_announce[:active] and params.has_key? 'announce'
+        irc_settings = settings.irc_announce
+        rbot = DRbObject.new_with_uri(irc_settings[:uri])
+        login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
+        id = rbot.delegate(nil, login)[:return]
+        rbot.delegate(id, "dispatch zg announce #{@item.id}")
+      end
 
       # success message, api returns item created and tags added
       if is_ajax_request? or is_api_request? 

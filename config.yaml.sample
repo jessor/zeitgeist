@@ -28,7 +28,6 @@ irc_announce:
   uri: 'druby://127.0.0.1:7268'
   username: 'zeitgeist'
   password: 'changeme'
-  channel: '#woot'
 
 # environment dependent configuration, merged based on env
 production:
