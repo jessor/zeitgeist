@@ -6,6 +6,7 @@ gem "haml"
 gem "sass"
 gem "rb-inotify"
 gem "livereload"
+gem "rack", "<= 1.3.6" # https://github.com/nakajima/rack-flash/issues/8
 gem "rack-flash"
 gem "dm-core"
 gem "dm-validations"
