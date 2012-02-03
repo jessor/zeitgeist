@@ -1,5 +1,39 @@
 jQuery(function(){
 
+    // masonry!
+    var $container = $('.thumbnails');
+
+    var reMasonry = function() {
+        $container.masonry();
+    }
+
+    $container.imagesLoaded(function(){
+        $container.masonry({
+            itemSelector: '.thumbnail',
+            width: 240,
+            animate: true
+        });
+    });
+
+    // show/hide add tag form
+    var showText='+';
+    var hideText='-';
+    //var is_visible = false;
+    // hide all of the elements with a class of 'toggle'
+    $('.toggle').hide();
+    // capture clicks on the toggle links
+    $('a.togglelink').click(function() {
+        // switch visibility
+        $(this).data('is_visible', !$(this).data('is_visible'));
+        // change the link depending on whether the element is shown or hidden
+        $(this).html( (!$(this).data('is_visible')) ? showText : hideText);
+        // toggle the display
+        $(this).closest('ul').next().next().toggle();
+        $container.masonry();
+        // return false so any link destination is not followed
+        return false;
+    });
+
     // unobstrusively clear form fields on focus and restore afterwards
     // http://bassistance.de/2007/01/23/unobtrusive-clear-searchfield-on-focus/
     $.fn.search = function() {
@@ -91,24 +125,6 @@ jQuery(function(){
         return false;
     });
         
-    // limit default tag list length on index view
-    $('.taglist').livequery(function() {
-        $(this).expander({
-            collapseTimer:  5000,
-            slicePoint:     300,
-            expandPrefix:   '',
-            expandText:     '&raquo;',
-            userCollapse:   false,
-            collapseTimer:  '10000',
-            afterExpand:    function($element) {
-                $element.parent().css({'overflow': 'visible', 'height': 'auto'});
-            },
-            onCollapse:     function($element) {
-                $element.parent().css({'overflow': 'hidden', 'height': '25px'});
-            }
-        });
-    });
-
     // Search
     $.ajaxSetup({ type: 'post' });
     // hide submit button
@@ -142,10 +158,12 @@ jQuery(function(){
             minChars:       2,
             selectFirst:    false,
             width:          300,
+            inputClass:     'ac_input',
+            resultsClass:   'ac_results',
+            loadingClass:   'ac_loading',
             dataType:       'json',
             // parse json response
             parse: function(data) {
-                //alert(data);
                 return $.map(data, function(row) {
                     return {
                         data: row,
@@ -166,10 +184,10 @@ jQuery(function(){
     });
 
     // Tag Form
+    // Add tag to taglist after a successful POST
     $('form.tag').livequery(function() {
         $(this).submit(function() {
-            var Id = $(this).attr("id")
-            var tagtarget = '#' + Id.replace(/formfor/, 'tagsfor')
+            var tagtarget = $(this).prevAll('ul');
             var options = {
                 target:     tagtarget,
                 dataType:   'json',
@@ -177,7 +195,8 @@ jQuery(function(){
                                 $.each(data.added_tags, function(i,tag) {
                                     var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
                                     var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
-                                    $(tagtarget).prepend('<li><a href="/filter/by/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
+                                    $(tagtarget).append('<li><a href="/filter/by/tag/' + escape(tagname) + '" class="tag label label-info">' + tagshort + '</a></li>');
+                                    $container.masonry();
                                 });
                             },
                 resetForm:  true,

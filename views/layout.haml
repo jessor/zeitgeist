@@ -11,11 +11,12 @@
     %script{ :src => '/js/jquery.min.js' }
     %script{ :src => '/js/livequery.js' }
     %script{ :src => '/js/form.js' }
-    %script{ :src => '/js/expander.js' }
     %script{ :src => '/js/fancybox.js' }
     %script{ :src => '/js/easing.js' }
     %script{ :src => '/js/mousewheel.js' }
     %script{ :src => '/js/autocomplete.js' }
+    %script{ :src => '/js/masonry.min.js' }
+    %script{ :src => '/js/imagesloaded.js' }
     %script{ :src => '/js/zeitgeist.js' }
     - if @autoload
       :javascript
@@ -46,7 +47,7 @@
       - else
         %a{ :href => '/login', :class => 'fancynav' } Login
     = partial(:_header)
-    #wrapper
+    #wrapper.container-fluid
       = partial(:_navigation)
       = yield
       %div.clear

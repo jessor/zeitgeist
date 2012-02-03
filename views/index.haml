@@ -1,34 +1,37 @@
-#content
+#content.row-fluid
 
   - if @items
-    %ul.items
-      - @items.each do |item|
-        %li
-          %a{ :href => (item.type=='image' ? item.image : item.source), 
-            :class => (item.type=='image' ? 'fancy' : 'embed'), 
-            :data => {:htmltitle => item.html_title},
-            :title => (item.title || item.source),
-            :rel => 'external' }
-            - if item.type == 'video'
-              %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
-            %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
-              :alt => (item.title || item.source),
-              :width => '200',
-              :height => '200',
-              :class => 'thumbnail' }
+    %div{ :class => 'items span12' }
+      %ul.thumbnails
+        - @items.each do |item|
+          %li
+            %div.thumbnail
+              %a{ :href => (item.type=='image' ? item.image : item.source), 
+                :class => (item.type=='image' ? 'fancy' : 'embed'), 
+                :data => {:htmltitle => item.html_title},
+                :title => (item.title || item.source),
+                :rel => 'external' }
+                - if item.type == 'video'
+                  %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
+                %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+                  :alt => (item.title || item.source),
+                  :width => '200',
+                  :height => '200' }
 
-          .item-meta
-            %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
-              - item.tags.each do |tag|
-                %li 
-                  %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}
-            %div.clear
-          %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}" }
-            %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }
-            %input.tagpush{ :type => 'submit', :value => 'tag!' }
-          -if current_user.admin?
-            %form.delete{ :action => "/#{item.id}/delete", :method => 'post' }
-              %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
-              %input.tagpush{ :type => 'submit', :value => 'X' }
+              .item-meta
+                %ul{ :class => 'tags unstyled' }
+                  %li
+                    %a{ :href => '#', :class => 'label label-success togglelink' } +
+                  - item.tags.each do |tag|
+                    %li 
+                      %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'tag label label-info' }> #{h shorten(tag.tagname)}
+                %div.clear
+                %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}", :class => 'form-search toggle' }
+                  %input{ :type => 'text', :name => 'add_tags', :class => 'autocomplete input-small' }
+                  %input.tagpush{ :type => 'submit', :value => 'tag!', :class => 'btn' }
+                -if current_user.admin?
+                  %form.delete{ :action => "/#{item.id}/delete", :method => 'post' }
+                    %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
+                    %input.tagpush{ :type => 'submit', :value => 'X' }
   #pagination  
     = pagination
