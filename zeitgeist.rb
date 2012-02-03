@@ -599,7 +599,7 @@ post '/new' do
       @item.add_tags(tags)
 
       # announce in irc:
-      if settings.irc_announce[:active] and params.has_key? 'announce'
+      if settings.irc_announce[:active] and params[:announce] == 'true'
         irc_settings = settings.irc_announce
         rbot = DRbObject.new_with_uri(irc_settings[:uri])
         login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
