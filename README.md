@@ -29,6 +29,9 @@ Development
 * git clone git@github.com:username/zeitgeist.git
 * rvm rvmrc trust zeitgeist/.rvmrc
 * cd zeitgeist
+* git submodule update --init
+* cd vendor/bootstrap-sass
+* git checkout 2.0
 * gem install bundler && bundle install
 * cp config.yaml.sample config.yaml
 * shotgun -E production config.ru
@@ -47,4 +50,4 @@ Acknowledgements
 Licence
 -------
 
-Zeitgeist is licensed under the GPLv2+. Please drop me a line if you use or modify it :)
+Zeitgeist is licensed under the GPLv2+. Please drop us a line if you use or modify it :)
