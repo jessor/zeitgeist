@@ -629,13 +629,18 @@ post '/upvote' do
     raise 'you need to login to upvote'
   end
 
-  if params[:remove]
+  if params[:remove] == 'true'
     upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask])
     raise 'upvote not found!' if not upvote
     if upvote.destroy
-      flash[:notice] = 'Upvote removed.'
-      redirect '/'
-      return
+      if is_ajax_request? or is_api_request? 
+        content_type :json
+        return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
+      else
+        flash[:notice] = 'Upvote removed.'
+        redirect '/'
+        return
+      end
     else
       raise 'upvote not removed, error occured'
     end
@@ -650,8 +655,13 @@ post '/upvote' do
                       :dm_user_id => user_id, 
                       :hostmask => hostmask)
   if upvote.save
-    flash[:notice] = 'Item upvoted.'
-    redirect '/'
+    if is_ajax_request? or is_api_request? 
+      content_type :json
+      return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
+    else
+      flash[:notice] = 'Item upvoted.'
+      redirect '/'
+    end
   else
     raise 'upvote error: ' + upvote.errors.full_messages.inspect
   end
