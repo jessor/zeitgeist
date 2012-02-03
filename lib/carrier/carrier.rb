@@ -78,6 +78,11 @@ module Carrier
       raise 'image processing error: ' + $!
     end
 
+    def remove_exif!(image)
+      img = ::MiniMagick::Image.open(image)
+      img.strip
+      img.write(image)
+    end
   end
 
   # all files are processed locally at a temporary location first,
@@ -110,6 +115,9 @@ module Carrier
 
       # mimetype detection and validation
       @mimetype, @extension = image_mimetype @image
+
+      # remove exif data
+      remove_exif!(@image)
 
       # calculate md5 sum
       @md5obj = Digest::MD5.file(@image)
