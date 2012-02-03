@@ -10,7 +10,6 @@ require 'json'
 require 'uri'
 require 'yaml'
 require 'drb'
-require 'hmac-sha2'
 
 # remote url download library
 require './lib/remote/remote.rb'
@@ -435,16 +434,14 @@ before do
 
   # X-Auth API authentication as specified in the documentation
   if request.env.has_key? 'HTTP_X_API_AUTH'
-    email, random, mac = request.env['HTTP_X_API_AUTH'].split('|')
+    email, api_secret = request.env['HTTP_X_API_AUTH'].split('|')
     user = User.get(:email => email)
 
     if not user or not user.api_secret
       raise 'user not found or no shared secret'
     end
 
-    hmac = HMAC::SHA256.new(user.api_secret)
-    hmac.update(random)
-    if mac == hmac.hexdigest
+    if api_secret == user.api_secret
       # authenticate current user
       session[:user] = user.id
     else
