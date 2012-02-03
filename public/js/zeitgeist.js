@@ -170,8 +170,8 @@ jQuery(function(){
         $(this).submit(function() {
 
             // detect -tags and move them into del_tags:
-            var add_tags = $('input[name="add_tags"]'),
-                del_tags = $('input[name="del_tags"]'),
+            var add_tags = $('input[name="add_tags"]', this),
+                del_tags = $('input[name="del_tags"]', this),
                 taglist = add_tags.val().split(','),
                 add_taglist = [], del_taglist = [];
             $.each(taglist, function (i, tag) {
