@@ -10,6 +10,7 @@ require 'json'
 require 'uri'
 require 'yaml'
 require 'drb'
+require 'hmac-sha2'
 
 # remote url download library
 require './lib/remote/remote.rb'
@@ -347,6 +348,8 @@ end
 class DmUser
   has n, :upvotes
 
+  property :api_secret, String
+
   def to_ary
     [self]
   end
@@ -412,6 +415,14 @@ helpers do
     item.upvotes.count(:dm_user_id => current_user.id) > 0
   end
 
+  def random_token(length)
+    chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+    token = ''
+    length.times do
+      token += chars[rand(chars.length)]
+    end
+    token
+  end
 end
 
 #
@@ -420,6 +431,25 @@ end
 before do
   if request.host =~ /^www\./
     redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
+  end
+
+  # X-Auth API authentication as specified in the documentation
+  if request.env.has_key? 'HTTP_X_API_AUTH'
+    email, random, mac = request.env['HTTP_X_API_AUTH'].split('|')
+    user = User.get(:email => email)
+
+    if not user or not user.api_secret
+      raise 'user not found or no shared secret'
+    end
+
+    hmac = HMAC::SHA256.new(user.api_secret)
+    hmac.update(random)
+    if mac == hmac.hexdigest
+      # authenticate current user
+      session[:user] = user.id
+    else
+      raise 'invalid authentication'
+    end
   end
 end
 
@@ -704,6 +734,23 @@ post '/:id/delete' do
   else
     raise 'Y U NO AUTHENTICATE?'
   end
+end
+
+get '/api_secret/?:regenerate?' do
+  if not logged_in?
+    redirect '/login'
+  end
+
+  user = current_user.db_instance
+  if not user.api_secret or params[:regenerate]
+    @api_secret = random_token 48
+    user.update({:api_secret => @api_secret})
+  else
+    @api_secret = user.api_secret
+  end
+  @redirect = params[:redirect]
+
+  haml :api_secret
 end
 
 get %r{/feed(/nsfw)?} do
