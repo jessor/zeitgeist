@@ -97,6 +97,9 @@ class Item
   # otherwise its stupidly difficult with dm to query non-nsfw tagged items
   property :nsfw,       Boolean, :default => false
 
+  # item submitter
+  belongs_to :dm_user, :required => false
+
   # image meta information
   property :size,       Integer
   property :mimetype,   String
@@ -346,6 +349,7 @@ end
 
 class DmUser
   has n, :upvotes
+  has n, :items
 
   property :api_secret, String
 
@@ -581,7 +585,9 @@ post '/new' do
 
   # store in database, the before save hook downloads/proccess the file
   begin
-    @item = Item.new(:image => tempfile, :source => source)
+    @item = Item.new(:image => tempfile, 
+                     :source => source, 
+                     :dm_user_id => (logged_in?) ? current_user.id : nil)
     if @item.save
       # successful? append new tags:
       @item.add_tags(tags)
@@ -700,9 +706,9 @@ post '/update' do
 end
 
 post '/delete' do
-  if current_user.admin?
-    item = Item.get(params[:id])
-    raise 'item not found' if not item
+  item = Item.get(params[:id])
+  raise 'item not found' if not item
+  if item.dm_user_id == current_user.id or current_user.admin?
     item.destroy
     if api_request?
       content_type :json
