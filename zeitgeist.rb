@@ -491,7 +491,6 @@ get '/show/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   @items = Item.page(params['page'],
                      :per_page => settings.items_per_page,
-                     :nsfw => false,
                      Item.tags.tagname => params[:tag],
                      :order => [:created_at.desc])
   pagination
