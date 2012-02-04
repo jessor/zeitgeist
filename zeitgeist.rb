@@ -651,7 +651,7 @@ post '/upvote' do
     if upvote.destroy
       if api_request? 
         content_type :json
-        return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
+        return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
       else
         flash[:notice] = 'Upvote removed.'
         redirect '/'
