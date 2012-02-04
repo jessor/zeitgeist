@@ -2,11 +2,6 @@ jQuery(function(){
 
     // masonry!
     var $container = $('.thumbnails');
-
-    var reMasonry = function() {
-        $container.masonry();
-    }
-
     $container.imagesLoaded(function(){
         $container.masonry({
             itemSelector: '.thumbnail',
@@ -66,65 +61,41 @@ jQuery(function(){
         });
     };
 
-    // fancybox <3
-    var fancyoverlay = '#171717';
-    var fancyopacity = 0.8;
-    $("a.fancy").livequery(function() {
-        $(this).fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'transitionIn':     'fade',
-            'transitionOut':    'fade',
-            'speedIn':          600, 
-            'speedOut':         200,
-            'href':             $(this).attr('href'),
-            'type':             'image',
-            'title':            $(this).attr('data-htmltitle'),
-            'paginatenext':     function() {
-                if ($('div#pagination .next a').length) {
-                    window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
-                } else {
-                    alert ("That's it for now!");
-                }
-            },
-            'paginateprev':     function() {
-                if ($('div#pagination .previous a').length) {
-                    window.location.href = $('div#pagination .previous a').attr('href') + '&autoload=last';
-                } else {
-                    alert ("That's it for now!");
-                }
-            },
-        });
-        return false;
-    });
-
+    // Fancybox for images
+    $(".fancybox-button").fancybox({
+		prevEffect:     'none',
+		nextEffect:     'none',
+        closeBtn:       false,
+        beforeShow:     function() {
+            this.title = $(this.element).attr('data-htmltitle');
+        },
+        helpers:        { buttons:    {} },
+	});
+ 
+    // Fancybox for video/audio
     $("a.embed").livequery(function() {
         $(this).fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'showNavArrows':    false,
-            'href':             '/embed',
-            'title':            $(this).attr('data-htmltitle'),
-            ajax:       {
-                        type:   "POST",
-                        data:   { 'url': this.href }
-            }
+            prevEffect:     'none',
+            nextEffect:     'none',
+            closeBtn:       true,
+            autoSize:       true,
+            maxWidth:       800,
+            maxHeight:      600,
+            fitToView:      false,
+            width:          '70%',
+            height:         '70%',
+            href:           '/embed',
+            beforeShow:     function() {
+                this.title = $(this.element).attr('data-htmltitle');
+            },
+            ajax:           {
+                type:   "POST",
+                data:   { 'url': this.href }
+            },
+            helpers:        { buttons: {} }
         });
-        return false;
-    });
+    });     
 
-     $("a.fancynav").click(function() {
-        $.fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'href':     this.href,
-            ajax:       {
-                        type:   "GET",
-            }
-        });
-        return false;
-    });
-        
     // Search
     $.ajaxSetup({ type: 'post' });
     // hide submit button
