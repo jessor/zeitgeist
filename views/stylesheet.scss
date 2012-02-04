@@ -86,8 +86,8 @@ body {
     font-size: 80%;
 }
 
-.items .meta{
-    display: inline-block;
+.centered {
+    margin: 0 auto;
 }
 
 .thumbnail {
@@ -101,6 +101,13 @@ body {
         position: absolute;
     }
     
+}
+
+.items {
+
+    .meta {
+        display: inline-block;
+    }
 }
 
 .item-meta {

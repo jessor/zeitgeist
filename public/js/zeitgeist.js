@@ -4,9 +4,10 @@ jQuery(function(){
     var $container = $('.thumbnails');
     $container.imagesLoaded(function(){
         $container.masonry({
-            itemSelector: '.thumbnail',
-            width: 240,
-            animate: true
+            itemSelector:   '.thumbnail',
+            width:          240,
+            animate:        true,
+            isFitWidth:     true
         });
     });
 

@@ -2,7 +2,7 @@
 
   - if @items
     %div{ :class => 'items span12' }
-      %ul.thumbnails
+      %ul{ :class => 'thumbnails centered' }
         - @items.each do |item|
           %li
             %div.thumbnail
