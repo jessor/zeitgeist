@@ -285,6 +285,7 @@ class Item
     self.save # save the new associations
     return deleted_tags
   end
+
 end
 
 class Tag
@@ -329,7 +330,6 @@ class Upvote
   include DataMapper::Resource
 
   property :id,       Serial
-  property :hostmask, String
   belongs_to :dm_user
   belongs_to :item
 
@@ -372,20 +372,8 @@ helpers do
     end
   end
 
-  def is_ajax_request?
-    if respond_to? :content_type
-      if request.xhr?
-        true
-      else
-        false
-      end
-    else
-      false
-    end
-  end
-
-  def is_api_request?
-    ( env['HTTP_X_API_SECRET'] == settings.api_secret )
+  def api_request?
+    request.accept == ['application/json'] or request.xhr?
   end
 
   def fileprefix
@@ -412,7 +400,7 @@ helpers do
   # has been upvoted by the current user
   def item_upvoted?(item)
     item.upvotes.count(:dm_user_id => current_user.id) > 0
-  end
+  end # TODO: ref
 
   def random_token(length)
     chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
@@ -536,7 +524,7 @@ end
 
 get '/about' do
   @title = "About #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :about, :layout => false
   else
     haml :about
@@ -550,7 +538,7 @@ end
 
 get '/search' do
   @title = "Search #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :search, :layout => false
   else
     haml :search
@@ -559,7 +547,7 @@ end
 
 post '/search' do
   @items = Tag.all(:tagname.like => "%#{params['q']}%")
-  if is_ajax_request?
+  if api_request?
     content_type :json
     @items.to_json
   else
@@ -569,7 +557,7 @@ end
 
 get '/new' do
   @title = "Upload something to #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :new, :layout => false
   else
     haml :new
@@ -608,7 +596,7 @@ post '/new' do
       end
 
       # success message, api returns item created and tags added
-      if is_ajax_request? or is_api_request? 
+      if api_request? 
         content_type :json
         {:item => @item, :tags => @item.tags}.to_json
       else
@@ -630,7 +618,7 @@ get '/:id' do
   @item = Item.get(params[:id])
   raise "no item found with id #{params[:id]}" if not @item
 
-  if is_ajax_request? or is_api_request? 
+  if api_request? 
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
   elsif @item.type == 'image'
@@ -645,22 +633,18 @@ post '/upvote' do
   item_id = params[:id]
   item = Item.get(item_id)
 
-  user_id = hostmask = nil
-  if is_api_request?
-    # hostmask...
-  elsif logged_in?
-    user_id = current_user.id
-  end
+  user_id = nil
+  user_id = current_user.id if logged_in?
 
-  if not user_id and not hostmask
+  if not user_id
     raise 'you need to login to upvote'
   end
 
   if params[:remove] == 'true'
-    upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask])
+    upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ?', user_id])
     raise 'upvote not found!' if not upvote
     if upvote.destroy
-      if is_ajax_request? or is_api_request? 
+      if api_request? 
         content_type :json
         return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
       else
@@ -674,15 +658,14 @@ post '/upvote' do
   end
 
   # upvote only once:
-  if Upvote.count(:item => item, :conditions => ['dm_user_id = ? OR (hostmask <> null AND hostmask = ?)', user_id, hostmask]) > 0
+  if Upvote.count(:item => item, :conditions => ['dm_user_id = ?', user_id]) > 0
     raise 'you cannot upvote twice'
   end
 
   upvote = Upvote.new(:item => item, 
-                      :dm_user_id => user_id, 
-                      :hostmask => hostmask)
+                      :dm_user_id => user_id) 
   if upvote.save
-    if is_ajax_request? or is_api_request? 
+    if api_request?
       content_type :json
       return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
     else
@@ -695,7 +678,7 @@ post '/upvote' do
 end
 
 # adds or removes tags from an item
-post '/:id/update' do
+post '/update' do
   id = params[:id]
   add_tags = (params[:add_tags] || '').split(',')
   del_tags = (params[:del_tags] || '').split(',')
@@ -708,7 +691,7 @@ post '/:id/update' do
   added_tags = @item.add_tags(add_tags)
   deleted_tags = @item.del_tags(del_tags)
 
-  if is_ajax_request? or is_api_request?
+  if api_request?
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
   else
@@ -716,12 +699,12 @@ post '/:id/update' do
   end
 end
 
-post '/:id/delete' do
-  if current_user.admin? or is_api_request?
+post '/delete' do
+  if current_user.admin?
     item = Item.get(params[:id])
     raise 'item not found' if not item
     item.destroy
-    if is_api_request?
+    if api_request?
       content_type :json
       {:id => item.id}.to_json
     else
@@ -747,7 +730,12 @@ get '/api_secret/?:regenerate?' do
   end
   @redirect = params[:redirect]
 
-  haml :api_secret
+  if api_request?
+    content_type :json
+    {email: user.email, api_secret: @api_secret}.to_json
+  else
+    haml :api_secret
+  end
 end
 
 get %r{/feed(/nsfw)?} do
@@ -771,7 +759,7 @@ def handle_error
   puts "Backtrace: " + error.backtrace.join("\n")
   @error = error.message
   @code = response.status.to_s
-  if is_ajax_request? or is_api_request? 
+  if api_request? 
     status 200 # much easier to handle when it response normally
     content_type :json
     {:error => @error}.to_json

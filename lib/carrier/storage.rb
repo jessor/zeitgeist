@@ -14,6 +14,10 @@ module Sinatra::Carrier
     def to_s
       @image
     end
+
+    def to_json(options)
+      {:image => @image, :thumbnail => @thumbnail}.to_json
+    end
   end
 
   module Storage

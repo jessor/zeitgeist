@@ -4,7 +4,6 @@ pagedesc: 'media collected by irc nerds'
 session_secret: 'change this!'
 
 items_per_page: 10
-api_secret: 'changeme'# < i plan to delete that
 pagespeed: true
 
 # temporary path for remote file/media downloading
