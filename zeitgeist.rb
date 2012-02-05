@@ -449,7 +449,7 @@ end
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
 
-  @items = Item.page(params['page'],
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
                      :nsfw => false,
                      :order => [:created_at.desc])
@@ -487,11 +487,11 @@ get '/show/:type' do
 end
 
 get '/show/tag/:tag' do
-  tag = params[:tag]
+  tag = unescape params[:tag]
   @title = "#{tag} at #{settings.pagetitle}"
-  @items = Item.page(params['page'],
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
-                     Item.tags.tagname => params[:tag],
+                     Item.tags.tagname => tag,
                      :order => [:created_at.desc])
   pagination
   haml :index
@@ -500,7 +500,7 @@ end
 get '/show/dimensions/:dimensions' do
   dimensions = params[:dimensions]
   @title = "#{dimensions} at #{settings.pagetitle}"
-  @items = Item.page(params['page'],
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
                      :nsfw => false,
                      :dimensions => dimensions,
