@@ -6,7 +6,7 @@ jQuery(function(){
         $container.masonry({
             itemSelector:   '.thumbnail',
             width:          240,
-            animate:        true,
+            isAnimated:     true,
             isFitWidth:     true
         });
     });
