@@ -567,54 +567,92 @@ get '/new' do
   end
 end
 
-# we got ourselves an upload, sir
-# with params for image_upload or remote_url
+# upload images/remote download urls
+# params: tags, image_upload[], remote_url[], announce
 post '/new' do
   tags = params.has_key?('tags') ? params['tags'] : ''
+  uploads = params.has_key?('image_upload') ? params['image_upload'] : []
+  remotes = params.has_key?('remote_url') ? params['remote_url'] : []
+  announce = params['announce']
 
-  tempfile = nil # stays nil for remote url
-  if params[:image_upload]
-    tempfile = params[:image_upload][:tempfile].path
-    source = params['image_upload'][:filename]
-  elsif params[:remote_url] and not params[:remote_url].empty?
-    source = params[:remote_url]
-  else
-    raise 'You should select either an upload or an remote url!'
+  # legacy (api) / depricated api
+  if uploads.class != Array and uploads.class == Hash # just to make sure
+    uploads = [ uploads ]
+  end
+  if remotes.class != Array and remotes.class == String
+    remotes = [ remotes ]
   end
 
-  # store in database, the before save hook downloads/proccess the file
+  # neiter upload nor remote? -> error
+  if uploads.empty? and remotes.empty?
+    raise 'You should select at least one upload or remote url!'
+  end
+
+  # process uploads and remote urls, stop if an error occured
+  items = [] # Array of Item Objects
+  tag_objects = [] # Array of Tag Objects
   begin
-    @item = Item.new(:image => tempfile, 
-                     :source => source, 
-                     :dm_user_id => (logged_in?) ? current_user.id : nil)
-    if @item.save
-      # successful? append new tags:
-      @item.add_tags(tags)
 
-      # announce in irc:
-      if settings.irc_announce[:active] and params[:announce] == 'true'
-        irc_settings = settings.irc_announce
-        rbot = DRbObject.new_with_uri(irc_settings[:uri])
-        login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
-        id = rbot.delegate(nil, login)[:return]
-        rbot.delegate(id, "dispatch zg announce #{@item.id}")
-      end
+    while not uploads.empty? or not remotes.empty? 
+      upload = uploads.pop
+      remote = remotes.pop if not upload
 
-      # success message, api returns item created and tags added
-      if api_request? 
-        content_type :json
-        {:item => @item, :tags => @item.tags}.to_json
+      # for upload use the tempfile as image and the orig. filename as source
+      # for remote unset image and use the url as source
+      image = upload ? upload[:tempfile].path : nil
+      source = remote ? remote : upload[:filename]
+
+      # skip empty ones
+      next if not image and source.empty?
+
+      # the hook will perform the remote downloading and image processing
+      item = Item.new(:image => image, 
+                      :source => source, 
+                      :dm_user_id => (logged_in?) ? current_user.id : nil)
+      if item.save
+        item.add_tags(tags)
+        items << item
+        tag_objects = item.tags #i dont like this either
       else
-        flash[:notice] = 'New item added successfully.'
-        redirect '/'
+        raise 'Item create error: ' + item.errors.full_messages.join(', ')
       end
-    else
-      raise 'new item error: ' + @item.errors.full_messages.inspect
     end
-  rescue DuplicateError => e
-    item = Item.get(e.id)
-    item.add_tags(tags)
-    raise "Duplicate image found based on checksum, id: #{e.id}"
+
+    # announce in irc:
+    irc_settings = settings.irc_announce
+    if irc_settings[:active] and announce
+      rbot = DRbObject.new_with_uri(irc_settings[:uri])
+      login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
+      id = rbot.delegate(nil, login)[:return]
+      rbot.delegate(id, "dispatch zg announce #{@item.id}")
+    end
+
+    if api_request?
+      content_type :json
+      {:items => items, :tags => tag_objects}.to_json
+    else
+      flash[:notice] = 'New item added successfully.'
+      redirect '/'
+    end
+
+  rescue Exception => e
+
+    puts e.message.to_s
+    puts e.backtrace
+
+    if e.class == DuplicateError and not tags.empty?
+      # add the tags incase there some new one:
+      item = Item.get e.id
+      item.add_tags(tags) if item #errm
+    end
+
+    if api_request?
+      content_type :json
+      {:items => items, :tags => tag_objects, :error => e.message}.to_json
+    else
+      raise e # let the error handler handle the error
+    end
+
   end
 end
 

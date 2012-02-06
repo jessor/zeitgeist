@@ -4,7 +4,7 @@
       %li
         %label{ :for => 'image_upload' } Upload an image (png|gif|jpeg):
         %div.fileinput
-          %input{ :type => 'file', :name => 'image_upload', :class => 'upload' }
+          %input{ :type => 'file', :name => 'image_upload[]', :class => 'upload', :multiple => 'multiple' }
           %div.fileinputfake
             %input{ :type => 'text', :size => 38, :value => 'Choose file' }
       %li
