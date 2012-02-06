@@ -624,7 +624,7 @@ post '/new' do
       rbot = DRbObject.new_with_uri(irc_settings[:uri])
       login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
       id = rbot.delegate(nil, login)[:return]
-      rbot.delegate(id, "dispatch zg announce #{@item.id}")
+      rbot.delegate(id, "dispatch zg announce #{items.first.id}")
     end
 
     if api_request?
