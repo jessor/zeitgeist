@@ -1,11 +1,34 @@
-%nav
-  %a{ :href => '/filter/by/type/video', :class => 'nav' } Video
-  |
-  %a{ :href => '/filter/by/type/audio' } Audio
-  |
-  %a{ :href => '/filter/by/type/image' } Images
-  %br
-  %a{ :href => '/list/tags' } Tags
-  |
-  %a{ :href => '/list/dimensions' } Dimensions
+%div{ :class => 'navbar navbar-fixed-top' }
+  .navbar-inner
+    .container
+      %a{ :class => 'btn btn-navbar', :data => { :toggle => 'collapse', :target => '.nav-collapse' } }
+        %span.icon-bar
+        %span.icon-bar
+        %span.icon-bar
+      .nav-collapse
 
+        %ul.nav
+          %li.dropdown
+            %a{ :href => '#', :class => 'dropdown-toggle', :data => { :toggle => 'dropdown' } }
+              Filter
+              %b.caret
+            %ul.dropdown-menu
+              %li
+                %a{ :href => '/filter/by/type/video' } Video
+              %li
+                %a{ :href => '/filter/by/type/audio' } Audio
+              %li
+                %a{ :href => '/filter/by/type/image' } Images
+          %li
+            %a{ :href => '/search', :class => 'fancybox-button fancybox.ajax' } Search
+
+        %ul.nav{ :class => 'pull-right' }
+          %li
+            %a{ :href => '/new', :class => 'fancybox-button fancybox.ajax' } Add
+          %li
+            - if logged_in?
+              %a{ :href => '/logout' } Logout
+            - else
+              %a{ :href => '/login', :class => 'fancybox-button fancybox.ajax' } Login
+          %li
+            %a{ :href => '/about', :class => 'fancybox-button fancybox.ajax' } ?

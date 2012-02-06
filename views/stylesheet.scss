@@ -84,6 +84,7 @@ body {
     color: $white;
     font-family: 'Helvetica', 'Arial';
     font-size: 80%;
+    padding-bottom: 40px;
 }
 
 .centered {
@@ -143,23 +144,38 @@ body {
 }
 
 //
+// Navbar
+//
+// bootstrap's fixed-top -> fixed-bottom, dropdown -> dropup
+.navbar {
+    margin-bottom: 0 !important;
+}
+
+.navbar-fixed-top {
+    top: auto !important;
+    bottom: 0;
+}
+
+.navbar .dropdown-menu::after {
+    border-bottom: 0px solid transparent !important;
+    border-top: 6px solid white;
+    top: auto !important;
+    bottom: -6px;
+}
+
+.dropdown-menu {
+    top: auto !important;
+    bottom: 100%;
+}
+
+//
 // Header
 //
 header {
     margin: 0 auto;
     text-align: center;
     width: 800px;
-}
-
-#sitenav {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: $boxground;
-    border: 3px solid $border;
-    padding: 2px;
-    text-align: right;
-    z-index: 11;
+    padding: 20px 0;
 }
 
 // Header Ribbon

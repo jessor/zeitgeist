@@ -11,6 +11,9 @@ jQuery(function(){
         });
     });
 
+    // bootstrap dropdown
+    $('.dropdown-toggle').dropdown();
+
     // show/hide add tag form
     var showText='+';
     var hideText='-';
@@ -70,6 +73,7 @@ jQuery(function(){
         beforeShow:     function() {
             this.title = $(this.element).attr('data-htmltitle');
         },
+        ajax:           { type: 'GET' },
         helpers:        { buttons:    {} },
 	});
  

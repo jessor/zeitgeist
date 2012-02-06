@@ -17,6 +17,7 @@
     %script{ :src => '/js/autocomplete.js' }
     %script{ :src => '/js/masonry.min.js' }
     %script{ :src => '/js/imagesloaded.js' }
+    %script{ :src => '/js/bootstrap-dropdown.js' }
     %script{ :src => '/js/zeitgeist.js' }
     - if @autoload
       :javascript
@@ -37,18 +38,8 @@
         %p
           = flash[:notice]
         %div#dump
-    #sitenav
-      %a{ :href => '/new', :class => 'fancynav' } Add
-      |
-      %a{ :href => '/search', :class => 'fancynav' } Search
-      |
-      - if logged_in?
-        %a{ :href => '/logout' } Logout
-      - else
-        %a{ :href => '/login', :class => 'fancynav' } Login
     = partial(:_header)
     #wrapper.container-fluid
-      = partial(:_navigation)
       = yield
       %div.clear
-      = partial(:_footer)
+    = partial(:_navigation)
