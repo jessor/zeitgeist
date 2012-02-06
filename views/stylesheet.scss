@@ -149,6 +149,10 @@ header {
     z-index: 11;
 }
 
+.nsfw_link {
+    color: #87101b;
+}
+
 // Header Ribbon
 // http://jsfiddle.net/Damion/VWRBU/
 .ribbon {
@@ -324,6 +328,19 @@ nav {
 .clear {
     float: none;
     clear: both;
+}
+
+.upvote {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    input[type="image"] {
+        color: transparent;
+        background-color: transparent;
+        border: transparent;
+        padding: 0;
+        margin: 0;
+    }
 }
 
 .item-meta {
@@ -596,6 +613,12 @@ form.auth {
     to {
         background-position: -100px 0;
     }
+}
+
+#api_secret {
+    font-family: Monospace, "Courier New", sans-serif;
+    font-size: 15px;
+    margin-left: 35px;
 }
 
 //

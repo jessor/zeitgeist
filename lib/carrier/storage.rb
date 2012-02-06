@@ -14,17 +14,23 @@ module Sinatra::Carrier
     def to_s
       @image
     end
+
+    def to_json(options)
+      {:image => @image, :thumbnail => @thumbnail}.to_json
+    end
   end
 
   module Storage
 
+    # create a new storage object by name
     def self.create(store_name)
       self.const_get("#{store_name.capitalize}Store").new
     end
 
     # the existing files store an identifier in the database that
     # can be resolved to an absolute URI by the store that was 
-    # accountable for storing the file
+    # accountable for storing the file, this allows to mix files
+    # of different storages (but is this really desired anyhow?)
     def self.create_by_identifier(identifier)
       # the store that was responsible for creating the file
       if identifier.match /(<store:(.*)>)/
@@ -35,8 +41,7 @@ module Sinatra::Carrier
       end
     end
 
-    class AbstractStore
-      # should not be called directly!
+    class Store
       def initialize
         raise NotImplementedError
       end

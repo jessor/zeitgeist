@@ -66,7 +66,7 @@ module Carrier
 
       # generate temp name for thumbnail
       begin
-        thumbnail = "#{settings.temppath}/zg-carrier-" + 
+        thumbnail = "#{settings.carrier[:temp]}/zg-carrier-" + 
           "#{Time.now.strftime("%y%m%d%H%M%S")}-#{rand(100)}"
       end while File.exists? thumbnail
 
@@ -78,12 +78,20 @@ module Carrier
       raise 'image processing error: ' + $!
     end
 
+    def remove_exif!(image)
+      img = ::MiniMagick::Image.open(image)
+      img.strip
+      img.write(image)
+    end
   end
 
+  # all files are processed locally at a temporary location first,
+  # regardless of the storage engine used later
   class LocalTemp
     include ImageProcessor
 
     attr_reader :image, :thumbnail, :checksum, :mimetype, :dimensions, :animated
+    attr_reader :md5obj, :created_at, :extension
 
     # created_at is used for the storage directories
     def initialize(image, created_at=Time.now)
@@ -108,6 +116,9 @@ module Carrier
       # mimetype detection and validation
       @mimetype, @extension = image_mimetype @image
 
+      # remove exif data
+      remove_exif!(@image)
+
       # calculate md5 sum
       @md5obj = Digest::MD5.file(@image)
       @checksum = @md5obj.hexdigest
@@ -120,50 +131,30 @@ module Carrier
     end
 
     def store!
-      store = Storage::create settings.carrier_store
+      # using the default storage:
+      store = Storage::create settings.carrier[:store]
       store.store! self
     end
 
     # it should be ensured that this is called anyways 
     # even if an error occurred!
     def cleanup!
-      if settings.delete_tmp_file_after_storage
-        File.unlink @image if @image and File.exists? @image
-        File.unlink @thumbnail if @thumbnail and File.exists? @thumbnail
-      end
-    end
-
-    # its not really guaranteed that this method is used by storage
-    def filename(suffix='')
-      def base64_filename(path, hash, suffix, prefix='zg.')
-        path += '/' if path[-1] != '/'
-        (1..6).each do |k|
-          partial = hash[0...(k*3)]
-          partial = partial.ljust(k*3) if k == 6 # "impossible"
-          encoded = Base64::urlsafe_encode64(partial).downcase
-          filename = prefix + encoded + suffix
-          return filename if not File.exists?(path + filename)
-        end
-        return nil
-      end
-
-      dir = @created_at.strftime('%Y%m')
-      path = File.expand_path(dir, './public/'+settings.assetpath)
-      puts "PATH:::::: #{path}"
-      Dir.mkdir path if not Dir.exists? path
-      filename = base64_filename(path, @md5obj.digest, suffix+'.'+@extension)
-
-      "/#{dir}/#{filename}"
+      File.unlink @image if @image and File.exists? @image
+      File.unlink @thumbnail if @thumbnail and File.exists? @thumbnail
     end
   end
 
   # register carrier as a sinatra plugin
   def self.registered(app)
-    puts 'register'
-    app.set :temppath => '/tmp'
-    app.set :asset_path => './public/asset'
-    app.set :carrier_store => 'local'
-    app.set :delete_tmp_file_after_storage => true
+    app.set :carrier => {
+      # temporary directory, used for thumbnail creation:
+      :temp => '/tmp',
+      :store => 'local',
+      :local => {
+        :path => './public/asset',
+        :url_base => '/asset'
+      }
+    }
   end
 
 end # Carrier

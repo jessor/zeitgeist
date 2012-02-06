@@ -9,6 +9,7 @@ require 'digest/md5'
 require 'json'
 require 'uri'
 require 'yaml'
+require 'drb'
 
 # remote url download library
 require './lib/remote/remote.rb'
@@ -16,13 +17,33 @@ require './lib/remote/remote.rb'
 # upload, validate, process tempfile
 require './lib/carrier/carrier.rb'
 
+# used to symbolize the yaml config file
+module HashExtensions
+  def symbolize_keys
+    inject({}) do |acc, (k,v)|
+      key = String === k ? k.to_sym : k
+    value = Hash === v ? v.symbolize_keys : v
+    acc[key] = value
+    acc
+    end
+  end
+end
+Hash.send(:include, HashExtensions)
+
 #
 # Config
 #
 configure do
-  yaml = YAML.load_file('config.yaml')[settings.environment.to_s]
+  # configure by yaml file:
+  yaml = YAML.load_file('config.yaml').symbolize_keys
+
+  # apply environment specific options:
+  yaml = yaml.merge yaml[settings.environment.to_sym]
+  yaml.delete :production
+  yaml.delete :development
+
   yaml.each_pair do |key, value|
-    set(key.to_sym, value)
+    set(key, value)
   end
 
   #use Rack::Session::Cookie, :secret => settings.racksession_secret
@@ -72,6 +93,12 @@ class Item
   property :source,     Text   # set to original (remote) url
   property :title,      Text
   property :created_at, DateTime
+  # currently this only 'caches' if this item has the nsfw tag or not
+  # otherwise its stupidly difficult with dm to query non-nsfw tagged items
+  property :nsfw,       Boolean, :default => false
+
+  # item submitter
+  belongs_to :dm_user, :required => false
 
   # image meta information
   property :size,       Integer
@@ -82,13 +109,16 @@ class Item
   # taggings
   has n, :tags, :through => Resource
 
+  # upvotes, count of upvotes for this item, (caching)
+  has n, :upvotes
+  property :upvote_count, Integer, :default => 0
+
   # hooks for processing either the upload or remote url
   # NOTE: raise a RuntimeError if something went wrong!
-  before :save do
+  before :create do
     tempfile = @image
-    puts tempfile
 
-    if not tempfile # remote upload!
+    if not tempfile and @source # remote upload!
       @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
       raise 'invalid url!' if not @plugin
 
@@ -200,7 +230,7 @@ class Item
     end
     # dimensions (only relevant for images)
     if self.type == 'image'
-      html_title += (' at <a href="/filter/by/dimensions/%s">%s</a>' % 
+      html_title += (' at <a href="/show/dimensions/%s">%s</a>' % 
           [self.dimensions, self.dimensions])
     end
   end
@@ -226,6 +256,10 @@ class Item
           tag.errors.full_messages.join(',')
         next # just try the next one ;)
       end
+
+      # nsfw item cache property
+      self.nsfw = true if tagname == 'nsfw'
+
       self.tags << tag
       added_tags << tag
     end
@@ -245,12 +279,16 @@ class Item
           puts "Drop existing tag #{old_tag.tagname}!"
           self.tags.delete(old_tag) 
           deleted_tags << old_tag
+
+          # nsfw item cache property
+          self.nsfw = false if tag == 'nsfw'
         end
       end
     end
     self.save # save the new associations
     return deleted_tags
   end
+
 end
 
 class Tag
@@ -291,6 +329,35 @@ class Tag
   end
 end
 
+class Upvote
+  include DataMapper::Resource
+
+  property :id,       Serial
+  belongs_to :dm_user
+  belongs_to :item
+
+  after :create do
+    # item = self.item
+    item.update(:upvote_count => item.upvote_count + 1)
+  end
+
+  after :destroy do
+    # item = self.item
+    item.update(:upvote_count => item.upvote_count - 1)
+  end
+end
+
+class DmUser
+  has n, :upvotes
+  has n, :items
+
+  property :api_secret, String
+
+  def to_ary
+    [self]
+  end
+end
+
 DataMapper.finalize
 DataMapper.auto_upgrade!
 
@@ -309,20 +376,8 @@ helpers do
     end
   end
 
-  def is_ajax_request?
-    if respond_to? :content_type
-      if request.xhr?
-        true
-      else
-        false
-      end
-    else
-      false
-    end
-  end
-
-  def is_api_request?
-    ( env['HTTP_X_API_SECRET'] == settings.api_secret )
+  def api_request?
+    request.accept == ['application/json'] or request.xhr?
   end
 
   def fileprefix
@@ -345,7 +400,20 @@ helpers do
     end
   end
 
+  # used as a helper function to test if this item
+  # has been upvoted by the current user
+  def item_upvoted?(item)
+    item.upvotes.count(:dm_user_id => current_user.id) > 0
+  end # TODO: ref
 
+  def random_token(length)
+    chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
+    token = ''
+    length.times do
+      token += chars[rand(chars.length)]
+    end
+    token
+  end
 end
 
 #
@@ -355,6 +423,23 @@ before do
   if request.host =~ /^www\./
     redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
   end
+
+  # X-Auth API authentication as specified in the documentation
+  if request.env.has_key? 'HTTP_X_API_AUTH'
+    email, api_secret = request.env['HTTP_X_API_AUTH'].split('|')
+    user = User.get(:email => email)
+
+    if not user or not user.api_secret
+      raise 'user not found or no shared secret'
+    end
+
+    if api_secret == user.api_secret
+      # authenticate current user
+      session[:user] = user.id
+    else
+      raise 'invalid authentication'
+    end
+  end
 end
 
 #
@@ -363,38 +448,62 @@ end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
-  @items = Item.page(params['page'],
+
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
+                     :nsfw => false,
                      :order => [:created_at.desc])
   pagination
   haml :index
 end
 
-get '/filter/by/type/:type' do
-  @title = "Filtered by type #{params[:type]} on #{settings.pagetitle}"
-  @items = Item.page(params['page'],
+get '/show/:type' do
+  type = params[:type]
+
+  if %w{video audio image}.include? type
+    @title = "#{type.capitalize}s at #{settings.pagetitle}"
+    @items = Item.page(params[:page],
+                       :per_page => settings.items_per_page,
+                       :type => type,
+                       :nsfw => false,
+                       :order => [:created_at.desc]) 
+  elsif type == 'nsfw'
+    @title = "nsfw at #{settings.pagetitle}"
+    @items = Item.page(params[:page],
+                       :per_page => settings.items_per_page,
+                       :order => [:created_at.desc])
+  elsif type == 'voted'
+    @title = "popular at #{settings.pagetitle}"
+    @items = Item.page(params[:page], 
+                       :per_page => settings.items_per_page,
+                       :upvote_count.gt => 0,
+                       :order => [:upvote_count.desc])
+  else
+    raise 'show what?'
+  end
+
+  pagination
+  haml :index
+end
+
+get '/show/tag/:tag' do
+  tag = unescape params[:tag]
+  @title = "#{tag} at #{settings.pagetitle}"
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
-                     :type => params[:type],
+                     Item.tags.tagname => tag,
                      :order => [:created_at.desc])
   pagination
   haml :index
 end
 
-get '/filter/by/tag/:tag' do
-  @title = "Filtered by tag '#{params[:tag]}' on #{settings.pagetitle}"
-  @items = Item.page(params['page'],
+get '/show/dimensions/:dimensions' do
+  dimensions = params[:dimensions]
+  @title = "#{dimensions} at #{settings.pagetitle}"
+  @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
-                     Item.tags.tagname => params[:tag],
-                     :order => [:created_at.desc])
-  pagination
-  haml :index
-end
-
-get '/filter/by/dimensions/:dimension' do
-  @title = "Filtered by dimensions '#{params[:tag]}' on #{settings.pagetitle}"
-  @items = Item.page(params['page'],
-                     :per_page => settings.items_per_page,
-                     :dimensions => params[:dimension],
+                     :nsfw => false,
+                     :dimensions => dimensions,
                      :order => [:created_at.desc])
   pagination
   haml :index
@@ -418,7 +527,7 @@ end
 
 get '/about' do
   @title = "About #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :about, :layout => false
   else
     haml :about
@@ -432,7 +541,7 @@ end
 
 get '/search' do
   @title = "Search #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :search, :layout => false
   else
     haml :search
@@ -441,63 +550,109 @@ end
 
 post '/search' do
   @items = Tag.all(:tagname.like => "%#{params['q']}%")
-  if is_ajax_request?
+  if api_request?
     content_type :json
     @items.to_json
   else
-    redirect "/filter/by/tag/#{params['searchquery']}"
+    redirect "/show/tag/#{params['searchquery']}"
   end
 end
 
 get '/new' do
   @title = "Upload something to #{settings.pagetitle}"
-  if is_ajax_request?
+  if api_request?
     haml :new, :layout => false
   else
     haml :new
   end
 end
 
-# we got ourselves an upload, sir
-# with params for image_upload or remote_url
+# upload images/remote download urls
+# params: tags, image_upload[], remote_url[], announce
 post '/new' do
-  puts "post /new"
-  puts params.inspect
   tags = params.has_key?('tags') ? params['tags'] : ''
-  puts tags.inspect
+  uploads = params.has_key?('image_upload') ? params['image_upload'] : []
+  remotes = params.has_key?('remote_url') ? params['remote_url'] : []
+  announce = params['announce']
 
-  tempfile = nil # stays nil for remote url
-  if params[:image_upload]
-    tempfile = params[:image_upload][:tempfile].path
-    source = params['image_upload'][:filename]
-  elsif params[:remote_url] and not params[:remote_url].empty?
-    source = params[:remote_url]
-  else
-    raise 'You should select either an upload or an remote url!'
+  # legacy (api) / depricated api
+  if uploads.class != Array and uploads.class == Hash # just to make sure
+    uploads = [ uploads ]
+  end
+  if remotes.class != Array and remotes.class == String
+    remotes = [ remotes ]
   end
 
-  # store in database, the before save hook downloads/proccess the file
-  begin
-    @item = Item.new(:image => tempfile, :source => source)
-    if @item.save
-      # successful? append new tags:
-      @item.add_tags(tags)
+  # neiter upload nor remote? -> error
+  if uploads.empty? and remotes.empty?
+    raise 'You should select at least one upload or remote url!'
+  end
 
-      # success message, api returns item created and tags added
-      if is_ajax_request? or is_api_request? 
-        content_type :json
-        {:item => @item, :tags => @item.tags}.to_json
+  # process uploads and remote urls, stop if an error occured
+  items = [] # Array of Item Objects
+  tag_objects = [] # Array of Tag Objects
+  begin
+
+    while not uploads.empty? or not remotes.empty? 
+      upload = uploads.pop
+      remote = remotes.pop if not upload
+
+      # for upload use the tempfile as image and the orig. filename as source
+      # for remote unset image and use the url as source
+      image = upload ? upload[:tempfile].path : nil
+      source = remote ? remote : upload[:filename]
+
+      # skip empty ones
+      next if not image and source.empty?
+
+      # the hook will perform the remote downloading and image processing
+      item = Item.new(:image => image, 
+                      :source => source, 
+                      :dm_user_id => (logged_in?) ? current_user.id : nil)
+      if item.save
+        item.add_tags(tags)
+        items << item
+        tag_objects = item.tags #i dont like this either
       else
-        flash[:notice] = 'New item added successfully.'
-        redirect '/'
+        raise 'Item create error: ' + item.errors.full_messages.join(', ')
       end
-    else
-      raise 'new item error: ' + @item.errors.full_messages.inspect
     end
-  rescue DuplicateError => e
-    item = Item.get(e.id)
-    item.add_tags(tags)
-    raise "Duplicate image found based on checksum, id: #{e.id}"
+
+    # announce in irc:
+    irc_settings = settings.irc_announce
+    if irc_settings[:active] and announce
+      rbot = DRbObject.new_with_uri(irc_settings[:uri])
+      login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
+      id = rbot.delegate(nil, login)[:return]
+      rbot.delegate(id, "dispatch zg announce #{items.first.id}")
+    end
+
+    if api_request?
+      content_type :json
+      {:items => items, :tags => tag_objects}.to_json
+    else
+      flash[:notice] = 'New item added successfully.'
+      redirect '/'
+    end
+
+  rescue Exception => e
+
+    puts e.message.to_s
+    puts e.backtrace
+
+    if e.class == DuplicateError and not tags.empty?
+      # add the tags incase there some new one:
+      item = Item.get e.id
+      item.add_tags(tags) if item #errm
+    end
+
+    if api_request?
+      content_type :json
+      {:items => items, :tags => tag_objects, :error => e.message}.to_json
+    else
+      raise e # let the error handler handle the error
+    end
+
   end
 end
 
@@ -506,7 +661,7 @@ get '/:id' do
   @item = Item.get(params[:id])
   raise "no item found with id #{params[:id]}" if not @item
 
-  if is_ajax_request? or is_api_request? 
+  if api_request? 
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
   elsif @item.type == 'image'
@@ -517,8 +672,56 @@ get '/:id' do
   end
 end
 
+post '/upvote' do
+  item_id = params[:id]
+  item = Item.get(item_id)
+
+  user_id = nil
+  user_id = current_user.id if logged_in?
+
+  if not user_id
+    raise 'you need to login to upvote'
+  end
+
+  if params[:remove] == 'true'
+    upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ?', user_id])
+    raise 'upvote not found!' if not upvote
+    if upvote.destroy
+      if api_request? 
+        content_type :json
+        return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
+      else
+        flash[:notice] = 'Upvote removed.'
+        redirect '/'
+        return
+      end
+    else
+      raise 'upvote not removed, error occured'
+    end
+  end
+
+  # upvote only once:
+  if Upvote.count(:item => item, :conditions => ['dm_user_id = ?', user_id]) > 0
+    raise 'you cannot upvote twice'
+  end
+
+  upvote = Upvote.new(:item => item, 
+                      :dm_user_id => user_id) 
+  if upvote.save
+    if api_request?
+      content_type :json
+      return {:item_id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
+    else
+      flash[:notice] = 'Item upvoted.'
+      redirect '/'
+    end
+  else
+    raise 'upvote error: ' + upvote.errors.full_messages.inspect
+  end
+end
+
 # adds or removes tags from an item
-post '/:id/update' do
+post '/update' do
   id = params[:id]
   add_tags = (params[:add_tags] || '').split(',')
   del_tags = (params[:del_tags] || '').split(',')
@@ -529,16 +732,9 @@ post '/:id/update' do
 
   # add tags (create them if not exists)
   added_tags = @item.add_tags(add_tags)
+  deleted_tags = @item.del_tags(del_tags)
 
-  # atm only allowed via api
-  if is_api_request?
-    deleted_tags = @item.del_tags(del_tags)
-  end
-
-  if is_ajax_request?
-    content_type :json
-    {:added_tags => added_tags, :deleted_tags => deleted_tags}.to_json
-  elsif is_api_request? 
+  if api_request?
     content_type :json
     {:item => @item, :tags => @item.tags}.to_json
   else
@@ -546,12 +742,12 @@ post '/:id/update' do
   end
 end
 
-post '/:id/delete' do
-  if current_user.admin? or is_api_request?
-    item = Item.get(params[:id])
-    raise 'item not found' if not item
+post '/delete' do
+  item = Item.get(params[:id])
+  raise 'item not found' if not item
+  if item.dm_user_id == current_user.id or current_user.admin?
     item.destroy
-    if is_api_request?
+    if api_request?
       content_type :json
       {:id => item.id}.to_json
     else
@@ -563,35 +759,50 @@ post '/:id/delete' do
   end
 end
 
+get '/api_secret/?:regenerate?' do
+  if not logged_in?
+    redirect '/login'
+  end
+
+  user = current_user.db_instance
+  if not user.api_secret or params[:regenerate]
+    @api_secret = random_token 48
+    user.update({:api_secret => @api_secret})
+  else
+    @api_secret = user.api_secret
+  end
+  @redirect = params[:redirect]
+
+  if api_request?
+    content_type :json
+    {email: user.email, api_secret: @api_secret}.to_json
+  else
+    haml :api_secret
+  end
+end
+
 get %r{/feed(/nsfw)?} do
   nsfw = params[:captures] ? true : false
 
   @base = request.url.chomp(request.path_info)
 
-  # I really hate to repeat that ":limit => 10, :order => [:created_at.desc]"
-  # 4 times, if anyone knows how to get rid of this redundancy please tell
-  # me. pretty please :) -- apoc
   if nsfw
     @items = Item.all(:limit => 10, :order => [:created_at.desc])
   else
-    # this also excludes all items without any tag
-    items_without_nsfw = Item.all(:limit => 10, :order => [:created_at.desc], :tags => {:tagname.not => 'nsfw'}) 
-    # we need to include them afterwards:
-    items_without_tags = Item.all(:limit => 10, :order => [:created_at.desc], :tags => nil)
-    @items = (items_without_nsfw + items_without_tags).all(:limit => 10, :order => [:created_at.desc])
+    @items = Item.all(:limit => 10, :nsfw => false, :order => [:created_at.desc])
   end
 
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
 end
 
-def do_error
+def handle_error
   error = env['sinatra.error']
   puts "Zeitgeist application error occured: #{error.inspect}"
   puts "Backtrace: " + error.backtrace.join("\n")
   @error = error.message
   @code = response.status.to_s
-  if is_ajax_request? or is_api_request? 
+  if api_request? 
     status 200 # much easier to handle when it response normally
     content_type :json
     {:error => @error}.to_json
@@ -604,11 +815,11 @@ def do_error
 end
 
 error RuntimeError do
-  do_error
+  handle_error
 end
 
 error 400..510 do # error RuntimeError do
-  do_error
+  handle_error
 end
 
 # compile sass stylesheet

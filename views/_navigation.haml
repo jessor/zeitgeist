@@ -1,11 +1,16 @@
 %nav
-  %a{ :href => '/filter/by/type/video', :class => 'nav' } Video
-  |
-  %a{ :href => '/filter/by/type/audio' } Audio
-  |
-  %a{ :href => '/filter/by/type/image' } Images
+  %a{:href => '/show/video'} Video
+  &#124;
+  %a{:href => '/show/audio'} Audio
+  &#124;
+  %a{:href => '/show/image'} Images
+  &#124;
+  %a{:href => '/show/voted'} Popular
+  &#124;
+  %a.nsfw_link{:href => '/show/nsfw'}<
+    %abbr{:title => 'not safe for work'} NSFW
   %br
-  %a{ :href => '/list/tags' } Tags
-  |
-  %a{ :href => '/list/dimensions' } Dimensions
+  %a{:href => '/list/tags'} Tags
+  &#124;
+  %a{:href => '/list/dimensions'} Dimensions
 

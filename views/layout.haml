@@ -28,13 +28,13 @@
         %h3
           Something went seriously wrong
         %p
-          = flash[:error]
+          = h flash[:error]
     - if flash[:notice]
       %div{ :class => 'success message' }
         %h3
           Epic win
         %p
-          = flash[:notice]
+          = h flash[:notice]
         %div#dump
     #sitenav
       %a{ :href => '/new', :class => 'fancynav' } Add
