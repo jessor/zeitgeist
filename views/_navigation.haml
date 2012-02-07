@@ -6,7 +6,6 @@
         %span.icon-bar
         %span.icon-bar
       .nav-collapse
-
         %ul.nav
           %li.dropdown
             %a{ :href => '#', :class => 'dropdown-toggle', :data => { :toggle => 'dropdown' } }
@@ -14,11 +13,16 @@
               %b.caret
             %ul.dropdown-menu
               %li
-                %a{ :href => '/filter/by/type/video' } Video
+                %a{ :href => '/show/video' } Video
               %li
-                %a{ :href => '/filter/by/type/audio' } Audio
+                %a{ :href => '/show/audio' } Audio
               %li
-                %a{ :href => '/filter/by/type/image' } Images
+                %a{ :href => '/show/image' } Images
+              %li
+                %a{ :href => '/show/voted' } Popular
+              %li
+                %a.nsfw_link{:href => '/show/nsfw'}<
+                  %abbr{:title => 'not safe for work'} NSFW
           %li
             %a{ :href => '/search', :class => 'fancybox-button fancybox.ajax' } Search
 

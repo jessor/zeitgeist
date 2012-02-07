@@ -1,23 +1,49 @@
+pagetitle: '#woot zeitgeist'
+pagedesc: 'media collected by irc nerds'
+
+session_secret: 'change this!'
+
+items_per_page: 10
+pagespeed: true
+
+# temporary path for remote file/media downloading
+remote_temp: '/tmp'
+
+# carrier creates thumbs and moves images to their storage
+carrier:
+  # temporary directory, used for thumbnail creation:
+  temp: '/tmp'
+  # local storage is the only supported one right now
+  store: 'local'
+  local:
+    # absolute path to item files:
+    path: './public/asset'
+    # public url base the store is accessible:
+    url_base: '/asset'
+
+# uses rbot remote interface for this (drb)
+irc_announce:
+  active: false
+  uri: 'druby://127.0.0.1:7268'
+  username: 'zeitgeist'
+  password: 'changeme'
+
+# environment dependent configuration, merged based on env
 production:
-  pagetitle: '#woot zeitgeist'
-  pagedesc: 'media collected by irc nerds'
-  assetpath: './asset'
-  session_secret: "fixing this for shotgun"
-  racksession_secret: 'another random string'
+  session_secret: 'change this!'
+
   items_per_page: 25
-  api_secret: 'changeme'
   pagespeed: true
-  carrier_store: 'local'
-  temppath: '/tmp'
+
+  session_secret: 'change this!'
+
 development:
   pagetitle: 'the localhost zeitgeist'
   pagedesc: 'media collected by a lonely developer'
-  assetpath: './asset'
-  session_secret: "fixing this for shotgun"
-  racksession_secret: 'another random string'
+
+  session_secret: 'change this!'
+
   items_per_page: 50
   datamapper_logger: :debug # show sql queries for debugging
-  api_secret: 'changeme'
   pagespeed: false
-  carrier_store: 'local'
-  temppath: '/tmp'
+

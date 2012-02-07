@@ -178,6 +178,10 @@ header {
     padding: 20px 0;
 }
 
+.nsfw_link {
+    color: #87101b;
+}
+
 // Header Ribbon
 // http://jsfiddle.net/Damion/VWRBU/
 .ribbon {
@@ -301,3 +305,28 @@ header {
         text-decoration: underline;
     }
 }
+
+#api_secret {
+    font-family: Monospace, "Courier New", sans-serif;
+    font-size: 15px;
+    margin-left: 35px;
+}
+
+.nsfw_link {
+    color: #87101b;
+}
+
+.upvote {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+
+    input[type="image"] {
+        color: transparent;
+        background-color: transparent;
+        border: transparent;
+        padding: 0;
+        margin: 0;
+    }
+}
+

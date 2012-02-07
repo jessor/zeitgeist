@@ -44,7 +44,7 @@ class Downloader
   def download!
     # generate temp name:
     begin
-      @tempfile = "#{settings.temppath}/zg-remote-" + 
+      @tempfile = "#{settings.remote_temp}/zg-remote-" + 
         "#{Time.now.strftime("%y%m%d%H%M%S")}-#{rand(100)}"
     end while File.exists? @tempfile
 

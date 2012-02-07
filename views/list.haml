@@ -9,8 +9,8 @@
         %li
           - case params[:attribute]
           - when 'tags'
-            %a{ :href => "/filter/by/tag/#{item.tagname}" }
+            %a{ :href => "/show/tag/#{item.tagname}" }
               = "#{item.tagname}"
           - when 'dimensions'
-            %a{ :href => "/filter/by/dimensions/#{item.dimensions}" }
+            %a{ :href => "/show/dimensions/#{item.dimensions}" }
               = "#{item.dimensions}"

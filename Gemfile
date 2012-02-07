@@ -4,6 +4,7 @@ gem "sinatra"
 gem "shotgun"
 gem "haml"
 gem "sass"
+gem "rack", "<= 1.3.6" # https://github.com/nakajima/rack-flash/issues/8
 gem "rack-flash"
 gem "dm-core"
 gem "dm-validations"

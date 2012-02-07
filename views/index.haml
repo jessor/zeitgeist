@@ -18,20 +18,30 @@
                   :width => '200',
                   :height => '200' }
 
-              .item-meta
-                %ul{ :class => 'tags unstyled' }
-                  %li
-                    %a{ :href => '#', :class => 'label label-success togglelink' } +
-                  - item.tags.each do |tag|
-                    %li 
-                      %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'tag label label-info' }> #{h shorten(tag.tagname)}
-                %div.clear
-                %form.tag{ :action => "/#{item.id}/update", :method => 'post', :id => "formforitem-#{item.id}", :class => 'form-search toggle' }
-                  %input{ :type => 'text', :name => 'add_tags', :class => 'autocomplete input-small' }
-                  %input.tagpush{ :type => 'submit', :value => 'tag!', :class => 'btn' }
-                -if current_user.admin?
-                  %form.delete{ :action => "/#{item.id}/delete", :method => 'post' }
-                    %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
-                    %input.tagpush{ :type => 'submit', :value => 'X' }
+                - if logged_in?
+                  .upvote
+                    %form{ :action => "/upvote", :method => 'post' }
+                      %input{ :type => 'hidden', :name => 'remove', :value => item_upvoted?(item) ? 'true' : 'false' }
+                      %input{ :type => 'hidden', :name => 'id', :value => item.id }
+                        %input{ :type => 'image', :src => "/images/upvote#{item_upvoted?(item) ? '_on' : ''}.png", :alt => 'up', :width => '16', :height => '16'}
+                .item-meta
+                  %ul{ :class => 'tags unstyled' }
+                    %li
+                      %a{ :href => '#', :class => 'label label-success togglelink' } +
+                    - item.tags.each do |tag|
+                      %li 
+                        %a{ :href => "/filter/by/tag/#{escape tag.tagname}", :class => 'tag label label-info' }> #{h shorten(tag.tagname)}
+                  %div.clear
+                  %form.tag{ :action => "/update", :method => 'post', :id => "formforitem-#{item.id}", :class => 'form-search toggle' }
+                    %input{ :type => 'hidden', :name => 'id', :value => "#{item.id}" }
+                    %input{ :type => 'text', :name => 'add_tags', :class => 'autocomplete input-small' }
+                    %input{ :type => 'hidden', :name => 'del_tags' }
+                    %input.tagpush{ :type => 'submit', :value => 'tag!', :class => 'btn' }
+                  - if item.dm_user_id == current_user.id or current_user.admin?
+                    %form.delete{ :action => "/delete", :method => 'post' }
+                      %input{ :type => 'hidden', :name => 'id', :value => "#{item.id}" }
+                      %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
+                      %input.tagpush{ :type => 'submit', :value => 'X' }
+
   #pagination  
     = pagination
