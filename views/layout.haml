@@ -8,17 +8,7 @@
     %link{ :rel => 'shortcut icon', :href => '/images/favicon.png' }
     %link{ :rel => 'alternate', :href => '/feed', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items" }
     %link{ :rel => 'alternate', :href => '/feed/nsfw', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items (NSFW!)" }
-    %script{ :src => '/js/jquery.min.js' }
-    %script{ :src => '/js/livequery.js' }
-    %script{ :src => '/js/form.js' }
-    %script{ :src => '/js/fancybox.js' }
-    %script{ :src => '/js/fancybox-buttons.js' }
-    %script{ :src => '/js/easing.js' }
-    %script{ :src => '/js/autocomplete.js' }
-    %script{ :src => '/js/masonry.min.js' }
-    %script{ :src => '/js/imagesloaded.js' }
-    %script{ :src => '/js/bootstrap-dropdown.js' }
-    %script{ :src => '/js/zeitgeist.js' }
+    %script{ :src => '/static/zeitgeist.js' }
     - if @autoload
       :javascript
         jQuery(function() {

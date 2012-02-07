@@ -4,6 +4,7 @@ gem "sinatra"
 gem "shotgun"
 gem "haml"
 gem "sass"
+gem "sprockets"
 gem "rack", "<= 1.3.6" # https://github.com/nakajima/rack-flash/issues/8
 gem "rack-flash"
 gem "dm-core"
@@ -18,5 +19,4 @@ gem "mechanize"
 gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
 gem "dm-pager"
 gem "builder", ">= 2.1.2"
-gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
 gem "sinatra-authentication"

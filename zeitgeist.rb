@@ -55,15 +55,7 @@ configure do
   # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
   disable :show_exceptions
   disable :dump_errors
-  disable :raise_errors 
-
-  if settings.pagespeed
-    use Rack::PageSpeed, :public => 'public' do
-      store :disk => 'public'
-      combine_javascripts
-      minify_javascripts
-    end
-  end
+  disable :raise_errors
 end
 
 #
@@ -824,6 +816,6 @@ end
 
 # compile sass stylesheet
 get '/stylesheet.css' do
-  scss :stylesheet, :style => :compact
+  scss(:'../static/stylesheets/stylesheet', :style => :compact)
 end
 

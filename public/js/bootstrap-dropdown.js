@@ -1,1 +1,0 @@
-../../vendor/bootstrap-sass/vendor/assets/javascripts/bootstrap-dropdown.js

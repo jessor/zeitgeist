@@ -1,3 +1,15 @@
+//= require jquery.min
+//= require livequery
+//= require form
+//= require fancybox
+//= require fancybox-buttons
+//= require easing
+//= require autocomplete
+//= require masonry.min
+//= require imagesloaded
+//= require bootstrap-dropdown
+//= require_self
+
 jQuery(function(){
 
     // masonry!
