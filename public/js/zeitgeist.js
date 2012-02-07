@@ -104,7 +104,7 @@ jQuery(function(){
     // Search
     $.ajaxSetup({ type: 'post' });
     // hide submit button
-    $('input#searchsubmit').hide();
+    $('button#searchsubmit').hide();
     // autofocus input field
     $('input#searchquery').livequery(function() {
         $(this).focus()

@@ -1,5 +1,11 @@
 #searchbox
-  %form#searchform{ :action => '/search', :method => 'post' }
-    %input#searchquery{ :type => 'text', :name => 'searchquery', :size => 20, :value => 'search', :class => 'autocomplete' }
-    %input#searchsubmit{ :type => 'submit', :value => 'search!' }
+  %form#searchform.form-horizontal{ :action => '/search', :method => 'post' }
+    %fieldset
+      %legend Search
+      %div.control-group
+        %label{ :for => 'searchquery' } Enter search query
+        %div.controls
+          %input#searchquery.autocomplete{ :type => 'text', :name => 'searchquery', :size => 20, :value => 'search' }
+      %div.form-actions
+        %button#searchsubmit.btn.btn-primary{ :type => 'submit', :value => 'search!' } Search
 

@@ -1,17 +1,18 @@
-%form#create{ :action => '/new', :method => 'post', :enctype => 'multipart/form-data', :class => 'formbox' }
+%form#create{ :action => '/new', :method => 'post', :enctype => 'multipart/form-data', :class => 'formbox form-horizontal' }
   %fieldset
-    %ol
-      %li
-        %label{ :for => 'image_upload' } Upload an image (png|gif|jpeg):
-        %div.fileinput
-          %input{ :type => 'file', :name => 'image_upload[]', :class => 'upload', :multiple => 'multiple' }
-          %div.fileinputfake
-            %input{ :type => 'text', :size => 38, :value => 'Choose file' }
-      %li
-        %label{ :for => 'image_url' } or enter a URL:
+    %legend Add new item
+    %div.control-group
+      %label.control-label{ :for => 'image_upload' } Upload image(s) (Accepted filetypes: png|gif|jpeg):
+      %div.controls
+        %input{ :type => 'file', :name => 'image_upload[]', :class => 'upload', :multiple => 'multiple' }
+    %div.control-group
+      %label.control-label{ :for => 'image_url' } or enter URL:
+      %div.controls
         %input{ :type => 'text', :name => 'remote_url', :id => 'remote_url', :size => 38 }
-      %li
-        %input{ :type => 'checkbox', :name => 'announce', :value => 'true', :checked => true }
-        %label{ :for => 'announce', :style => 'display: inline' } announce in irc
-      %li.last      
-        %input{ :type => 'submit', :value => 'make it so!' }
+    %div.control-group
+      %label.control-label{ :for => 'announce' } Various
+      %div.controls
+        %label.checkbox
+          %input{ :type => 'checkbox', :name => 'announce', :value => 'true', :checked => true } Announce on IRC
+    %div.form-actions
+      %input.btn.btn-primary{ :type => 'submit', :value => 'make it so!' }

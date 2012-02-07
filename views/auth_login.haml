@@ -1,13 +1,15 @@
-%form{ :action => "/login", :method => "post", :class => 'formbox auth' }
+%form.formbox.auth.form-horizontal{ :action => "/login", :method => "post" }
   %fieldset
-    %ol
-      %li
-        %label{ :for => "user_email'" } Email
+    %legend Login
+    %div.control-group
+      %label.control-label{ :for => "user_email'" } Email
+      %div.controls
         %input{ :id => "user_email", :name => "email", :size => 30, :type => "text" }
-      %li
-        %label{ :for => "user_password"} Password
+    %div.control-group
+      %label.control-label{ :for => "user_password"} Password
+      %div.controls
         %input{ :id => "user_password", :name => "password", :size => 30, :type => "password" }
-      %li.last
-        %input{ :value => "Login", :type => "submit" }
-        %br
-        %a{ :href => "/signup", :class => 'sinatra_authentication_link' } or Sign up
+    %div.form-actions
+      %button.btn.btn-primary{ :value => "Login", :type => "submit" } Login
+      or
+      %a.btn.btn-info{ :href => "/signup", :class => 'sinatra_authentication_link' } Sign up
