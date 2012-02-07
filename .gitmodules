@@ -1,3 +1,0 @@
-[submodule "vendor/bootstrap-sass"]
-	path = vendor/bootstrap-sass
-	url = https://github.com/jessor/bootstrap-sass.git
