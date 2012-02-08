@@ -9,11 +9,6 @@
     %link{ :rel => 'alternate', :href => '/feed', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items" }
     %link{ :rel => 'alternate', :href => '/feed/nsfw', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items (NSFW!)" }
     %script{ :src => '/static/zeitgeist.js' }
-    - if @autoload
-      :javascript
-        jQuery(function() {
-          $('a.fancy:#{@autoload}').trigger('click');
-        });
   %body
     - if flash[:error]
       %div{ :class => 'error message' }
