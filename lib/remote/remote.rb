@@ -77,12 +77,10 @@ class Downloader
         # first read the image header/signature to verify image
         # very preliminary test, but doesnt really matter
         max_sigsize = IMAGE_SIGNATURE.values.max { |a, b| a.length <=> b.length }.length
-        puts "input read #{max_sigsize} bytes"
         sigcontent = input.read(max_sigsize)
         if not sigcontent
           raise RemoteException.new("cannot read from remote url")
         end
-        puts sigcontent.inspect
         IMAGE_SIGNATURE.each_pair do |mime, sig|
           if sigcontent[0...sig.length] == sig
             @mimetype = mime

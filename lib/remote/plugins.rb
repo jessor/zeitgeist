@@ -20,7 +20,6 @@ module Plugins
       return false if not url
       if pattern.class == String
         host = URI.parse(url).host
-        puts "test host: #{host} (pattern: #{pattern})"
         return true if host.to_s.include? pattern
       elsif url.match pattern 
         return true
@@ -57,10 +56,8 @@ module Plugins
 
     def tags
       AUTOTAGGING.each_pair do |pattern, new_tags|
-        puts "autotagging test for #{self.url} with #{pattern}"
         if Plugin::pattern_test(pattern, self.url) or
           Plugin::pattern_test(pattern, self.orig_url) 
-          puts "::> #{new_tags.inspect}"
            return new_tags 
         end
       end
@@ -98,7 +95,6 @@ module Plugins
     def get(url = nil)
       url = self.orig_url if not url
       if not @page
-        puts "get url: #{url}"
         @page = agent.get url
       end
       if @page.class != Mechanize::Page # text/html
@@ -118,8 +114,6 @@ module Plugins
         puts "url scraping failed regex matching of '#{pattern}' for #{@url}"
         return []
       end
-
-      puts "search result for #{pattern} : #{result.inspect}"
 
       return result
     end
@@ -147,7 +141,6 @@ module Plugins
         return []
       end
 
-      puts "search selector #{selector}: #{result.inspect}"
       return [] if result.length == 0
 
       # convert to simple array of strings
@@ -201,7 +194,6 @@ module Plugins
               next if not plugin_class < Plugin
 
               @@loaded_plugins << plugin_class
-              puts "Loaded #{plugin_class}"
             end
           rescue Exception => e
             puts "Error loading plugin #{plugin_file}: #{e.message}"
