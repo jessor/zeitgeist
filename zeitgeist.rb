@@ -31,6 +31,72 @@ end
 Hash.send(:include, HashExtensions)
 
 #
+# Error Handling
+#
+
+class Exception
+  # custom to_json method that defines the default for the Zeitgeist API
+  def api_to_json(child_obj={}) 
+    {
+      :type => self.class.to_s,
+      :message => self.message
+    }.merge(child_obj).to_json
+  end
+
+  def to_json(*a)
+    api_to_json
+  end
+end
+
+class DuplicateError < StandardError
+  attr_reader :id
+  def initialize(id)
+    @id = id
+    super "Duplicate item found! ID: #{id}"
+  end
+
+  def to_json(*a)
+    api_to_json(:id => @id)
+  end
+end
+
+class CreateItemError < StandardError
+  attr_reader :error
+  attr_reader :tags
+  attr_reader :items
+  def initialize(error, items, tags)
+    @error = error
+    @items = items
+    @tags = tags
+    super 'Error creating item!'
+  end
+
+  def to_json(*a)
+    api_to_json(
+      :error => @error,
+      :items => @items,
+      :tags => @tags
+    )
+  end
+end
+
+class RemoteError < StandardError
+  attr_reader :error
+  attr_reader :url
+  def initialize(error, url)
+    @error = error
+    @url = url
+  end
+
+  def to_json(*a)
+    api_to_json(
+      :error => @error,
+      :url => @url
+    )
+  end
+end
+
+#
 # Config
 #
 configure do
@@ -74,15 +140,6 @@ if settings.respond_to? 'datamapper_logger'
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
 DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
-
-
-class DuplicateError < Exception
-  attr_reader :id
-  def initialize(id)
-    @id = id
-    super("Duplicate image found based on checksum, id: #{id}")
-  end
-end
 
 class Item
   include DataMapper::Resource
@@ -128,9 +185,7 @@ class Item
         begin
           downloader.download!
         rescue Exception => e
-          puts "error downloading remote URL(#{@source}): #{e.message}"
-          puts e.backtrace
-          raise 'error downloading remote: ' + e.message
+          raise RemoteError.new(e, @source)
         else
           tempfile = downloader.tempfile
           self.size = downloader.filesize
@@ -179,9 +234,7 @@ class Item
         # store file in configured storage
         self.image = localtemp.store!
       rescue Exception => e
-        puts e.message
-        puts e.backtrace
-        raise e.message
+        raise e
       ensure
         # to make sure tempfiles are deleted in case of an error 
         localtemp.cleanup! 
@@ -637,21 +690,16 @@ post '/new' do
 
   rescue Exception => e
 
-    puts e.message.to_s
-    puts e.backtrace
-
-    if e.class == DuplicateError and not tags.empty?
-      # add the tags incase there some new one:
+    if e.class == DuplicateError
       item = Item.get e.id
-      item.add_tags(tags) if item #errm
+
+      if not tags.empty?
+        # add the tags incase there some new one:
+        item.add_tags(tags)
+      end
     end
 
-    if api_request?
-      content_type :json
-      {:items => items, :tags => tag_objects, :error => e.message}.to_json
-    else
-      raise e # let the error handler handle the error
-    end
+    raise CreateItemError.new(e, items, tag_objects)
 
   end
 end
@@ -798,27 +846,35 @@ end
 
 def handle_error
   error = env['sinatra.error']
+  code = (response.status == 200) ? 500 : response.status
+
+  # Log exception that occured:
   puts "Zeitgeist application error occured: #{error.inspect}"
   puts "Backtrace: " + error.backtrace.join("\n")
-  @error = error.message
-  @code = response.status.to_s
+
   if api_request? 
-    status 200 # much easier to handle when it response normally
+    status code
     content_type :json
-    {:error => @error}.to_json
+    error.to_json
+
   elsif request.get?
+    status code
+    @error = error.message
+    @code = code.to_s
     haml :error, :layout => false 
+
   else
     flash[:error] = @error
     redirect '/'
+
   end
 end
 
-error RuntimeError do
+error 400..510 do # error RuntimeError do
   handle_error
 end
 
-error 400..510 do # error RuntimeError do
+error Exception do
   handle_error
 end
 
