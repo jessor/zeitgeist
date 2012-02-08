@@ -93,8 +93,6 @@ class Item
   property :source,     Text   # set to original (remote) url
   property :title,      Text
   property :created_at, DateTime
-  property :recreated_at, DateTime
-
   # currently this only 'caches' if this item has the nsfw tag or not
   # otherwise its stupidly difficult with dm to query non-nsfw tagged items
   property :nsfw,       Boolean, :default => false
@@ -181,7 +179,9 @@ class Item
         # store file in configured storage
         self.image = localtemp.store!
       rescue Exception => e
-        raise e
+        puts e.message
+        puts e.backtrace
+        raise e.message
       ensure
         # to make sure tempfiles are deleted in case of an error 
         localtemp.cleanup! 
@@ -452,7 +452,7 @@ get '/' do
   @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
                      :nsfw => false,
-                     :order => [:recreated_at.desc, :created_at.desc])
+                     :order => [:created_at.desc])
   pagination
   haml :index
 end
@@ -611,7 +611,7 @@ post '/new' do
                       :dm_user_id => (logged_in?) ? current_user.id : nil)
       if item.save
         item.add_tags(tags)
-        items << item.reload
+        items << item
         tag_objects = item.tags #i dont like this either
       else
         raise 'Item create error: ' + item.errors.full_messages.join(', ')
@@ -640,16 +640,10 @@ post '/new' do
     puts e.message.to_s
     puts e.backtrace
 
-    if e.class == DuplicateError
+    if e.class == DuplicateError and not tags.empty?
+      # add the tags incase there some new one:
       item = Item.get e.id
-
-      # update recreated_at
-      item.update(:recreated_at => DateTime.now)
-
-      if not tags.empty?
-        # add the tags incase there some new one:
-        item.add_tags(tags)
-      end
+      item.add_tags(tags) if item #errm
     end
 
     if api_request?
