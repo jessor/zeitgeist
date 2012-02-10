@@ -9,20 +9,22 @@
         %ul.nav
           %li.dropdown
             %a{ :href => '#', :class => 'dropdown-toggle', :data => { :toggle => 'dropdown' } }
-              Filter
+              Show
               %b.caret
             %ul.dropdown-menu
               %li
-                %a{ :href => '/show/video' } Video
+                %a{ :href => '/show/video' } Videos only
               %li
-                %a{ :href => '/show/audio' } Audio
+                %a{ :href => '/show/audio' } Audios only
               %li
-                %a{ :href => '/show/image' } Images
+                %a{ :href => '/show/image' } Images only
               %li
-                %a{ :href => '/show/voted' } Popular
+                %a{ :href => '/show/voted' } Popular items
               %li
                 %a.nsfw_link{:href => '/show/nsfw'}<
                   %abbr{:title => 'not safe for work'} NSFW
+              %li
+                %a{ :href => '/' } All items
           %li
             %a{ :href => '/search', :class => 'fancybox-button fancybox.ajax' } Search
 
