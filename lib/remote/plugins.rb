@@ -1,4 +1,6 @@
 
+require 'json'
+
 module Sinatra::Remote
 
 module Plugins
@@ -90,6 +92,14 @@ module Plugins
         end
       end
       @agent
+    end
+
+    def json(url = nil)
+      url = self.orig_url if not url
+      if not @json
+        @json = agent.get url
+      end
+      JSON.parse @json.body
     end
 
     def get(url = nil)
