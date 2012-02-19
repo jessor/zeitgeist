@@ -7,3 +7,4 @@ public/rack-pagespeed*
 public/bundle*
 config.yaml
 *.swp
+.DS_Store
