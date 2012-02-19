@@ -2,9 +2,11 @@ source :rubygems
 
 gem "sinatra"
 gem "shotgun"
+gem "sprockets"
+gem "sprockets-sass"
+gem "sprockets-helpers"
 gem "haml"
 gem "sass"
-gem "sprockets"
 gem "rack", "<= 1.3.6" # https://github.com/nakajima/rack-flash/issues/8
 gem "rack-flash"
 gem "dm-core"

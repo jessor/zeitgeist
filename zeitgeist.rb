@@ -813,9 +813,3 @@ end
 error 400..510 do # error RuntimeError do
   handle_error
 end
-
-# compile sass stylesheet
-get '/stylesheet.css' do
-  scss(:'../static/stylesheets/stylesheet', :style => :compact)
-end
-
