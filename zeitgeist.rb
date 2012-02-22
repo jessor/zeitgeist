@@ -626,7 +626,7 @@ post '/new' do
   tags = params.has_key?('tags') ? params['tags'] : ''
   uploads = params.has_key?('image_upload') ? params['image_upload'] : []
   remotes = params.has_key?('remote_url') ? params['remote_url'] : []
-  announce = params['announce']
+  announce = params.has_key?('announce') ? (params['announce'] == 'true' ? true : false) : false
 
   # legacy (api) / depricated api
   if uploads.class != Array and uploads.class == Hash # just to make sure
