@@ -36,14 +36,14 @@ Hash.send(:include, HashExtensions)
 
 class Exception
   # custom to_json method that defines the default for the Zeitgeist API
-  def api_to_json(child_obj={}) 
+  def api_to_json(child_obj={})
     {
       :type => self.class.to_s,
       :message => self.message
     }.merge(child_obj).to_json
   end
 
-  def to_json(*a)
+  def to_json
     api_to_json
   end
 end
@@ -55,27 +55,24 @@ class DuplicateError < StandardError
     super "Duplicate item found! ID: #{id}"
   end
 
-  def to_json(*a)
+  def to_json(*args)
     api_to_json(:id => @id)
   end
 end
 
 class CreateItemError < StandardError
   attr_reader :error
-  attr_reader :tags
   attr_reader :items
   def initialize(error, items, tags)
     @error = error
     @items = items
-    @tags = tags
     super 'Error creating item!'
   end
 
-  def to_json(*a)
+  def to_json
     api_to_json(
       :error => @error,
-      :items => @items,
-      :tags => @tags
+      :items => @items
     )
   end
 end
@@ -88,11 +85,11 @@ class RemoteError < StandardError
     @url = url
   end
 
-  def to_json(*a)
-    api_to_json(
+  def to_json(*args)
+    api_to_json({
       :error => @error,
       :url => @url
-    )
+    }, args)
   end
 end
 
@@ -342,6 +339,10 @@ class Item
     return deleted_tags
   end
 
+  def as_json(options={})
+    super(options.merge(:methods => [:tags]))
+  end
+
 end
 
 class Tag
@@ -501,13 +502,28 @@ end
 
 get '/' do
   @autoload = h params['autoload'] if params['autoload']
+  args = {
+    :per_page => settings.items_per_page,
+    :nsfw => false,
+    :order => [:created_at.desc]
+  }
 
-  @items = Item.page(params[:page],
-                     :per_page => settings.items_per_page,
-                     :nsfw => false,
-                     :order => [:created_at.desc])
+  if params.has_key? 'since'
+    since = params[:since]
+    args.merge!(
+      :conditions => ['id > ?', since]
+    )
+  end
+
+  @items = Item.page(params[:page], args)
   pagination
-  haml :index
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
 end
 
 get '/show/:type' do
@@ -602,10 +618,10 @@ get '/search' do
 end
 
 post '/search' do
-  @items = Tag.all(:tagname.like => "%#{params['q']}%")
+  @tags = Tag.all(:tagname.like => "%#{params['q']}%")
   if api_request?
     content_type :json
-    @items.to_json
+    {:tags => @tags}.to_json
   else
     redirect "/show/tag/#{params['searchquery']}"
   end
@@ -682,7 +698,7 @@ post '/new' do
 
     if api_request?
       content_type :json
-      {:items => items, :tags => tag_objects}.to_json
+      {:items => items}.to_json
     else
       flash[:notice] = 'New item added successfully.'
       redirect '/'
@@ -711,7 +727,7 @@ get '/:id' do
 
   if api_request? 
     content_type :json
-    {:item => @item, :tags => @item.tags}.to_json
+    {:item => @item}.to_json
   elsif @item.type == 'image'
     redirect @item.image
   else
@@ -784,7 +800,7 @@ post '/update' do
 
   if api_request?
     content_type :json
-    {:item => @item, :tags => @item.tags}.to_json
+    {:item => @item}.to_json
   else
     redirect '/'
   end
