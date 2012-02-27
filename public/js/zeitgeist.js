@@ -145,8 +145,7 @@ jQuery(function(){
             dataType:       'json',
             // parse json response
             parse: function(data) {
-                //alert(data);
-                return $.map(data, function(row) {
+                return $.map(data.tags, function(row) {
                     return {
                         data: row,
                         value: row.tagname,
@@ -196,7 +195,7 @@ jQuery(function(){
 
                     // reset
                     taglist.html('');
-                    $.each(data.tags, function (i, tag) {
+                    $.each(data.item.tags, function (i, tag) {
                         var tagname = tag.tagname.replace(/[\<\>\/~\^,+]/gi, '');
                         var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
                         taglist.append('<li><a href="/show/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
