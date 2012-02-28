@@ -508,11 +508,11 @@ get '/' do
     :order => [:created_at.desc]
   }
 
-  if params.has_key? 'since'
-    since = params[:since]
-    args.merge!(
-      :conditions => ['id > ?', since]
-    )
+  if params.has_key? 'before'
+    args.merge!(:conditions => ['id < ?', params[:before]])
+  end
+  if params.has_key? 'after'
+    args.merge!(:conditions => ['id > ?', params[:after]])
   end
 
   @items = Item.page(params[:page], args)
