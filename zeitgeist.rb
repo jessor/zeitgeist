@@ -310,6 +310,9 @@ class Item
       # nsfw item cache property
       self.nsfw = true if tagname == 'nsfw'
 
+      # to keep track of how often this tag is beeing used
+      tag.update(:count => tag.count + 1)
+
       self.tags << tag
       added_tags << tag
     end
@@ -332,6 +335,9 @@ class Item
 
           # nsfw item cache property
           self.nsfw = false if tag == 'nsfw'
+
+          # to keep track of how often this tag is beeing used
+          tag.update(:count => tag.count - 1)
         end
       end
     end
@@ -350,6 +356,9 @@ class Tag
 
   property :id,         Serial
   property :tagname,    String, :unique => true
+
+  # count taggings of items with this tag
+  property :count,      Integer, :default => 0
 
   has n, :items, :through => Resource
 
@@ -552,7 +561,13 @@ get '/show/:type' do
   end
 
   pagination
-  haml :index
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
 end
 
 get '/show/tag/:tag' do
@@ -563,7 +578,13 @@ get '/show/tag/:tag' do
                      Item.tags.tagname => tag,
                      :order => [:created_at.desc])
   pagination
-  haml :index
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
 end
 
 get '/show/dimensions/:dimensions' do
@@ -575,7 +596,13 @@ get '/show/dimensions/:dimensions' do
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
   pagination
-  haml :index
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
 end
 
 get '/list/:attribute' do
@@ -583,7 +610,7 @@ get '/list/:attribute' do
 
   case params[:attribute]
   when 'tags'
-    @items = Tag.all(:order => [:tagname.asc])
+    @items = Tag.all(:order => [:tagname.asc], :count.gt => 0)
   when 'dimensions'
     @items = Item.all(:fields => [:dimensions], :unique => true, :order => [:dimensions.asc])
   else
@@ -591,7 +618,16 @@ get '/list/:attribute' do
     redirect '/'
   end
 
-  haml :list
+  if api_request?
+    content_type :json
+    if params[:attribute] == 'tags'
+      {:tags => @items}.to_json
+    else
+      {:dimensions => @items}.to_json
+    end
+  else
+    haml :list
+  end
 end
 
 get '/about' do
@@ -858,6 +894,10 @@ get %r{/feed(/nsfw)?} do
 
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
+end
+
+get '/favicon.ico' do
+  redirect '/images/favicon.png'
 end
 
 def handle_error
