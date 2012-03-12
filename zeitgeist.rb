@@ -337,7 +337,7 @@ class Item
           self.nsfw = false if tag == 'nsfw'
 
           # to keep track of how often this tag is beeing used
-          tag.update(:count => old_tag.count - 1)
+          old_tag.update(:count => old_tag.count - 1)
         end
       end
     end
