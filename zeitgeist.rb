@@ -518,10 +518,10 @@ get '/' do
   }
 
   if params.has_key? 'before'
-    args.merge!(:conditions => ['id < ?', params[:before]])
+    args.merge!(:conditions => ['items.id < ?', params[:before]])
   end
   if params.has_key? 'after'
-    args.merge!(:conditions => ['id > ?', params[:after]])
+    args.merge!(:conditions => ['items.id > ?', params[:after]])
   end
 
   @items = Item.page(params[:page], args)
@@ -573,10 +573,21 @@ end
 get '/show/tag/:tag' do
   tag = unescape params[:tag]
   @title = "#{tag} at #{settings.pagetitle}"
-  @items = Item.page(params[:page],
-                     :per_page => settings.items_per_page,
-                     Item.tags.tagname => tag,
-                     :order => [:created_at.desc])
+  args = {
+    :per_page => settings.items_per_page,
+    :nsfw => false,
+    Item.tags.tagname => tag,
+    :order => [:created_at.desc]
+  }
+
+  if params.has_key? 'before'
+    args.merge!(:conditions => ['items.id < ?', params[:before]])
+  end
+  if params.has_key? 'after'
+    args.merge!(:conditions => ['items.id > ?', params[:after]])
+  end
+
+  @items = Item.page(params[:page], args)
   pagination
 
   if api_request?
