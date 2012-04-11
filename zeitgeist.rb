@@ -870,6 +870,18 @@ post '/delete' do
   end
 end
 
+get '/api_secret/qrcode.png' do
+  user = current_user.db_instance
+  if settings.qrcode[:active]
+    api_secret = user.api_secret
+    qrcode_data = '%s|%s' % [user.email, api_secret]
+    qrcode = QREncoder.encode(qrcode_data)
+    content_type :png
+    return qrcode.png(:pixels_per_module => 6).to_blob
+  end
+  raise 'qrcode deactivated'
+end
+
 get '/api_secret/?:regenerate?' do
   if not logged_in?
     redirect '/login'

@@ -20,3 +20,4 @@ gem "dm-pager"
 gem "builder", ">= 2.1.2"
 gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
 gem "sinatra-authentication"
+gem "qrencoder"

@@ -9,6 +9,10 @@ pagespeed: true
 # temporary path for remote file/media downloading
 remote_temp: '/tmp'
 
+# show api secret as a qrcode, (for use in the android app)
+qrcode:
+  active: false
+
 # carrier creates thumbs and moves images to their storage
 carrier:
   # temporary directory, used for thumbnail creation:
