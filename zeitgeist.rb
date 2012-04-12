@@ -463,6 +463,11 @@ helpers do
     end
   end
 
+  def base_url
+    url = request.url
+    url[0...(url[8...-1].index('/') + 8)]
+  end
+
   # used as a helper function to test if this item
   # has been upvoted by the current user
   def item_upvoted?(item)
@@ -874,7 +879,7 @@ get '/api_secret/qrcode.png' do
   user = current_user.db_instance
   if settings.qrcode[:active]
     api_secret = user.api_secret
-    qrcode_data = '%s|%s' % [user.email, api_secret]
+    qrcode_data = '%s#auth:%s|%s' % [base_url, user.email, api_secret]
     qrcode = QREncoder.encode(qrcode_data)
     content_type :png
     return qrcode.png(:pixels_per_module => 6).to_blob
