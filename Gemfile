@@ -21,3 +21,5 @@ gem "builder", ">= 2.1.2"
 gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
 gem "sinatra-authentication"
 gem "qrencoder"
+gem "phashion", :git => 'git://github.com/4poc/phashion.git'
+
