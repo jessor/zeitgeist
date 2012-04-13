@@ -57,13 +57,13 @@ GEM
     json (1.6.6)
     json_pure (1.6.6)
     mechanize (2.3)
-      domain_name (~> 0.5, >= 0.5.1)
-      mime-types (~> 1.17, >= 1.17.2)
-      net-http-digest_auth (~> 1.1, >= 1.1.1)
-      net-http-persistent (~> 2.5, >= 2.5.2)
+      domain_name (>= 0.5.1, ~> 0.5)
+      mime-types (>= 1.17.2, ~> 1.17)
+      net-http-digest_auth (>= 1.1.1, ~> 1.1)
+      net-http-persistent (>= 2.5.2, ~> 2.5)
       nokogiri (~> 1.4)
-      ntlm-http (~> 0.1, >= 0.1.1)
-      webrobots (~> 0.0, >= 0.0.9)
+      ntlm-http (>= 0.1.1, ~> 0.1)
+      webrobots (>= 0.0.9, ~> 0.0)
     mime-types (1.18)
     mini_magick (3.4)
       subexec (~> 0.2.1)
@@ -98,6 +98,8 @@ GEM
       rufus-tokyo
       sinatra
       sinbook
+    sinatra-flash (0.3.0)
+      sinatra (>= 1.0.0)
     sinbook (0.1.9)
       yajl-ruby
     subexec (0.2.1)
@@ -126,7 +128,6 @@ DEPENDENCIES
   phashion!
   qrencoder
   rack
-  rack-flash
   rack-pagespeed!
   ruby-filemagic
   ruby-oembed
@@ -134,3 +135,4 @@ DEPENDENCIES
   shotgun
   sinatra
   sinatra-authentication
+  sinatra-flash

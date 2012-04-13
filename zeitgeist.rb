@@ -109,8 +109,6 @@ configure do
     set(key, value)
   end
 
-  #use Rack::Session::Cookie, :secret => settings.racksession_secret
-  use Rack::Flash
   enable :sessions
   set :haml, {:format => :html5}
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
@@ -364,6 +362,41 @@ class Item
 
   def as_json(options={})
     super(options.merge(:methods => [:tags]))
+  end
+
+  # uses the pHash perceptual hash library to calculate
+  # a 64bit fingerprint of the image
+  # returns nil if an error occured or if item is not an image
+  def generate_fingerprint
+    return nil if type != 'image'
+    path = image_local.to_s
+    temp_path = nil
+
+    if mimetype.include? 'png'
+      # due to a bug in phash the alpha channel of png images
+      # need to be removed before generating the fingerprint
+      img = ::MiniMagick::Image.open(path)
+      if img['%[channels]'] == 'rgba' # image with alpha channel
+        # write temporary file without the alpha channel
+        img.combine_options do |c|
+          c.background 'white' # -background white
+          c.flatten # +flatten
+          c + '+matte' # +matte
+        end
+        temp_path = '/tmp/zg_png_%s.png' % checksum
+        img.write(temp_path)
+        path = temp_path
+      end
+    end
+
+    # calculate fingerprint...
+    img = Phashion::Image.new path
+    fingerprint = img.fingerprint
+
+    # remove the temporary file
+    File.delete temp_path if temp_path
+
+    return fingerprint
   end
 
 end
