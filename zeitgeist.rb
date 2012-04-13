@@ -66,7 +66,7 @@ class CreateItemError < StandardError
   def initialize(error, items, tags)
     @error = error
     @items = items
-    super 'Error creating item!'
+    super 'Error creating item: %s' % error.to_s
   end
 
   def to_json
@@ -110,6 +110,8 @@ configure do
   end
 
   enable :sessions
+  use Rack::Flash
+
   set :haml, {:format => :html5}
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
   set :sinatra_authentication_view_path, 'views/auth_'
@@ -224,8 +226,19 @@ class Item
         # animated autotagging
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
 
-        if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
-          raise DuplicateError.new(item.id)
+        # calculate fingerprint for images
+        # and use the fingerprint to check for duplicates
+        if self.type == 'image'
+          self.fingerprint = self.generate_fingerprint(tempfile)
+          if (item = Item.first(:fingerprint => self.fingerprint))
+            raise DuplicateError.new(item.id)
+          end
+        elsif self.type == 'video'
+          # checks the md5 for now, (of the preview pic)
+          if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
+            raise DuplicateError.new(item.id)
+          end
+        # TODO: audio
         end
 
         # store file in configured storage
@@ -310,12 +323,10 @@ class Item
   def add_tags(tags)
     tags = tags.split(',') if tags.class != Array
     return if tags.empty?
-    puts "Append tags to item(##{self.id}): #{tags.join('|')}"
     added_tags = []
     tags.each do |tagname|
       Tag.cleanup! tagname
       tag = Tag.first_or_create(:tagname => tagname)
-      puts "First or create for tagname:#{tagname}: id=#{tag.id}"
       if not tag.errors.empty?
         puts "Errors occured: DataMapper first_or_create: " + 
           tag.errors.full_messages.join(',')
@@ -367,9 +378,9 @@ class Item
   # uses the pHash perceptual hash library to calculate
   # a 64bit fingerprint of the image
   # returns nil if an error occured or if item is not an image
-  def generate_fingerprint
+  def generate_fingerprint(path=nil)
     return nil if type != 'image'
-    path = image_local.to_s
+    path = image_local.to_s if not path
     temp_path = nil
 
     if mimetype.include? 'png'
@@ -802,7 +813,7 @@ post '/new' do
       content_type :json
       {:items => items}.to_json
     else
-      flash[:notice] = 'New item added successfully.'
+      flash[:success] = 'New item added successfully.'
       redirect '/'
     end
 
@@ -857,7 +868,7 @@ post '/upvote' do
         content_type :json
         return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
       else
-        flash[:notice] = 'Upvote removed.'
+        flash[:success] = 'Upvote removed.'
         redirect '/'
         return
       end
@@ -878,7 +889,7 @@ post '/upvote' do
       content_type :json
       return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
     else
-      flash[:notice] = 'Item upvoted.'
+      flash[:success] = 'Item upvoted.'
       redirect '/'
     end
   else
@@ -917,7 +928,7 @@ post '/delete' do
       content_type :json
       {:id => item.id}.to_json
     else
-      flash[:notice] = "Item ##{params[:id]} is gone now."
+      flash[:success] = "Item ##{params[:id]} is gone now."
       redirect params['return_to']
     end
   else
@@ -998,7 +1009,7 @@ def handle_error
     haml :error, :layout => false 
 
   else
-    flash[:error] = @error
+    flash[:error] = error.message
     redirect '/'
 
   end

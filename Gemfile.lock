@@ -77,6 +77,9 @@ GEM
     rack (1.4.1)
     rack-flash (0.1.2)
       rack
+    rack-flash3 (1.0.1)
+      rack
+      rack
     rack-protection (1.2.0)
       rack
     ruby-filemagic (0.4.2)
@@ -98,8 +101,6 @@ GEM
       rufus-tokyo
       sinatra
       sinbook
-    sinatra-flash (0.3.0)
-      sinatra (>= 1.0.0)
     sinbook (0.1.9)
       yajl-ruby
     subexec (0.2.1)
@@ -128,6 +129,7 @@ DEPENDENCIES
   phashion!
   qrencoder
   rack
+  rack-flash3
   rack-pagespeed!
   ruby-filemagic
   ruby-oembed
@@ -135,4 +137,3 @@ DEPENDENCIES
   shotgun
   sinatra
   sinatra-authentication
-  sinatra-flash

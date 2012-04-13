@@ -116,12 +116,10 @@ module Carrier
       # mimetype detection and validation
       @mimetype, @extension = image_mimetype @image
 
-      puts "MD5 of image before : #{Digest::MD5.file(@image).hexdigest}"
       # remove exif data if jpeg:
       if @mimetype.include? 'jpeg'
         remove_exif!(@image)
       end
-      puts "MD5 of image after : #{Digest::MD5.file(@image).hexdigest}"
 
       # calculate md5 sum
       @md5obj = Digest::MD5.file(@image)

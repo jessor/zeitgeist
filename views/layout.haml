@@ -23,18 +23,15 @@
           $('a.fancy:#{@autoload}').trigger('click');
         });
   %body
-    - if flash[:error]
+    - if flash[:error] or flash[:notice]
       %div{ :class => 'error message' }
-        %h3
-          Something went seriously wrong
         %p
-          = h flash[:error]
-    - if flash[:notice]
+          = h flash[:error] if flash[:error]
+          = h flash[:notice] if flash[:notice]
+    - if flash[:success]
       %div{ :class => 'success message' }
-        %h3
-          Epic win
         %p
-          = h flash[:notice]
+          = h flash[:success]
         %div#dump
     #sitenav
       %a{ :href => '/new', :class => 'fancynav' } Add
