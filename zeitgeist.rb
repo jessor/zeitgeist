@@ -154,6 +154,8 @@ class Item
   # item submitter
   belongs_to :dm_user, :required => false
 
+  property :fingerprint, Integer
+
   # image meta information
   property :size,       Integer
   property :mimetype,   String
@@ -261,6 +263,21 @@ class Item
       @image_obj = store.retrieve! identifier # this returns an Image object for view
     end
     @image_obj
+  end
+
+  # returns an Image object with the local absolute paths
+  # this only works for local storages
+  def image_local
+    if not @image_local_obj
+      identifier = attribute_get(:image)
+      return nil if not identifier
+      store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
+      if store.class != Sinatra::Carrier::Storage::LocalStore
+        return nil
+      end
+      @image_local_obj = store.retrieve_local! identifier # this returns an Image object for view
+    end
+    @image_local_obj
   end
 
   def title

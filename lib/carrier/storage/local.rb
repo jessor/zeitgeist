@@ -39,6 +39,16 @@ module Sinatra::Carrier
         Image.new(webpath(image), webpath(thumbnail))
       end
 
+      def retrieve_local!(identifier)
+        if identifier.match /(<store:[^>]+>)/
+          identifier.slice! $1
+        end
+
+        image, thumbnail = identifier.split('|')
+
+        Image.new(localpath(image), localpath(thumbnail))
+      end
+
       def destroy!(identifier)
         super
 
