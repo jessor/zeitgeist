@@ -408,6 +408,9 @@ class Item
     File.delete temp_path if temp_path
 
     return fingerprint
+  raise
+    puts "error generating fingerprint: #{$!}"
+    return nil
   end
 
 end
