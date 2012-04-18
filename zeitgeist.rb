@@ -478,6 +478,9 @@ class DmUser
   has n, :upvotes
   has n, :items
 
+  # migration sets the username from the email <username>@host.com
+  property :username, String
+
   property :api_secret, String
 
   def to_ary
