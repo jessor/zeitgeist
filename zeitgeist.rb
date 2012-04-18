@@ -607,6 +607,43 @@ get '/' do
   end
 end
 
+get '/gallery/:user/?:voted?' do
+  @autoload = h params['autoload'] if params['autoload']
+
+  user = User.get(:username => params['user'])
+  raise 'no user found with this username' if not user
+
+  args = {
+    :per_page => settings.items_per_page,
+    :dm_user_id => user.id
+  }
+  if params.has_key? 'voted'
+    args.merge!({
+      :upvote_count.gt => 0,
+      :order => [:upvote_count.desc]
+    })
+  else
+    args.merge!({
+      :order => [:created_at.desc]
+    })
+  end
+  if params.has_key? 'before'
+    args.merge!(:conditions => ['items.id < ?', params[:before]])
+  end
+  if params.has_key? 'after'
+    args.merge!(:conditions => ['items.id > ?', params[:after]])
+  end
+  @items = Item.page(params[:page], args)
+  pagination
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
+end
+
 get '/show/:type' do
   type = params[:type]
 
