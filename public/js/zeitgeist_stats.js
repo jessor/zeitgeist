@@ -143,9 +143,13 @@ $(function () {
           noTicks: labels.length,
           tickFormatter: function (x) {
             var i = parseInt(x);
-                // i = (x-1)%labels.length;
             if (labels[i]) {
-              return labels[i];
+              var html = labels[i];
+              if (html != '?') {
+                html = escape(html);
+                html = '<a href="/gallery/'+html+'">'+html+'</a>';
+              }
+              return html; 
             }
             return '';
           }

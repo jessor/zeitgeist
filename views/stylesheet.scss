@@ -682,6 +682,11 @@ footer {
         display: block;
         width: 800px;
         height: 340px;
+        a {
+            &:hover {
+                color: black;
+            }
+        }
     }
 }
 
