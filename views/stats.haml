@@ -1,0 +1,53 @@
+
+%script{ :src => '/js/flotr2.min.js' }
+- # %script{ :src => '/js/raphael-min.js' }
+- # %script{ :src => '/js/g.raphael-min.js' }
+- # %script{ :src => '/js/g.bar-min.js' }
+- # %script{ :src => '/js/g.line-min.js' }
+- # %script{ :src => '/js/g.pie-min.js' }
+%script{ :src => '/js/zeitgeist_stats.js' }
+
+#content
+
+  %h2 Statistics
+
+  #items_piechart
+    #items_piechart_holder
+
+  %h3 Zeitgeist in Total Numbers
+
+  %table
+    %tbody
+      %tr
+        %th Total Items
+        %td= @stats[:total] 
+      %tr
+        %th Image Items
+        %td= @stats[:image] 
+      %tr
+        %th Audio Items
+        %td= @stats[:audio] 
+      %tr
+        %th Video Items
+        %td= @stats[:video] 
+      %tr
+        %th Registered Users
+        %td= @stats[:user] 
+
+  %h3{:style => 'margin-top: 100px'} Item Submissions
+
+  %select#items_stats_range
+    %option{:value => 'per_year'} New items per Year
+    %option{:value => 'per_month'} New items per Month
+    %option{:value => 'per_day', :selected => true} New items per Day
+
+  %input#items_stats_incremental{:type => 'checkbox', :checked => true} incremental
+
+  %i (Select an area of the graph to zoom. Click to reset the chart.)
+
+  #items_stats
+    #items_stats_holder
+
+
+
+

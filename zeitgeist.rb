@@ -973,6 +973,51 @@ get '/api_secret/?:regenerate?' do
   end
 end
 
+# public stats and diagrams for this zeitgeist installation
+get '/stats' do
+  # some stats in numbers
+  # the rest is loaded from stats.json
+  @stats = {
+    :total => Item.count,
+    :image => Item.count(:type => 'image'),
+    :audio => Item.count(:type => 'audio'),
+    :video => Item.count(:type => 'video'),
+    :user => DmUser.count
+  }
+
+  haml :stats
+end
+
+get '/stats.json' do
+  def raw_sql(sql)
+    repository(:default).adapter.query(sql)
+  end
+
+  def count_by(date)
+    counts = []
+    res = raw_sql 'SELECT strftime("'+date+'", created_at) AS date, ' + 
+        'COUNT(*) AS count FROM items GROUP BY date ORDER BY created_at asc;'
+    res.each do |row|
+      counts << [row.date, row.count]
+    end
+    return counts
+  end
+
+  years = count_by '%Y'
+  months = count_by '%Y-%m'
+  days = count_by '%Y-%m-%d'
+
+  content_type :json
+  {
+    :years => years,
+    :months => months,
+    :days => days,
+    :image => Item.count(:type => 'image'),
+    :audio => Item.count(:type => 'audio'),
+    :video => Item.count(:type => 'video')
+  }.to_json
+end
+
 get %r{/feed(/nsfw)?} do
   nsfw = params[:captures] ? true : false
 

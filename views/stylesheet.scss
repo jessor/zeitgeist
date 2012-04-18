@@ -108,8 +108,7 @@ table th {
     text-align: center;
 }
 
-#content p,
-#content h2, {
+#content {
     margin: 20px;
 }
 
@@ -645,5 +644,32 @@ footer {
     }
 }
 
+
+// stats
+#items_piechart {
+    position: absolute;
+    left: 280px;
+    background-color: #f9fff2;
+    border: 1px solid #999;
+    @include rounded(3px);
+    #items_piechart_holder {
+        display: block;
+        width: 310px;
+        height: 200px;
+    }
+}
+
+#items_stats {
+    width: 810px;
+    padding: 10px;
+    background-color: #f9fff2;
+    border: 1px solid #999;
+    @include rounded(3px);
+    #items_stats_holder {
+        display: block;
+        width: 800px;
+        height: 340px;
+    }
+}
 
 
