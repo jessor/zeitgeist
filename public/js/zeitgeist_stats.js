@@ -133,7 +133,11 @@ $(function () {
           horizontal: false
         },
         mouse : {
-          track : false
+          track : true,
+          relative : true,
+          trackFormatter: function (point) {
+            return Math.round(point.y) + ' items';
+          }
         },
         xaxis: {
           noTicks: labels.length,
