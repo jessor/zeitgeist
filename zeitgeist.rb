@@ -819,7 +819,7 @@ post '/new' do
       content_type :json
       {:items => items}.to_json
     else
-      flash[:success] = 'New item added successfully.'
+      flash[:notice] = 'New item added successfully.'
       redirect '/'
     end
 
@@ -874,7 +874,7 @@ post '/upvote' do
         content_type :json
         return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
       else
-        flash[:success] = 'Upvote removed.'
+        flash[:notice] = 'Upvote removed.'
         redirect '/'
         return
       end
@@ -895,7 +895,7 @@ post '/upvote' do
       content_type :json
       return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
     else
-      flash[:success] = 'Item upvoted.'
+      flash[:notice] = 'Item upvoted.'
       redirect '/'
     end
   else
@@ -934,7 +934,7 @@ post '/delete' do
       content_type :json
       {:id => item.id}.to_json
     else
-      flash[:success] = "Item ##{params[:id]} is gone now."
+      flash[:notice] = "Item ##{params[:id]} is gone now."
       redirect params['return_to']
     end
   else
