@@ -672,4 +672,16 @@ footer {
     }
 }
 
+#items_users_stats {
+    width: 810px;
+    padding: 10px;
+    background-color: #f9fff2;
+    border: 1px solid #999;
+    @include rounded(3px);
+    #items_users_stats_holder {
+        display: block;
+        width: 800px;
+        height: 340px;
+    }
+}
 

@@ -1010,6 +1010,15 @@ get '/stats.json' do
   months = count_by '%Y-%m'
   days = count_by '%Y-%m-%d'
 
+  # user statistics
+  user_stats = []
+  User.all.each do |user|
+    name = user.username ? user.username : '?'
+    count = user.items.count
+    user_stats << [name, count] if count > 0
+  end
+  # user_stats << ['anonymous', Item.count(:dm_user => nil)]
+
   content_type :json
   {
     :years => years,
@@ -1017,7 +1026,8 @@ get '/stats.json' do
     :days => days,
     :image => Item.count(:type => 'image'),
     :audio => Item.count(:type => 'audio'),
-    :video => Item.count(:type => 'video')
+    :video => Item.count(:type => 'video'),
+    :user => user_stats
   }.to_json
 end
 

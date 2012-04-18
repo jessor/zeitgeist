@@ -73,6 +73,13 @@ $(function () {
         mode : 'time', 
         labelsAngle : 45
       },
+      mouse : {
+        track : true,
+        relative : true,
+        trackFormatter: function (point) {
+          return Math.round(point.y) + ' items';
+        }
+      },
       selection : {
         mode : 'x'
       },
@@ -110,6 +117,42 @@ $(function () {
     });
   };
 
+  var draw_user_submissions = function (id, user) {
+    var container = document.getElementById(id),
+      data = [], labels = [];
+
+    for (var i = 0; i < user.length; i++) {
+      data.push([i, user[i][1]]);
+      labels.push(user[i][0]);
+    }
+    Flotr.draw(container,
+      [ data ],
+      {
+        bars : {
+          show : true,
+          horizontal: false
+        },
+        mouse : {
+          track : false
+        },
+        xaxis: {
+          noTicks: labels.length,
+          tickFormatter: function (x) {
+            var i = parseInt(x);
+                // i = (x-1)%labels.length;
+            if (labels[i]) {
+              return labels[i];
+            }
+            return '';
+          }
+        },
+        yaxis : {
+          min : 0,
+          autoscaleMargin : 1
+        }
+    });
+  };
+
   $.getJSON('/stats.json', function (data, textStatus, jqXHR) {
     if (textStatus != 'success') {
       console.log('error with json data: ' + textStatus);
@@ -121,13 +164,17 @@ $(function () {
         items_audio = data.audio,
         per_day = data.days,
         per_month = data.months,
-        per_year = data.years;
+        per_year = data.years,
+        user = data.user;
 
     // draw the pie chart for item types
     draw_type_pie('items_piechart_holder', items_image, items_video, items_audio);
 
+    // timeline graph that shows the number of posted items:
     draw_type_time('items_stats_holder', per_day, per_month, per_year);
-
+    
+    // barchart of user submissions
+    draw_user_submissions('items_users_stats_holder', user);
   });
 });
 
