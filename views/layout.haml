@@ -40,6 +40,8 @@
       |
       - if logged_in?
         %a{ :href => '/logout' } Logout
+        |
+        %a{ :href => '/users/%d/edit' % current_user.id } Edit Profile
       - else
         %a{ :href => '/login', :class => 'fancynav' } Login
     = partial(:_header)
