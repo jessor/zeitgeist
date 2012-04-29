@@ -1011,7 +1011,7 @@ get '/api_secret/?:regenerate?' do
 
   if api_request?
     content_type :json
-    {email: user.email, api_secret: @api_secret}.to_json
+    {email: user.email, api_secret: @api_secret, user_id: current_user.id}.to_json
   else
     haml :api_secret
   end
