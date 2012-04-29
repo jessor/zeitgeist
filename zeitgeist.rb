@@ -372,7 +372,7 @@ class Item
   end
 
   def as_json(options={})
-    super(options.merge(:methods => [:tags]))
+    super(options.merge(:methods => [:tags, :users_upvoted]))
   end
 
   # uses the pHash perceptual hash library to calculate
@@ -411,6 +411,10 @@ class Item
   raise
     puts "error generating fingerprint: #{$!}"
     return nil
+  end
+
+  def users_upvoted # array of ids of the users that upvoted this item
+    upvotes.map { |upvote| upvote.dm_user_id }
   end
 
 end
@@ -538,8 +542,8 @@ helpers do
   # used as a helper function to test if this item
   # has been upvoted by the current user
   def item_upvoted?(item)
-    item.upvotes.count(:dm_user_id => current_user.id) > 0
-  end # TODO: ref
+    item.users_upvoted.include? current_user.id
+  end
 
   def random_token(length)
     chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
