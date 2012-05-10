@@ -31,7 +31,7 @@ module Plugins
     # initialize with the original remote url
     # this default plugin assumes an image/ resource
     def initialize(orig_url)
-      @orig_url = orig_url
+      @orig_url = orig_url.strip
     end
 
     def type
