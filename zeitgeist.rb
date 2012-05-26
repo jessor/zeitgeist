@@ -829,7 +829,7 @@ post '/new' do
       # for upload use the tempfile as image and the orig. filename as source
       # for remote unset image and use the url as source
       image = upload ? upload[:tempfile].path : nil
-      source = remote ? remote : upload[:filename]
+      source = remote ? remote.strip : upload[:filename]
 
       # skip empty ones
       next if not image and source.empty?
