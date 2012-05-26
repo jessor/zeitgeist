@@ -311,6 +311,7 @@ class Item
       html_title += (' at <a href="/show/dimensions/%s">%s</a>' % 
           [self.dimensions, self.dimensions])
     end
+    html_title
   end
 
   # returns the embed code for this item
