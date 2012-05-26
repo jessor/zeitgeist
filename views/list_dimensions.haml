@@ -1,0 +1,12 @@
+#content
+
+  %h2
+    = @title
+
+  %ul.list_dimensions
+    - @dimensions.each do |dimension|
+      %li
+        %a{:href => "/show/dimensions/#{dimension.first}",
+           :style => "font-size: #{weighted_size(dimension.last, @min, @max)}px"}
+          #{dimension.first}
+

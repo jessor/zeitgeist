@@ -625,6 +625,28 @@ form.auth {
     margin-left: 36px;
 }
 
+.list_dimensions ul {
+    list-style-type: none;
+}
+.list_dimensions li {
+    display: inline;
+    padding: 3px;
+}
+
+.list_tags ul {
+    list-style-type: none;
+}
+.list_tags li {
+    display: block;
+    float: left;
+    border: 0;
+    background: $background;
+    border: 1px solid $border;
+    @include rounded(5px);
+    padding: 3px;
+    margin: 2px;
+}
+
 
 //
 // Fancybox

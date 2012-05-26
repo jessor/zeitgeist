@@ -554,6 +554,22 @@ helpers do
     end
     token
   end
+
+  def weighted_size(count, min, max)
+    maxf = 37
+    minf = 10
+  
+    # based on http://whomwah.com/2006/07/06/another-tag-cloud-script-for-ruby-on-rails/
+    # thx;)
+    spread = max.to_f - min.to_f
+    spread = 1.to_f if spread <= 0
+    fontspread = maxf.to_f - minf.to_f
+    fontstep = spread / fontspread
+    size = ( minf + ( count.to_f / fontstep ) ).to_i
+    size = maxf if size > maxf
+
+    size
+  end
 end
 
 #
@@ -730,28 +746,39 @@ get '/show/dimensions/:dimensions' do
   end
 end
 
-get '/list/:attribute' do
-  @title = "List of #{params[:attribute]} on #{settings.pagetitle}"
+get '/list/tags' do
+  @title = "Tags of #{settings.pagetitle}"
+  @tags = Tag.all(:order => [:count.desc], :count.gt => 0, :tagname.not => nil)
 
-  case params[:attribute]
-  when 'tags'
-    @items = Tag.all(:order => [:tagname.asc], :count.gt => 0)
-  when 'dimensions'
-    @items = Item.all(:fields => [:dimensions], :unique => true, :order => [:dimensions.asc])
-  else
-    flash[:error] = "Currently unsupported"
-    redirect '/'
-  end
+  @min = @tags.min_by {|tag| tag.count}.count
+  @max = @tags.max_by {|tag| tag.count}.count
 
   if api_request?
     content_type :json
-    if params[:attribute] == 'tags'
-      {:tags => @items}.to_json
-    else
-      {:dimensions => @items}.to_json
-    end
+    {:tags => @tags}.to_json
   else
-    haml :list
+    haml :list_tags
+  end
+end
+
+get '/list/dimensions' do
+  @title = "Image dimensions of #{settings.pagetitle}"
+  @dimensions = Item.all(:type => 'image').aggregate(:dimensions, :all.count)
+  @dimensions.delete_if do |dimension|
+    true if dimension.last <= 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
+  end
+  @dimensions.sort! do |a, b|
+    b.last <=> a.last
+  end
+
+  @min = @dimensions.min_by {|dimension| dimension.last}.last
+  @max = @dimensions.max_by {|dimension| dimension.last}.last
+
+  if api_request?
+    content_type :json
+    {:dimensions => @dimensions}.to_json
+  else
+    haml :list_dimensions
   end
 end
 
