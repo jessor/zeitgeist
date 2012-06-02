@@ -805,13 +805,47 @@ get '/search' do
   end
 end
 
-post '/search' do
-  @tags = Tag.all(:tagname.like => "%#{params['q']}%")
+post '/search' do # for tags, source url and title
+  query = params['q']
+  type = 'tags'
+  if params.has_key? 'type' and %w{tags source title}.include? params['type']
+    type = params['type']
+  end
+
+  @title = "Search for #{type.capitalize} with #{query} at #{settings.pagetitle}"
+  args = {
+    :per_page => settings.items_per_page,
+    :order => [:created_at.desc]
+  }
+
+  if params.has_key? 'before'
+    args.merge!(:conditions => ['items.id < ?', params[:before]])
+  end
+  if params.has_key? 'after'
+    args.merge!(:conditions => ['items.id > ?', params[:after]])
+  end
+
+  case type
+  when 'tags'
+    args.merge!(Item.tags.tagname.like => "%#{query}%")
+  when 'source'
+    args.merge!(:source.like => "%#{query}%")
+  when 'title'
+    args.merge!(:title.like => "%#{query}%")
+  end
+
+  @items = Item.page(params[:page], args)
+  pagination
+
   if api_request?
     content_type :json
-    {:tags => @tags}.to_json
+    if type == 'tags' # TODO: call this /searchtags or something else
+      {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
+    else
+      {:type => type, :items => @items}.to_json
+    end
   else
-    redirect "/show/tag/#{params['searchquery']}"
+    haml :index
   end
 end
 

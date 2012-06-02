@@ -139,23 +139,44 @@ jQuery(function(){
     // Autocomplete
     $(':input.autocomplete').livequery(function() {
         $(this).autocomplete('/search', {
+            extraParams: {
+                type: function () {
+                    var elem = $('#searchtype input[name="type"]:checked');
+                    if (elem.length > 0) return elem.val();
+                    else return 'tags';
+                }
+            },
             minChars:       2,
             selectFirst:    false,
             width:          300,
             dataType:       'json',
             // parse json response
             parse: function(data) {
-                return $.map(data.tags, function(row) {
+                var prop;
+                if (data.type == 'source') {
+                    data = data.items;
+                    prop = 'source';
+                }
+                else if (data.type == 'title') {
+                    data = data.items;
+                    prop = 'title';
+                }
+                else {
+                    data = data.tags;
+                    prop = 'tagname';
+                }
+
+                return $.map(data, function(row) {
                     return {
-                        data: row,
-                        value: row.tagname,
-                        result: row.tagname
-                    }
+                        data: row[prop],
+                        value: row[prop],
+                        result: row[prop]
+                    };
                 });
             },
             // format items in autocomplete select box
             formatItem: function(item) {
-                return item.tagname;
+                return item;
             }
         })
         // submit on selection of suggested tag
