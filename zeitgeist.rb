@@ -154,6 +154,7 @@ class Item
   # item submitter
   belongs_to :dm_user, :required => false
 
+  # phash fingerprint
   property :fingerprint, Integer
 
   # image meta information
@@ -373,7 +374,7 @@ class Item
   end
 
   def as_json(options={})
-    super(options.merge(:methods => [:tags, :users_upvoted]))
+    super(options.merge(:methods => [:tags, :users_upvoted, :username]))
   end
 
   # uses the pHash perceptual hash library to calculate
@@ -416,6 +417,10 @@ class Item
 
   def users_upvoted # array of ids of the users that upvoted this item
     upvotes.map { |upvote| upvote.dm_user_id }
+  end
+
+  def username
+    dm_user.username if dm_user
   end
 
 end
@@ -483,7 +488,7 @@ class DmUser
   has n, :upvotes
   has n, :items
 
-  # migration sets the username from the email <username>@host.com
+  # optional
   property :username, String
 
   property :api_secret, String
