@@ -2,8 +2,9 @@
   %fieldset
     %ol
       %li
-        %label{ :for => "user_username" } Public Username (used in statistics)
+        %label{ :for => "user_username" } Public Username
         %input{ :id => "user_username", :name => "user[username]", :size => 30, :type => "text", :value => @user.username }
+        .form_info This is optional, it is publicly visible in statistics, etc.
       %li
         %label{ :for => "user_email" } Email
         %input{ :id => "user_email", :name => "user[email]", :size => 30, :type => "text", :value => @user.email }

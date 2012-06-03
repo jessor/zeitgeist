@@ -552,6 +552,15 @@ form.auth {
     }
 }
 
+input#user_username {
+    background-image: url('/images/username.png');
+}
+
+.form_info {
+    font-size: 11px;
+    font-style: italic;
+}
+
 //
 // Notifications
 //
