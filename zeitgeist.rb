@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'bundler/setup'
 
-Bundler.require(:default)
+Bundler.require(:default, :qrencoder, :phashion)
 
 # ruby core requirements
 require 'base64'
@@ -227,19 +227,15 @@ class Item
         # animated autotagging
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
 
-        # calculate fingerprint for images
-        # and use the fingerprint to check for duplicates
-        if self.type == 'image'
+        # duplication check
+        if defined? Phashion and self.type == 'image'
           self.fingerprint = self.generate_fingerprint(tempfile)
           if (item = Item.first(:fingerprint => self.fingerprint))
             raise DuplicateError.new(item.id)
           end
-        elsif self.type == 'video'
-          # checks the md5 for now, (of the preview pic)
-          if localtemp.checksum and (item = Item.first(:checksum => localtemp.checksum))
-            raise DuplicateError.new(item.id)
-          end
-        # TODO: audio
+        else #just use md5 checksum as a fallback
+          item = Item.first(:checksum => self.checksum)
+          raise DuplicateError.new(item.id) if item
         end
 
         # store file in configured storage
@@ -1052,7 +1048,7 @@ end
 
 get '/api_secret/qrcode.png' do
   user = current_user.db_instance
-  if settings.qrcode[:active]
+  if settings.qrcode[:active] and defined? QREncoder
     api_secret = user.api_secret
     qrcode_data = '%s#auth:%s|%s' % [base_url, user.email, api_secret]
     qrcode = QREncoder.encode(qrcode_data)
@@ -1066,6 +1062,8 @@ get '/api_secret/?:regenerate?' do
   if not logged_in?
     redirect '/login'
   end
+
+  @qrcode_active = (settings.qrcode[:active] and defined? QREncoder)
 
   user = current_user.db_instance
   if not user.api_secret or params[:regenerate]

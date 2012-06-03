@@ -20,6 +20,23 @@ gem "ruby-filemagic", :require => "filemagic"
 gem "mini_magick"
 gem "mechanize"
 gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
-gem "qrencoder"
-gem "phashion", :git => 'git://github.com/4poc/phashion.git'
+
+# qrencoder and phashion are optional features use
+#   bundle install --without qrencoder/phashion if you don't want it
+
+group :qrencoder do
+  # QRCodes are used to quickly set the url, email and api secret in the
+  # android application it requires the libqrencoder library to be installed
+  # in the system.
+  gem "qrencoder"
+end
+
+group :phashion do
+  # The original gem does include a custom pHash and cImg tarball that is
+  # built and then linked during install, this fork gets rid of it and
+  # requires both phash and cimg to be installed in the system.
+  # NOTE: phashion violates the GPL by linking with GPL code (phash) and
+  # using the MIT
+  gem "phashion", :git => 'git://github.com/4poc/phashion.git'
+end
 
