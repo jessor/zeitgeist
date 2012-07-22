@@ -4,7 +4,7 @@ class Flickr < Plugin
   PATTERN = %r{http[s]?://(www\.)?flickr\.com/photos/}
 
   def url
-    search_one('.photo-div/img/@src, #allsizes-photo/img/@src') || super
+    match_one /o: {\s+url: '([^']+)'/
   end
 
   def title

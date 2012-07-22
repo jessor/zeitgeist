@@ -11,7 +11,11 @@ class Twitpic < Plugin
   end
 
   def url
-    search_one 'img[3]/@src' 
+    search_one '#media-full img/@src' 
+  end
+
+  def title
+    og_search 'title'
   end
 end
 

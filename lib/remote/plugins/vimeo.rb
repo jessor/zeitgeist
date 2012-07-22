@@ -15,9 +15,5 @@ class Vimeo < Plugin
   def title
     og_search 'title'
   end
-
-  def tags
-    search '.tags li a/text()'
-  end
 end
 
