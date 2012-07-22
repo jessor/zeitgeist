@@ -110,6 +110,7 @@ configure do
   end
 
   enable :sessions
+  enable :logging
   use Rack::Flash
 
   set :haml, {:format => :html5}
@@ -524,10 +525,6 @@ helpers do
     @items.pager.to_html(request.path, :size => 5)
   end
 
-  def logger
-    request.logger
-  end
-
   def shorten(str)
     if str.length > 11
       "#{str[0..(10)]}..."
@@ -577,6 +574,9 @@ end
 # General Filters
 # 
 before do
+  logger.datetime_format = "%Y/%m/%d @ %H:%M:%S "
+  logger.level = Logger::INFO
+
   if request.host =~ /^www\./
     redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
   end
@@ -929,6 +929,11 @@ post '/new' do
 
   rescue Exception => e
 
+    logger.error "create error: #{e.class.to_s} #{e.to_s}"
+
+    # only allow our own exceptions to be publicized
+    return if not [RuntimeError, Exception, DuplicateError, RemoteError].include? e.class
+
     if e.class == DuplicateError
       item = Item.get e.id
 
@@ -1161,8 +1166,11 @@ def handle_error
   code = (response.status == 200) ? 500 : response.status
 
   # Log exception that occured:
-  puts "Zeitgeist application error occured: #{error.inspect}"
-  puts "Backtrace: " + error.backtrace.join("\n")
+  logger.error "Error Handler: #{error.inspect}"
+  logger.error "Backtrace: " + error.backtrace.join("\n")
+
+  # only allow our own exceptions to be publicized
+  return if not [Sinatra::NotFound, RuntimeError, StandardError, CreateItemError].include? error.class
 
   if api_request? 
     status code
