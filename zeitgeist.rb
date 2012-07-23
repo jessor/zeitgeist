@@ -575,12 +575,12 @@ end
 # 
 before do
   logger.datetime_format = "%Y/%m/%d @ %H:%M:%S "
-  logger.level = Logger::INFO
+  logger.level = 0
 
   if request.host =~ /^www\./
     redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
   end
-
+ 
   # X-Auth API authentication as specified in the documentation
   if request.env.has_key? 'HTTP_X_API_AUTH'
     email, api_secret = request.env['HTTP_X_API_AUTH'].split('|')
@@ -1103,14 +1103,21 @@ get '/stats' do
 end
 
 get '/stats.json' do
+  logger.debug 'Generating stats json object'
   def raw_sql(sql)
-    repository(:default).adapter.query(sql)
+    repository(:default).adapter.select(sql)
   end
 
   def count_by(date)
     counts = []
-    res = raw_sql 'SELECT strftime("'+date+'", created_at) AS date, ' + 
-        'COUNT(*) AS count FROM items GROUP BY date ORDER BY created_at asc;'
+    if defined? DataMapper::Adapters::Sqlite3Adapter and 
+        repository(:default).adapter.class == DataMapper::Adapters::Sqlite3Adapter
+      format_sql = 'strftime("%s", created_at)' % date
+    else
+      format_sql = "DATE_FORMAT(created_at, '%s')" % date
+    end
+    res = raw_sql 'SELECT %s AS date, COUNT(*) AS count FROM items GROUP BY date ORDER BY created_at asc;' % format_sql
+    logger.debug('Generate stats with custom SQL returned %d results.' % res.length)
     res.each do |row|
       counts << [row.date, row.count]
     end
@@ -1170,7 +1177,9 @@ def handle_error
   logger.error "Backtrace: " + error.backtrace.join("\n")
 
   # only allow our own exceptions to be publicized
-  return if not [Sinatra::NotFound, RuntimeError, StandardError, CreateItemError].include? error.class
+  if not [Sinatra::NotFound, RuntimeError, StandardError, CreateItemError].include? error.class
+    error = RuntimeError.new 'unknown error occured'
+  end
 
   if api_request? 
     status code
