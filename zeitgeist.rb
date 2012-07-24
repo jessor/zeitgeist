@@ -1137,8 +1137,8 @@ get '/stats.json' do
 
   def count_by(date)
     counts = []
-    if defined? DataMapper::Adapters::Sqlite3Adapter and 
-        repository(:default).adapter.class == DataMapper::Adapters::Sqlite3Adapter
+    if defined? DataMapper::Adapters::SqliteAdapter and 
+        repository(:default).adapter.class == DataMapper::Adapters::SqliteAdapter
       format_sql = 'strftime("%s", created_at)' % date
     else
       format_sql = "DATE_FORMAT(created_at, '%s')" % date
