@@ -1,5 +1,5 @@
 #searchbox
-  %form#searchform{ :action => '/search', :method => 'post' }
+  %form#searchform{ :action => '/search', :method => 'get' }
     %input#searchquery{ :type => 'text', :name => 'q', :size => 20, :value => 'search', :class => 'autocomplete' }
     #searchtype
       %input{ :type => 'radio', 'name' => 'type', 'value' => 'tags', 'checked' => true }

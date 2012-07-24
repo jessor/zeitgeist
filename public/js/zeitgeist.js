@@ -136,52 +136,47 @@ jQuery(function(){
         $(this).search();
     });
 
-    // Autocomplete
-    $(':input.autocomplete').livequery(function() {
-        $(this).autocomplete('/search', {
-            extraParams: {
-                type: function () {
-                    var elem = $('#searchtype input[name="type"]:checked');
-                    if (elem.length > 0) return elem.val();
-                    else return 'tags';
-                }
-            },
-            minChars:       2,
-            selectFirst:    false,
-            width:          300,
-            dataType:       'json',
-            // parse json response
-            parse: function(data) {
-                var prop;
-                if (data.type == 'source') {
-                    data = data.items;
-                    prop = 'source';
-                }
-                else if (data.type == 'title') {
-                    data = data.items;
-                    prop = 'title';
-                }
-                else {
-                    data = data.tags;
-                    prop = 'tagname';
-                }
-
-                return $.map(data, function(row) {
-                    return {
-                        data: row[prop],
-                        value: row[prop],
-                        result: row[prop]
-                    };
+    // autocomplete for search form and add/remove tags form,
+    //   can display suggestions for tagnames, title and source urls
+    $(':input.autocomplete').livequery(function () {
+        $(this).autocomplete({
+            source: function (request, response) {
+                // look for search type radio buttons and use their value,
+                // otherwise its not a search form but a tag add autocomplete
+                var elem = $('#searchtype input[name="type"]:checked');
+                var type = (elem.length > 0) ? elem.val() : 'tags';
+                $.ajax({
+                    url: '/search', // via GET (default)
+                    type: 'GET',
+                    data: {q: request.term, type: type},
+                    dataType: 'json',
+                    success: function (data) {
+                        var prop;
+                        if (data.type == 'source') {
+                            data = data.items;
+                            prop = 'source';
+                        }
+                        else if (data.type == 'title') {
+                            data = data.items;
+                            prop = 'title';
+                        }
+                        else {
+                            data = data.tags;
+                            prop = 'tagname';
+                        }
+                        response($.map(data, function(item) {
+                            return {
+                                label: item[prop],
+                                value: item[prop]
+                            }
+                        }));
+                    }
                 });
             },
-            // format items in autocomplete select box
-            formatItem: function(item) {
-                return item;
+            minLength: 2,
+            select: function (event, ui) {
+                $(this).parent().submit();
             }
-        })
-        // submit on selection of suggested tag
-        .result(function(e, item) {
-            $(this).parent().submit();
         });
     });
 

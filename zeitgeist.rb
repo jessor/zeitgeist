@@ -522,7 +522,7 @@ helpers do
   end
 
   def pagination
-    @items.pager.to_html(request.path, :size => 5)
+    @items.pager.to_html(request.url, :size => 5)
   end
 
   def shorten(str)
@@ -798,25 +798,69 @@ post '/embed' do
 end
 
 get '/search' do
-  @title = "Search #{settings.pagetitle}"
-  if api_request?
-    haml :search, :layout => false
+  if not params.has_key? 'q'
+    # show search form
+    @title = "Search #{settings.pagetitle}"
+    if api_request?
+      haml :search, :layout => false
+    else
+      haml :search
+    end
   else
-    haml :search
+    # search results
+    query = params['q']
+    type = 'tags'
+    if params.has_key? 'type' and %w{tags source title}.include? params['type']
+      type = params['type']
+    end
+
+    @title = "Search for #{type.capitalize} with #{query} at #{settings.pagetitle}"
+    args = {
+      :per_page => settings.items_per_page,
+      :order => [:created_at.desc]
+    }
+
+    if params.has_key? 'before'
+      args.merge!(:conditions => ['items.id < ?', params[:before]])
+    end
+    if params.has_key? 'after'
+      args.merge!(:conditions => ['items.id > ?', params[:after]])
+    end
+
+    case type
+    when 'tags'
+      args.merge!(Item.tags.tagname.like => "%#{query}%")
+    when 'source'
+      args.merge!(:source.like => "%#{query}%")
+    when 'title'
+      args.merge!(:title.like => "%#{query}%")
+    end
+
+    @items = Item.page(params[:page], args)
+    pagination
+
+    if api_request?
+      content_type :json
+      if type == 'tags' # TODO: call this /searchtags or something else
+        {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
+      else
+        {:type => type, :items => @items}.to_json
+      end
+    else
+      haml :index
+    end
   end
 end
 
-post '/search' do # for tags, source url and title
+# TODO: rename to something else,
+# this is only used for tag autocomplete/suggestions
+# always returns json
+post '/search' do
   query = params['q']
-  type = 'tags'
-  if params.has_key? 'type' and %w{tags source title}.include? params['type']
-    type = params['type']
-  end
-
-  @title = "Search for #{type.capitalize} with #{query} at #{settings.pagetitle}"
   args = {
     :per_page => settings.items_per_page,
-    :order => [:created_at.desc]
+    :order => [:created_at.desc],
+    Item.tags.tagname.like => "%#{query}%"
   }
 
   if params.has_key? 'before'
@@ -826,28 +870,11 @@ post '/search' do # for tags, source url and title
     args.merge!(:conditions => ['items.id > ?', params[:after]])
   end
 
-  case type
-  when 'tags'
-    args.merge!(Item.tags.tagname.like => "%#{query}%")
-  when 'source'
-    args.merge!(:source.like => "%#{query}%")
-  when 'title'
-    args.merge!(:title.like => "%#{query}%")
-  end
-
   @items = Item.page(params[:page], args)
   pagination
 
-  if api_request?
-    content_type :json
-    if type == 'tags' # TODO: call this /searchtags or something else
-      {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
-    else
-      {:type => type, :items => @items}.to_json
-    end
-  else
-    haml :index
-  end
+  content_type :json
+  {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
 end
 
 get '/new' do

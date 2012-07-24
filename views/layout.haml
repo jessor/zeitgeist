@@ -5,17 +5,18 @@
     %title
       &= @title || settings.pagetitle
     %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
+    %link{ :rel => 'stylesheet', :href => '/css/ui-lightness/jquery-ui-1.8.21.custom.css' }
     %link{ :rel => 'shortcut icon', :href => '/images/favicon.png' }
     %link{ :rel => 'alternate', :href => '/feed', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items" }
     %link{ :rel => 'alternate', :href => '/feed/nsfw', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items (NSFW!)" }
-    %script{ :src => '/js/jquery.min.js' }
+    %script{ :src => '/js/jquery-1.7.2.js' }
+    %script{ :src => '/js/ui/jquery-ui-1.8.21.custom.js' }
     %script{ :src => '/js/livequery.js' }
     %script{ :src => '/js/form.js' }
     %script{ :src => '/js/expander.js' }
     %script{ :src => '/js/fancybox.js' }
     %script{ :src => '/js/easing.js' }
     %script{ :src => '/js/mousewheel.js' }
-    %script{ :src => '/js/autocomplete.js' }
     %script{ :src => '/js/zeitgeist.js' }
     - if @autoload
       :javascript
