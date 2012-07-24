@@ -175,6 +175,8 @@ jQuery(function(){
             },
             minLength: 2,
             select: function (event, ui) {
+                var value = ui.item ? ui.item.label : this.value;
+                $(this).val(value);
                 $(this).parent().submit();
             }
         });
