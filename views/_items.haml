@@ -1,0 +1,47 @@
+
+- if @items
+  %ul.items
+    - @items.each do |item|
+      %li
+        %a{ :href => (item.type=='image' ? item.image : item.source), 
+          :class => (item.type=='image' ? 'fancy' : 'embed'), 
+          :data => {:htmltitle => item.html_title},
+          :title => (item.title || item.source),
+          :rel => 'external' }
+          - if item.type == 'video'
+            %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
+          %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+            :alt => (item.title || item.source),
+            :width => '200',
+            :height => '200',
+            :class => 'thumbnail' }
+
+        - if logged_in?
+          .upvote
+            %form{ :action => "/upvote", :method => 'post' }
+              %input{ :type => 'hidden', :name => 'remove', :value => item_upvoted?(item) ? 'true' : 'false' }
+              %input{ :type => 'hidden', :name => 'id', :value => item.id }
+                %input{ :type => 'image', :src => "/images/upvote#{item_upvoted?(item) ? '_on' : ''}.png", :alt => 'up', :width => '16', :height => '16'}
+
+        .item-meta
+          %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
+            - item.tags.each do |tag|
+              %li 
+                %a{ :href => "/show/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}
+          %div.clear
+
+        %form.tag{ :action => "/update", :method => 'post', :id => "formforitem-#{item.id}" }
+          %input{ :type => 'hidden', :name => 'id', :value => "#{item.id}" }
+          %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }
+          %input{ :type => 'hidden', :name => 'del_tags' }
+          %input.tagpush{ :type => 'submit', :value => 'tag!' }
+
+        - if item.dm_user_id == current_user.id or current_user.admin?
+          %form.delete{ :action => "/delete", :method => 'post' }
+            %input{ :type => 'hidden', :name => 'id', :value => "#{item.id}" }
+            %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
+            %input.tagpush{ :type => 'submit', :value => 'X' }
+
+  #pagination  
+    = pagination
+

@@ -801,6 +801,8 @@ get '/search' do
   if not params.has_key? 'q'
     # show search form
     @title = "Search #{settings.pagetitle}"
+    @query = 'search'
+    @type = 'tags'
     if api_request?
       haml :search, :layout => false
     else
@@ -808,13 +810,13 @@ get '/search' do
     end
   else
     # search results
-    query = params['q']
-    type = 'tags'
+    @query = params['q']
+    @type = 'tags'
     if params.has_key? 'type' and %w{tags source title}.include? params['type']
-      type = params['type']
+      @type = params['type']
     end
 
-    @title = "Search for #{type.capitalize} with #{query} at #{settings.pagetitle}"
+    @title = "Search for #{@type.capitalize} with #{@query} at #{settings.pagetitle}"
     args = {
       :per_page => settings.items_per_page,
       :order => [:created_at.desc]
@@ -827,13 +829,13 @@ get '/search' do
       args.merge!(:conditions => ['items.id > ?', params[:after]])
     end
 
-    case type
+    case @type
     when 'tags'
-      args.merge!(Item.tags.tagname.like => "%#{query}%")
+      args.merge!(Item.tags.tagname.like => "%#{@query}%")
     when 'source'
-      args.merge!(:source.like => "%#{query}%")
+      args.merge!(:source.like => "%#{@query}%")
     when 'title'
-      args.merge!(:title.like => "%#{query}%")
+      args.merge!(:title.like => "%#{@query}%")
     end
 
     @items = Item.page(params[:page], args)
@@ -841,13 +843,13 @@ get '/search' do
 
     if api_request?
       content_type :json
-      if type == 'tags' # TODO: call this /searchtags or something else
-        {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
+      if @type == 'tags' # TODO: call this /searchtags or something else
+        {:type => @type, :tags => Tag.all(:tagname.like => "%#{@query}%")}.to_json
       else
-        {:type => type, :items => @items}.to_json
+        {:type => @type, :items => @items}.to_json
       end
     else
-      haml :index
+      haml :search # display form and items
     end
   end
 end

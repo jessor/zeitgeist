@@ -1,12 +1,16 @@
 #searchbox
   %form#searchform{ :action => '/search', :method => 'get' }
-    %input#searchquery{ :type => 'text', :name => 'q', :size => 20, :value => 'search', :class => 'autocomplete' }
+    %input#searchquery{ :type => 'text', :name => 'q', :size => 20, :value => @query, :class => 'autocomplete' }
     #searchtype
-      %input{ :type => 'radio', 'name' => 'type', 'value' => 'tags', 'checked' => true }
+      %input{ :type => 'radio', 'name' => 'type', 'value' => 'tags', 'checked' => (@type == 'tags') }
       tags
-      %input{ :type => 'radio', 'name' => 'type', 'value' => 'source' }
+      %input{ :type => 'radio', 'name' => 'type', 'value' => 'source', 'checked' => (@type == 'source') }
       source
-      %input{ :type => 'radio', 'name' => 'type', 'value' => 'title' }
+      %input{ :type => 'radio', 'name' => 'type', 'value' => 'title', 'checked' => (@type == 'title') }
       title
     %input#searchsubmit{ :type => 'submit', :value => 'search!' }
+
+#content
+
+  = partial(:_items)
 
