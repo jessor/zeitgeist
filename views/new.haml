@@ -11,6 +11,9 @@
         %label{ :for => 'image_url' } or enter a URL:
         %input{ :type => 'text', :name => 'remote_url', :id => 'remote_url', :size => 38 }
       %li
+        %label{ :for => 'tags' } tags (comma separated list):
+        %input.autocomplete{ :type => 'text', :name => 'tags', :value => '', :size => 38 }
+      %li
         %input{ :type => 'checkbox', :name => 'announce', :value => 'true', :checked => true }
         %label{ :for => 'announce', :style => 'display: inline' } announce in irc
       %li.last      
