@@ -15,6 +15,8 @@
             :width => '200',
             :height => '200',
             :class => 'thumbnail' }
+          - if item.title
+            .title-overlay #{truncate(item.title, 33)}
 
         - if logged_in?
           .upvote

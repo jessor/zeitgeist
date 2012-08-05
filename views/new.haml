@@ -9,12 +9,15 @@
             %input{ :type => 'text', :size => 38, :value => 'Choose file' }
       %li
         %label{ :for => 'image_url' } or enter a URL:
-        %input{ :type => 'text', :name => 'remote_url', :id => 'remote_url', :size => 38 }
+        %input{ :type => 'text', :name => 'remote_url[]', :id => 'remote_url', :size => 38 }
       %li
-        %label{ :for => 'tags' } tags (comma separated list):
+        %label{ :for => 'title' } title (optional):
+        %input{ :type => 'text', :name => 'title[]', :value => '', :size => 38 }
+      %li
+        %label{ :for => 'tags' } tags (optional, comma separated list):
         %input.autocomplete{ :type => 'text', :name => 'tags', :value => '', :size => 38 }
       %li
-        %input{ :type => 'checkbox', :name => 'announce', :value => 'true', :checked => true }
         %label{ :for => 'announce', :style => 'display: inline' } announce in irc
+        %input#announce{ :type => 'checkbox', :name => 'announce', :value => 'true', :checked => true }
       %li.last      
         %input{ :type => 'submit', :value => 'make it so!' }

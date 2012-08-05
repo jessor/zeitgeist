@@ -198,7 +198,11 @@ class Item
       end
 
       self.type = @plugin.type
-      self.title = @plugin.title if @plugin.title 
+      if @plugin.title
+        if self.title
+          self.title = '%s (%s)' % [self.title, @plugin.title]
+        end
+      end
       if @plugin.tags
         @plugin.tags.each do |tagname|
           if @plugin.only_existing_tags
@@ -506,6 +510,10 @@ helpers do
 
   include Rack::Utils
   alias_method :h, :escape_html
+
+  def truncate(s, len=30) 
+    s[0...len] + (s.length > len ? '...' : '')
+  end
 
   def partial(page, options={})
     unless @partials == false
@@ -894,6 +902,7 @@ post '/new' do
   tags = params.has_key?('tags') ? params['tags'] : ''
   uploads = params.has_key?('image_upload') ? params['image_upload'] : []
   remotes = params.has_key?('remote_url') ? params['remote_url'] : []
+  titles = params.has_key?('title') ? params['title'] : []
   announce = params.has_key?('announce') ? (params['announce'] == 'true' ? true : false) : false
 
   # legacy (api) / depricated api
@@ -917,6 +926,7 @@ post '/new' do
     while not uploads.empty? or not remotes.empty? 
       upload = uploads.pop
       remote = remotes.pop if not upload
+      title = titles.pop
 
       # for upload use the tempfile as image and the orig. filename as source
       # for remote unset image and use the url as source
@@ -927,7 +937,8 @@ post '/new' do
       next if not image and source.empty?
 
       # the hook will perform the remote downloading and image processing
-      item = Item.new(:image => image, 
+      item = Item.new(:title => title,
+                      :image => image, 
                       :source => source, 
                       :dm_user_id => (logged_in?) ? current_user.id : nil)
       if item.save
