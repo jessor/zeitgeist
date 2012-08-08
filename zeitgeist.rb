@@ -175,6 +175,7 @@ class Item
   # NOTE: raise a RuntimeError if something went wrong!
   before :create do
     tempfile = @image
+    self.title = nil if self.title and self.title.empty?
 
     if not tempfile and @source # remote upload!
       @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
@@ -201,6 +202,8 @@ class Item
       if @plugin.title
         if self.title
           self.title = '%s (%s)' % [self.title, @plugin.title]
+        else
+          self.title = @plugin.title
         end
       end
       if @plugin.tags
