@@ -137,7 +137,7 @@ if settings.respond_to? 'datamapper_logger'
   puts "Setup DataMapper logging: #{settings.datamapper_logger}"
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
-DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/zeitgeist.db")
+DataMapper.setup(:default, settings.database)
 
 class Item
   include DataMapper::Resource
@@ -973,6 +973,7 @@ post '/new' do
   rescue Exception => e
 
     logger.error "create error: #{e.class.to_s} #{e.to_s}"
+    logger.error e.backtrace.join('\n')
 
     # only allow our own exceptions to be publicized
     return if not [RuntimeError, Exception, DuplicateError, RemoteError].include? e.class
@@ -1218,6 +1219,10 @@ def handle_error
   # Log exception that occured:
   logger.error "Error Handler: #{error.inspect}"
   logger.error "Backtrace: " + error.backtrace.join("\n")
+  if error.class == RemoteError
+    logger.error "Error Handler: #{error.error.inspect}"
+    logger.error "Backtrace: " + error.error.backtrace.join("\n")
+  end
 
   # only allow our own exceptions to be publicized
   if not [Sinatra::NotFound, RuntimeError, StandardError, CreateItemError].include? error.class

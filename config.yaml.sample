@@ -3,6 +3,14 @@ pagedesc: 'media collected by irc nerds'
 
 session_secret: 'change this!'
 
+# Database Configuration
+# for adapter 'mysql' set keys host, username, password
+# database and encoding
+database:
+    adapter: 'sqlite3'
+    database: './zeitgeist.db'
+    encoding: 'utf8'
+
 items_per_page: 10
 pagespeed: true
 
