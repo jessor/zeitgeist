@@ -1,7 +1,7 @@
 
 class Youtube < Plugin
   TYPE = 'video'
-  PATTERN = %r{http[s]?://(www\.)?youtube\.com/watch}
+  PATTERN = %r{http[s]?://(www\.)?(youtube\.com/watch|youtu\.be/)}
 
   def filename
     return self.title.gsub(/[^a-zA-Z0-9_\-\.]/, '')
@@ -42,7 +42,11 @@ yt
   def video_id
     # id = match_one /'VIDEO_ID': "([^"]+)",/
     # if not id
-    id = @orig_url.match(/v=([^&]+)/)[1] # reliable enough?
+    if @orig_url.match %r{youtu\.be/(.*)$}
+      id = $1
+    else
+      id = @orig_url.match(/v=([^&]+)/)[1] # reliable enough?
+    end
     # end
     return id
   end
