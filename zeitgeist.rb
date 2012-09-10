@@ -717,7 +717,7 @@ get '/show/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   args = {
     :per_page => settings.items_per_page,
-    :nsfw => false,
+    :nsfw => tag != 'nsfw' ? false : true,
     Item.tags.tagname => tag,
     :order => [:created_at.desc]
   }
