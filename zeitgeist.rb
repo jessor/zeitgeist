@@ -541,7 +541,7 @@ helpers do
   def show_nsfw?(setting_only=false)
     if request.url.match %r{show(/tag)?/nsfw} and not setting_only
       true
-    elsif request.cookies['zg_show_nsfw'] == 'true'
+    elsif not logged_in? and request.cookies['zg_show_nsfw'] == 'true'
       true
     elsif logged_in? and current_user.nsfw
       true
