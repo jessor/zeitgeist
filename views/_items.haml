@@ -3,20 +3,27 @@
   %ul.items
     - @items.each do |item|
       %li
-        %a{ :href => (item.type=='image' ? item.image : item.source), 
-          :class => (item.type=='image' ? 'fancy' : 'embed'), 
-          :data => {:htmltitle => item.html_title},
-          :title => (item.title || item.source),
-          :rel => 'external' }
-          - if item.type == 'video'
-            %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
-          %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+        - if item.nsfw and not show_nsfw?
+          %img{ :src => '/images/nsfw_placeholder.png', 
             :alt => (item.title || item.source),
             :width => '200',
             :height => '200',
             :class => 'thumbnail' }
-          - if item.title
-            .title-overlay #{truncate(item.title, 33)}
+        - else
+          %a{ :href => (item.type=='image' ? item.image : item.source), 
+            :class => (item.type=='image' ? 'fancy' : 'embed'), 
+            :data => {:htmltitle => item.html_title},
+            :title => (item.title || item.source),
+            :rel => 'external' }
+            - if item.type == 'video'
+              %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
+            %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+              :alt => (item.title || item.source),
+              :width => '200',
+              :height => '200',
+              :class => 'thumbnail' }
+            - if item.title
+              .title-overlay #{truncate(item.title, 33)}
 
         .item-meta
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 

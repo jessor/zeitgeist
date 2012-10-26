@@ -335,6 +335,24 @@ var ZeitgeistClock = {
 
 $(document).ready(function() {
     ZeitgeistClock.init();
+    $('#nsfw_checkbox').click(function (event) {
+        var flag = $(this).is(':checked');
+        
+        // ajax request the flag
+        $.ajax({
+            url: '/update/nsfw',
+            type: 'POST',
+            data: {nsfw: flag},
+            dataType: 'json',
+            success: function (data) {
+                console.log(data)
+                // reload page
+                location.reload();
+            }
+        });
+
+
+    });
 });
     
 

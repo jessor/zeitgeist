@@ -475,6 +475,8 @@ class DmUser
 
   property :api_secret, String
 
+  property :nsfw, Boolean, :default => false
+
   def to_ary
     [self]
   end
@@ -535,6 +537,18 @@ helpers do
     end
     token
   end
+
+  def show_nsfw?(setting_only=false)
+    if request.url.match %r{show(/tag)?/nsfw} and not setting_only
+      true
+    elsif request.cookies['zg_show_nsfw'] == 'true'
+      true
+    elsif logged_in? and current_user.nsfw
+      true
+    else
+      false
+    end
+  end
 end
 
 #
@@ -574,7 +588,6 @@ get '/' do
   @autoload = h params['autoload'] if params['autoload']
   args = {
     :per_page => settings.items_per_page,
-    :nsfw => false,
     :order => [:created_at.desc]
   }
 
@@ -594,6 +607,23 @@ get '/' do
   else
     haml :index
   end
+end
+
+post '/update/nsfw' do
+  nsfw = params['nsfw'] == 'true' ? true : false
+
+  if logged_in?
+    user = current_user.db_instance
+    user.update({:nsfw => nsfw})
+  else
+    response.set_cookie("zg_show_nsfw", :value => nsfw,
+                                        :domain => request.host,
+                                        :path => '/',
+                                        :expires => Time.now + 94608000)
+  end
+    
+  content_type :json
+  {:nsfw => nsfw}.to_json
 end
 
 get '/gallery/:user/?' do
@@ -632,7 +662,6 @@ get '/show/:type' do
     @items = Item.page(params[:page],
                        :per_page => settings.items_per_page,
                        :type => type,
-                       :nsfw => false,
                        :order => [:created_at.desc]) 
   elsif type == 'nsfw'
     @title = "nsfw at #{settings.pagetitle}"
@@ -658,7 +687,6 @@ get '/show/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   args = {
     :per_page => settings.items_per_page,
-    :nsfw => tag != 'nsfw' ? false : true,
     Item.tags.tagname => tag,
     :order => [:created_at.desc]
   }
@@ -686,7 +714,6 @@ get '/show/dimensions/:dimensions' do
   @title = "#{dimensions} at #{settings.pagetitle}"
   @items = Item.page(params[:page],
                      :per_page => settings.items_per_page,
-                     :nsfw => false,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
   pagination
