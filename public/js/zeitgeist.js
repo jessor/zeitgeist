@@ -335,34 +335,6 @@ var ZeitgeistClock = {
 
 $(document).ready(function() {
     ZeitgeistClock.init();
-    $('.upvote form').submit(function (event) {
-        event.preventDefault();
-        var image = $('input[type="image"]', this),
-            id = $('input[name="id"]', this).val(),
-            remove = $('input[name="remove"]', this);
-
-        $.post('/upvote', {id: id, remove: remove.val()}, 
-            function (data, textStatus, xhr) {
-                if (data.error) {
-                    alert('An error occured: ' + data.error);
-                    return;
-                }
-
-                if (remove.val() == 'true') {
-                    image.attr('src', '/images/upvote.png');
-                    remove.val('false');
-
-                }
-                else {
-                    image.attr('src', '/images/upvote_on.png');
-                    remove.val('true');
-                }
-
-                // TODO: find better image, and display data.upvotes somehow
-                //       (!interface)
-            });
-
-    });
 });
     
 

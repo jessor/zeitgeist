@@ -1,4 +1,4 @@
-Zeitgeist ![http://stillmaintained.com/jessor/zeitgeist](http://stillmaintained.com/jessor/zeitgeist.png)
+Zeitgeist
 =========
 
 Zeitgeist is a free software media gallery built with [Sinatra](http://www.sinatrarb.com).
@@ -18,14 +18,14 @@ Current Features
   * Video and Audio URLs are also detected for the following sites: YouTube, Vimeo, Soundcloud (this also parses and stores thumbnails along with title and tags)
 * Items (images, audio and videos) can be tagged and autotagged by url patterns aswell
 * User registration and authentication
-* Registered users can upvote and delete items they submitted
+* Registered users can delete items they submitted
 * The [pHash](http://www.phash.org/) (perceptual hash) library (and [phashion](https://github.com/mperham/phashion) ruby bindings) is used to detect duplicate submissions and is able to detect similar images that are reencoded or slightly manipulated.
 * API: a simple HTTP API can be used to access zeitgeist ([documented here](https://github.com/jessor/zeitgeist/wiki/API-Documentation))
 * [IRC](https://github.com/4poc/rbot-plugins/blob/master/zg.rb): a rubybot plugin allows to access zeitgeist in many ways:
   * auto-submit urls posted in channels
   * multi-user authentication
   * query item information like parsed title and tags
-  * tag, upvote, delete (own) items through the IRC interface
+  * tag, delete (own) items through the IRC interface
 * [Android](https://github.com/4poc/zeitgeist-android): the app is currently in development, but the current features are:
   * Endless scrolling through the gallery
   * View images directly and use the YouTube app to watch videos

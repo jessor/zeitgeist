@@ -137,6 +137,11 @@ if settings.respond_to? 'datamapper_logger'
   puts "Setup DataMapper logging: #{settings.datamapper_logger}"
   DataMapper::Logger.new(STDOUT, settings.datamapper_logger)
 end
+if settings.database[:adapter] == 'mysql'
+  Bundler.require(:mysql)
+elsif settings.database[:adapter] == 'sqlite'
+  Bundler.require(:sqlite)
+end
 DataMapper.setup(:default, settings.database)
 
 class Item
@@ -166,10 +171,6 @@ class Item
 
   # taggings
   has n, :tags, :through => Resource
-
-  # upvotes, count of upvotes for this item, (caching)
-  has n, :upvotes
-  property :upvote_count, Integer, :default => 0
 
   # hooks for processing either the upload or remote url
   # NOTE: raise a RuntimeError if something went wrong!
@@ -378,7 +379,7 @@ class Item
   end
 
   def as_json(options={})
-    super(options.merge(:methods => [:tags, :users_upvoted, :username]))
+    super(options.merge(:methods => [:tags, :username]))
   end
 
   # uses the pHash perceptual hash library to calculate
@@ -417,10 +418,6 @@ class Item
   raise
     puts "error generating fingerprint: #{$!}"
     return nil
-  end
-
-  def users_upvoted # array of ids of the users that upvoted this item
-    upvotes.map { |upvote| upvote.dm_user_id }
   end
 
   def username
@@ -470,26 +467,7 @@ class Tag
   end
 end
 
-class Upvote
-  include DataMapper::Resource
-
-  property :id,       Serial
-  belongs_to :dm_user
-  belongs_to :item
-
-  after :create do
-    # item = self.item
-    item.update(:upvote_count => item.upvote_count + 1)
-  end
-
-  after :destroy do
-    # item = self.item
-    item.update(:upvote_count => item.upvote_count - 1)
-  end
-end
-
 class DmUser
-  has n, :upvotes
   has n, :items
 
   # optional
@@ -549,12 +527,6 @@ helpers do
     url[0...(url[8...-1].index('/') + 8)]
   end
 
-  # used as a helper function to test if this item
-  # has been upvoted by the current user
-  def item_upvoted?(item)
-    item.users_upvoted.include? current_user.id
-  end
-
   def random_token(length)
     chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
     token = ''
@@ -562,22 +534,6 @@ helpers do
       token += chars[rand(chars.length)]
     end
     token
-  end
-
-  def weighted_size(count, min, max)
-    maxf = 37
-    minf = 10
-  
-    # based on http://whomwah.com/2006/07/06/another-tag-cloud-script-for-ruby-on-rails/
-    # thx;)
-    spread = max.to_f - min.to_f
-    spread = 1.to_f if spread <= 0
-    fontspread = maxf.to_f - minf.to_f
-    fontstep = spread / fontspread
-    size = ( minf + ( count.to_f / fontstep ) ).to_i
-    size = maxf if size > maxf
-
-    size
   end
 end
 
@@ -640,7 +596,7 @@ get '/' do
   end
 end
 
-get '/gallery/:user/?:voted?' do
+get '/gallery/:user/?' do
   @autoload = h params['autoload'] if params['autoload']
 
   user = User.get(:username => params['user'])
@@ -648,18 +604,9 @@ get '/gallery/:user/?:voted?' do
 
   args = {
     :per_page => settings.items_per_page,
-    :dm_user_id => user.id
+    :dm_user_id => user.id,
+    :order => [:created_at.desc]
   }
-  if params.has_key? 'voted'
-    args.merge!({
-      :upvote_count.gt => 0,
-      :order => [:upvote_count.desc]
-    })
-  else
-    args.merge!({
-      :order => [:created_at.desc]
-    })
-  end
   if params.has_key? 'before'
     args.merge!(:conditions => ['items.id < ?', params[:before]])
   end
@@ -692,12 +639,6 @@ get '/show/:type' do
     @items = Item.page(params[:page],
                        :per_page => settings.items_per_page,
                        :order => [:created_at.desc])
-  elsif type == 'voted'
-    @title = "popular at #{settings.pagetitle}"
-    @items = Item.page(params[:page], 
-                       :per_page => settings.items_per_page,
-                       :upvote_count.gt => 0,
-                       :order => [:upvote_count.desc])
   else
     raise 'show what?'
   end
@@ -1005,54 +946,6 @@ get '/:id' do
   else
     remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
     remoteplugin.embed # returns html code for embedding
-  end
-end
-
-post '/upvote' do
-  item_id = params[:id]
-  item = Item.get(item_id)
-
-  user_id = nil
-  user_id = current_user.id if logged_in?
-
-  if not user_id
-    raise 'you need to login to upvote'
-  end
-
-  if params[:remove] == 'true'
-    upvote = Upvote.all(:item => item, :conditions => ['dm_user_id = ?', user_id])
-    raise 'upvote not found!' if not upvote
-    if upvote.destroy
-      if api_request? 
-        content_type :json
-        return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
-      else
-        flash[:notice] = 'Upvote removed.'
-        redirect '/'
-        return
-      end
-    else
-      raise 'upvote not removed, error occured'
-    end
-  end
-
-  # upvote only once:
-  if Upvote.count(:item => item, :conditions => ['dm_user_id = ?', user_id]) > 0
-    raise 'you cannot upvote twice'
-  end
-
-  upvote = Upvote.new(:item => item, 
-                      :dm_user_id => user_id) 
-  if upvote.save
-    if api_request?
-      content_type :json
-      return {:id => item_id, :upvotes => Upvote.count(:item => item)}.to_json
-    else
-      flash[:notice] = 'Item upvoted.'
-      redirect '/'
-    end
-  else
-    raise 'upvote error: ' + upvote.errors.full_messages.inspect
   end
 end
 

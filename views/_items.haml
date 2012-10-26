@@ -18,13 +18,6 @@
           - if item.title
             .title-overlay #{truncate(item.title, 33)}
 
-        - if logged_in?
-          .upvote
-            %form{ :action => "/upvote", :method => 'post' }
-              %input{ :type => 'hidden', :name => 'remove', :value => item_upvoted?(item) ? 'true' : 'false' }
-              %input{ :type => 'hidden', :name => 'id', :value => item.id }
-                %input{ :type => 'image', :src => "/images/upvote#{item_upvoted?(item) ? '_on' : ''}.png", :alt => 'up', :width => '16', :height => '16'}
-
         .item-meta
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
             - item.tags.each do |tag|
