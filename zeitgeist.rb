@@ -549,6 +549,22 @@ helpers do
       false
     end
   end
+
+  def weighted_size(count, min, max)
+    maxf = 37
+    minf = 10
+  
+    # based on http://whomwah.com/2006/07/06/another-tag-cloud-script-for-ruby-on-rails/
+    # thx;)
+    spread = max.to_f - min.to_f
+    spread = 1.to_f if spread <= 0
+    fontspread = maxf.to_f - minf.to_f
+    fontstep = spread / fontspread
+    size = ( minf + ( count.to_f / fontstep ) ).to_i
+    size = maxf if size > maxf
+
+    size
+  end
 end
 
 #
