@@ -631,9 +631,6 @@ get '/random' do
   @items = []
   
   item_count = Item.count
-  if item_count == 0
-    puts "item_count zero???"
-  end
   return if item_count == 0
   max_id = Item.max(:id)
   per_page = settings.items_per_page

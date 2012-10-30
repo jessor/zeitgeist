@@ -35,7 +35,9 @@ jQuery(function(){
     // fancybox <3
     var fancyoverlay = '#171717';
     var fancyopacity = 0.8;
+    var randomPage = window.location.href.indexOf('/random') !== -1;
     $("a.fancy").livequery(function() {
+
         $(this).fancybox({
             'overlayColor':     fancyoverlay,
             'overlayOpacity':   fancyopacity,
@@ -47,19 +49,23 @@ jQuery(function(){
             'type':             'image',
             'title':            $(this).attr('data-htmltitle'),
             'paginatenext':     function() {
+                if (randomPage) {
+                    window.location.href = '/random?autoload=first';
+                    return;
+                }
                 if ($('div#pagination .next a').length) {
                     window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
-                } else if (window.location.href.indexOf('/random') !== -1) {
-                    window.location.href = '/random?autoload=first';
                 } else {
                     alert ("That's it for now!");
                 }
             },
             'paginateprev':     function() {
+                if (randomPage) {
+                    window.location.href = '/random?autoload=last';
+                    return;
+                }
                 if ($('div#pagination .previous a').length) {
                     window.location.href = $('div#pagination .previous a').attr('href') + '&autoload=last';
-                } else if (window.location.href.indexOf('/random') !== -1) {
-                    window.location.href = '/random?autoload=first';
                 } else {
                     alert ("That's it for now!");
                 }
