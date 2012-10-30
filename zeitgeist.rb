@@ -513,6 +513,7 @@ helpers do
   end
 
   def pagination
+    return if not @items or not @items.class.method_defined? :pager
     @items.pager.to_html(request.url, :size => 5)
   end
 
@@ -622,6 +623,34 @@ get '/' do
     {:items => @items}.to_json
   else
     haml :index
+  end
+end
+
+get '/random' do
+  @autoload = h params['autoload'] if params['autoload']
+  @items = []
+  
+  item_count = Item.count
+  return if item_count == 0
+  max_id = Item.max(:id)
+  per_page = settings.items_per_page
+  per_page = item_count if per_page > item_count
+
+  begin loop
+    ids = (0...per_page-@items.length).to_a.map { rand(max_id) }
+
+    Item.all(:id => ids).each do |item|
+      @items << item if not @items.include? item
+    end
+    
+    break if @items.length >= per_page 
+  end
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :random
   end
 end
 

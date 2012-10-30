@@ -49,6 +49,8 @@ jQuery(function(){
             'paginatenext':     function() {
                 if ($('div#pagination .next a').length) {
                     window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
+                } else if (window.location.href.indexOf('/random') !== -1) {
+                    window.location.href = '/random?autoload=first';
                 } else {
                     alert ("That's it for now!");
                 }
@@ -56,6 +58,8 @@ jQuery(function(){
             'paginateprev':     function() {
                 if ($('div#pagination .previous a').length) {
                     window.location.href = $('div#pagination .previous a').attr('href') + '&autoload=last';
+                } else if (window.location.href.indexOf('/random') !== -1) {
+                    window.location.href = '/random?autoload=first';
                 } else {
                     alert ("That's it for now!");
                 }
