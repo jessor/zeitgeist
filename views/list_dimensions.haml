@@ -13,6 +13,13 @@
       %li
         %a{:href => "/show/dimensions/#{dimension[0]}",
            :style => "font-size: #{weighted_size(dimension[1], @min, @max)}px",
-           :title => dimension[2]}
-          #{dimension[0]}
+           :title => dimension[2]} #{dimension[0]}
+
+  %h3 Ratios
+  
+  %ul.list_dimensions
+    - @ratios.each do |ratio|
+      %li
+        %a{:href => "/show/ratio/#{ratio}"} #{ratio}
+        
 

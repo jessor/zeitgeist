@@ -756,6 +756,38 @@ get '/show/dimensions/:dimensions' do
   dimensions = params[:dimensions]
   @title = "#{dimensions} at #{settings.pagetitle}"
   @items = Item.page(params[:page],
+                     :type => 'image',
+                     :per_page => settings.items_per_page,
+                     :dimensions => dimensions,
+                     :order => [:created_at.desc])
+  pagination
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
+end
+
+get '/show/ratio/:ratio' do
+  ratio = params[:ratio]
+  raise 'ratio syntax error(w:h)' if not ratio.match /([^:]+):(.*)/
+  width = $1.to_f
+  height = $1.to_f
+  ratio_num = width / height
+
+  dimensions = []
+  Item.all(:type => 'image').aggregate(:dimensions).each do |dimension|
+    next if not dimension
+    if dimension.match /(\d+)x(\d+)/ and $1.to_i != 0 and $2.to_i != 0
+      dimensions << dimension if ratio_num == ($1.to_f / $2.to_f)
+    end
+  end
+  
+  @title = "#{ratio} at #{settings.pagetitle}"
+  @items = Item.page(params[:page],
+                     :type => 'image',
                      :per_page => settings.items_per_page,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
@@ -799,10 +831,12 @@ get '/list/dimensions/?:ratio?' do
 
   @common_ratios = %w{16:9 16:10 4:3 3:2 5:4}
 
+  @ratios = []
   @ratio = nil
   if params.has_key? 'ratio'
     @ratio = params['ratio']
     if @ratio.match /([^:]+):(.*)/
+      @ratios = [@ratio]
       ratiow = $1.to_f
       ratioh = $2.to_f
 
@@ -830,8 +864,12 @@ get '/list/dimensions/?:ratio?' do
     width = $1.to_i
     height = $2.to_i
     gcd = width.gcd height
-    @dimensions[i] << "#{width / gcd}:#{height / gcd}"
+    ratio = "#{width / gcd}:#{height / gcd}"
+    @ratios << ratio
+    @dimensions[i] << ratio
   end
+
+  @ratios.uniq!
 
   if api_request?
     content_type :json
