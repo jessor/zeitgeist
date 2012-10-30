@@ -350,8 +350,10 @@ $(document).ready(function() {
                 location.reload();
             }
         });
-
-
+    });
+    $('#ratio_select').change(function (event) {
+        var ratio = $(this).val();
+        location.href = '/list/dimensions/' + ratio;
     });
 });
     

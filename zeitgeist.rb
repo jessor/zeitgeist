@@ -757,22 +757,58 @@ get '/list/tags' do
   end
 end
 
-get '/list/dimensions' do
+get '/list/dimensions/?:ratio?' do
   @title = "Image dimensions of #{settings.pagetitle}"
-  @dimensions = Item.all(:type => 'image').aggregate(:dimensions, :all.count)
-  @dimensions.delete_if do |dimension|
+  dimensions = Item.all(:type => 'image').aggregate(:dimensions, :all.count)
+  dimensions.delete_if do |dimension|
     true if dimension.last <= 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
   end
-  @dimensions.sort! do |a, b|
+  dimensions.sort! do |a, b|
     b.last <=> a.last
   end
 
-  @min = @dimensions.min_by {|dimension| dimension.last}.last
-  @max = @dimensions.max_by {|dimension| dimension.last}.last
+  @min = dimensions.min_by {|dimension| dimension.last}.last
+  @max = dimensions.max_by {|dimension| dimension.last}.last
+
+  @common_ratios = %w{16:9 16:10 4:3 3:2 5:4}
+
+  @ratio = nil
+  if params.has_key? 'ratio'
+    @ratio = params['ratio']
+    if @ratio.match /([^:]+):(.*)/
+      ratiow = $1.to_f
+      ratioh = $2.to_f
+
+      @dimensions = []
+      dimensions.each do |pair|
+        dimension = pair.first
+        count = pair.last
+
+
+        dimension.match /(\d+)x(\d+)/
+        width = $1.to_f
+        height = $2.to_f
+
+        if (ratiow/ratioh) == (width/height)
+          @dimensions << pair
+        end
+      end
+    end
+  else
+    @dimensions = dimensions
+  end
+
+  @dimensions.each_index do |i|
+    @dimensions[i].first.match /(\d+)x(\d+)/
+    width = $1.to_i
+    height = $2.to_i
+    gcd = width.gcd height
+    @dimensions[i] << "#{width / gcd}:#{height / gcd}"
+  end
 
   if api_request?
     content_type :json
-    {:dimensions => @dimensions}.to_json
+    {:ratio => @ratio, :dimensions => @dimensions}.to_json
   else
     haml :list_dimensions
   end
