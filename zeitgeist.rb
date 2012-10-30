@@ -631,19 +631,20 @@ get '/random' do
   @items = []
   
   item_count = Item.count
+  if item_count == 0
+    puts "item_count zero???"
+  end
   return if item_count == 0
   max_id = Item.max(:id)
   per_page = settings.items_per_page
   per_page = item_count if per_page > item_count
 
-  begin loop
+  while @items.length < per_page
     ids = (0...per_page-@items.length).to_a.map { rand(max_id) }
 
     Item.all(:id => ids).each do |item|
       @items << item if not @items.include? item
     end
-    
-    break if @items.length >= per_page 
   end
 
   if api_request?
