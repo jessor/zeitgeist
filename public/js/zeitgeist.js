@@ -80,8 +80,9 @@ jQuery(function(){
                 }
                 else {
                     alert ('That\'s it for now!');
+                    return;
                 }
-                $.fancybox.close(true);
+                $.fancybox.close();
             }
             else if (previous && current.index == 0 && previous.index == max) {
                 if (randomPage) {
@@ -92,8 +93,9 @@ jQuery(function(){
                 }
                 else {
                     alert ('That\'s it for now!');
+                    return;
                 }
-                $.fancybox.close(true);
+                $.fancybox.close();
             }
         }
     });
