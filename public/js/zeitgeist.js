@@ -73,7 +73,7 @@ jQuery(function(){
             var max = this.group.length - 1;
             if (previous && current.index == max && previous.index == 0) {
                 if (randomPage) {
-                    window.location.href = '/random?autoload=last';
+                    window.location.href = '/random#autoload=last';
                 }
                 else if ($('div#pagination .previous a').length) {
                     window.location.href = $('div#pagination .previous a').attr('href') + '#autoload=last';
@@ -86,7 +86,7 @@ jQuery(function(){
             }
             else if (previous && current.index == 0 && previous.index == max) {
                 if (randomPage) {
-                    window.location.href = '/random?autoload=first';
+                    window.location.href = '/random#autoload=first';
                 }
                 else if ($('div#pagination .next a').length) {
                     window.location.href = $('div#pagination .next a').attr('href') + '#autoload=first';
