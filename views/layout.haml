@@ -4,25 +4,27 @@
     %meta{ :charset => 'utf-8' }
     %title
       &= @title || settings.pagetitle
-    %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
     %link{ :rel => 'stylesheet', :href => '/css/ui-lightness/jquery-ui-1.8.21.custom.css' }
     %link{ :rel => 'shortcut icon', :href => '/images/favicon.png' }
     %link{ :rel => 'alternate', :href => '/feed', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items" }
     %link{ :rel => 'alternate', :href => '/feed/nsfw', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items (NSFW!)" }
     %script{ :src => '/js/jquery-1.7.2.js' }
     %script{ :src => '/js/ui/jquery-ui-1.8.21.custom.js' }
+
     %script{ :src => '/js/livequery.js' }
     %script{ :src => '/js/form.js' }
     %script{ :src => '/js/expander.js' }
-    %script{ :src => '/js/fancybox.js' }
     %script{ :src => '/js/easing.js' }
-    %script{ :src => '/js/mousewheel.js' }
+
+    %script{ :src => '/js/jquery.mousewheel.js' }
+    %link{ :rel => 'stylesheet', :href => '/fancybox/jquery.fancybox.css' }
+    %link{ :rel => 'stylesheet', :href => '/fancybox/helpers/jquery.fancybox-buttons.css' }
+    %script{ :src => '/fancybox/jquery.fancybox.js' }
+    %script{ :src => '/fancybox/helpers/jquery.fancybox-buttons.js' }
+
+    %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
     %script{ :src => '/js/zeitgeist.js' }
-    - if @autoload
-      :javascript
-        jQuery(function() {
-          $('a.fancy:#{@autoload}').trigger('click');
-        });
+
   %body
     - if flash[:error]
       %div{ :class => 'error message' }
@@ -34,16 +36,16 @@
           = h flash[:notice]
         %div#dump
     #sitenav
-      %a{ :href => '/new', :class => 'fancynav' } Add
+      %a{:href => '/new'} Add
       |
-      %a{ :href => '/search', :class => 'fancynav' } Search
+      %a{:href => '/search'} Search
       |
       - if logged_in?
-        %a{ :href => '/logout' } Logout
+        %a{:href => '/logout' } Logout
         |
-        %a{ :href => '/users/%d/edit' % current_user.id } Edit Profile
+        %a{:href => '/users/%d/edit' % current_user.id } Edit Profile
       - else
-        %a{ :href => '/login', :class => 'fancynav' } Login
+        %a{:href => '/login'} Login
     = partial(:_header)
     #wrapper
       = partial(:_navigation)

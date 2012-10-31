@@ -650,6 +650,22 @@ input#user_username {
 #fancybox-outer {
     background: $background;
 }
+.fancybox-nav {
+    width: 60px !important;
+    span {
+        visibility: visible;
+        opacity: 0.5;
+    }
+    &:hover span {
+        opacity: 1;
+    }
+}
+.fancybox-next {
+    right: -60px;
+}
+.fancybox-prev {
+    left: -60px;
+}
 
 //
 // Footer

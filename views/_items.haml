@@ -11,10 +11,11 @@
             :class => 'thumbnail' }
         - else
           %a{ :href => (item.type=='image' ? item.image : item.source), 
-            :class => (item.type=='image' ? 'fancy' : 'embed'), 
-            :data => {:htmltitle => item.html_title},
+            :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
+            :data => {'fancybox-title' => item.html_title,
+            'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image)},
             :title => (item.title || item.source),
-            :rel => 'external' }
+            :rel => 'gallery' }
             - if item.type == 'video'
               %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
             %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 

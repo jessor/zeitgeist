@@ -602,7 +602,6 @@ end
 # 
 
 get '/' do
-  @autoload = h params['autoload'] if params['autoload']
   args = {
     :per_page => settings.items_per_page,
     :order => [:created_at.desc]
@@ -627,7 +626,6 @@ get '/' do
 end
 
 get '/random' do
-  @autoload = h params['autoload'] if params['autoload']
   @items = []
   
   item_count = Item.count
@@ -670,8 +668,6 @@ post '/update/nsfw' do
 end
 
 get '/gallery/:user/?' do
-  @autoload = h params['autoload'] if params['autoload']
-
   user = User.get(:username => params['user'])
   raise 'no user found with this username' if not user
 
@@ -888,8 +884,11 @@ get '/about' do
   end
 end
 
-post '/embed' do
-  remoteplugin = Sinatra::Remote::Plugins::Loader::create(params['url'])
+get '/embed/:id' do
+  item = Item.get(params['id'])
+  url = item.source
+
+  remoteplugin = Sinatra::Remote::Plugins::Loader::create(url)
   remoteplugin.embed # returns html code for embedding
 end
 

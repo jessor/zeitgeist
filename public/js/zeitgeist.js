@@ -33,73 +33,78 @@ jQuery(function(){
     };
 
     // fancybox <3
-    var fancyoverlay = '#171717';
-    var fancyopacity = 0.8;
     var randomPage = window.location.href.indexOf('/random') !== -1;
-    $("a.fancy").livequery(function() {
-
-        $(this).fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'transitionIn':     'fade',
-            'transitionOut':    'fade',
-            'speedIn':          600, 
-            'speedOut':         200,
-            'href':             $(this).attr('href'),
-            'type':             'image',
-            'title':            $(this).attr('data-htmltitle'),
-            'paginatenext':     function() {
-                if (randomPage) {
-                    window.location.href = '/random?autoload=first';
-                    return;
-                }
-                if ($('div#pagination .next a').length) {
-                    window.location.href = $('div#pagination .next a').attr('href') + '&autoload=first';
-                } else {
-                    alert ("That's it for now!");
-                }
+    $('.fancybox').fancybox({
+        openEffect: 'none',
+        closeEffect: 'none',
+        nextEffect: 'none',
+        prevEffect: 'none',
+        padding: 0,
+        margin: [20, 60, 20, 60], // Increase left/right margin
+        preload: 6,
+        keys: {
+            next: {
+                74: 'left', // vim J
+                72: 'left', // vim H
+                13 : 'left', // enter
+                34 : 'up',   // page down
+                39 : 'left', // right arrow
+                40 : 'up'    // down arrow
             },
-            'paginateprev':     function() {
+            prev: {
+                75: 'right', // vim K
+                76: 'right', // vim L
+                8  : 'right',  // backspace
+                33 : 'down',   // page up
+                37 : 'right',  // left arrow
+                38 : 'down'    // up arrow
+            }
+        },
+        helpers: {
+            buttons: { 
+                // remove close button, because buttons aren't always there
+                tpl: '<div id="fancybox-buttons"><ul style="width:128px"><li><a class="btnPrev" title="Previous (J/H/Left/Up)" href="javascript:;"></a></li><li><a class="btnPlay" title="Start slideshow (Space)" href="javascript:;"></a></li><li><a class="btnNext" title="Next (K/L/Right/Down)" href="javascript:;"></a></li><li><a class="btnToggle" title="Toggle size (f)" href="javascript:;"></a></li></ul></div>' 
+            }
+        },
+        ajax: {
+            type: 'GET'
+        },
+        afterLoad: function (current, previous) {
+            var max = this.group.length - 1;
+            if (previous && current.index == max && previous.index == 0) {
                 if (randomPage) {
                     window.location.href = '/random?autoload=last';
-                    return;
                 }
-                if ($('div#pagination .previous a').length) {
-                    window.location.href = $('div#pagination .previous a').attr('href') + '&autoload=last';
-                } else {
-                    alert ("That's it for now!");
+                else if ($('div#pagination .previous a').length) {
+                    window.location.href = $('div#pagination .previous a').attr('href') + '#autoload=last';
                 }
-            },
-        });
-        return false;
-    });
-
-    $("a.embed").livequery(function() {
-        $(this).fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'showNavArrows':    false,
-            'href':             '/embed',
-            'title':            $(this).attr('data-htmltitle'),
-            ajax:       {
-                        type:   "POST",
-                        data:   { 'url': this.href }
+                else {
+                    alert ('That\'s it for now!');
+                }
+                $.fancybox.close(true);
             }
-        });
-        return false;
-    });
-
-     $("a.fancynav").click(function() {
-        $.fancybox({
-            'overlayColor':     fancyoverlay,
-            'overlayOpacity':   fancyopacity,
-            'href':     this.href,
-            ajax:       {
-                        type:   "GET",
+            else if (previous && current.index == 0 && previous.index == max) {
+                if (randomPage) {
+                    window.location.href = '/random?autoload=first';
+                }
+                else if ($('div#pagination .next a').length) {
+                    window.location.href = $('div#pagination .next a').attr('href') + '#autoload=first';
+                }
+                else {
+                    alert ('That\'s it for now!');
+                }
+                $.fancybox.close(true);
             }
-        });
-        return false;
+        }
     });
+    // autoload parameter:
+    var hash = window.location.hash;
+    if (hash && hash.substr(0,10) == '#autoload=') {
+        var max = $('.fancybox[rel=gallery]').length - 1;
+        var index = hash.substr(10) == 'first' ? 0 : max;
+        $('.fancybox')[index].click();
+        //$.fancybox.open($('.fancybox')[index]);
+    }
         
     // limit default tag list length on index view
     $('.taglist').livequery(function() {
