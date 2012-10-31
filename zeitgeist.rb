@@ -242,6 +242,11 @@ class Item
           if (item = Item.first(:fingerprint => self.fingerprint))
             raise DuplicateError.new(item.id)
           end
+          items = Item.similar(self.fingerprint)
+          if (items.length >= 1)
+            puts "fingerprint distance for #{items[0][0]}: #{items[0][2]}"
+            raise DuplicateError.new(items[0][0])
+          end
         else #just use md5 checksum as a fallback
           item = Item.first(:checksum => self.checksum)
           raise DuplicateError.new(item.id) if item
@@ -424,6 +429,35 @@ class Item
     dm_user.username if dm_user
   end
 
+  # returns the most similar images, with a threshold of <n>
+  @@fingerprints = nil
+  def self.similar(fingerprint)
+    threshold = settings.fingerprint_threshold
+    ret = []
+    if settings.database[:adapter] == 'mysql'
+      sql = 'SELECT id, fingerprint, bit_count(fingerprint ^ %d) AS distance FROM items HAVING distance IS NOT NULL AND distance < %d ORDER BY distance ASC LIMIT 10'
+      sql = sql % [fingerprint, threshold]
+      repository(:default).adapter.select(sql).each do |res|
+        ret << [res.id, res.fingerprint, res.distance]
+      end
+    else
+      if not @@fingerprints
+        @@fingerprints = Item.all.aggregate(:id, :fingerprint)
+      end
+      @@fingerprints.each do |res|
+        if res[1]
+          distance = Phashion.hamming_distance(res[1], fingerprint)
+          if distance <= threshold
+            ret << res + [distance]
+          end
+        end
+      end
+      ret.sort! do |a, b|
+        b[2] <=> a[2]
+      end
+    end
+    return ret
+  end
 end
 
 class Tag
@@ -566,6 +600,9 @@ helpers do
 
     size
   end
+
+
+
 end
 
 #
@@ -616,6 +653,33 @@ get '/' do
 
   @items = Item.page(params[:page], args)
   pagination
+
+  if api_request?
+    content_type :json
+    {:items => @items}.to_json
+  else
+    haml :index
+  end
+end
+
+get '/similar/:type/:value' do
+  if params[:type] == 'id'
+    id = params[:value]
+    fingerprint = Item.get(id).fingerprint
+  elsif params[:type] == 'fp'
+    fingerprint = params[:value].to_i
+  else
+    raise 'unrecognized type'
+  end
+
+  @items = []
+  #@distances = {}
+  Item.similar(fingerprint).each do |res|
+    id = res[0]
+    fingerprint = res[1]
+    distance = res[2]
+    @items << Item.get(id)
+  end
 
   if api_request?
     content_type :json
