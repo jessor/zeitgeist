@@ -82,7 +82,9 @@ jQuery(function(){
                     alert ('That\'s it for now!');
                     return;
                 }
+                window.location.reload(true);
                 $.fancybox.close();
+                return;
             }
             else if (previous && current.index == 0 && previous.index == max) {
                 if (randomPage) {
@@ -95,8 +97,14 @@ jQuery(function(){
                     alert ('That\'s it for now!');
                     return;
                 }
+                window.location.reload(true);
                 $.fancybox.close();
+                return;
             }
+
+            //var taglist = $('.item-meta', $(current.element).parent())[0].outerHTML;
+            ////var tagform = $('form.tag', $(current.element).parent())[0].outerHTML;
+            //this.inner.prepend( '<div class="fancybox-tagging">' + taglist + tagform + '</div>' );
         }
     });
     // autoload parameter:
