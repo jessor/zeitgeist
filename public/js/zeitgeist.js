@@ -74,30 +74,30 @@ jQuery(function(){
             if (previous && current.index == max && previous.index == 0) {
                 if (randomPage) {
                     window.location.href = '/random#autoload=last';
+                    window.location.reload(true);
                 }
                 else if ($('div#pagination .previous a').length) {
                     window.location.href = $('div#pagination .previous a').attr('href') + '#autoload=last';
                 }
                 else {
                     alert ('That\'s it for now!');
-                    return;
+                    return false;
                 }
-                window.location.reload(true);
                 $.fancybox.close();
                 return;
             }
             else if (previous && current.index == 0 && previous.index == max) {
                 if (randomPage) {
                     window.location.href = '/random#autoload=first';
+                    window.location.reload(true);
                 }
                 else if ($('div#pagination .next a').length) {
                     window.location.href = $('div#pagination .next a').attr('href') + '#autoload=first';
                 }
                 else {
                     alert ('That\'s it for now!');
-                    return;
+                    return false;
                 }
-                window.location.reload(true);
                 $.fancybox.close();
                 return;
             }
