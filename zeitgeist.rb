@@ -304,6 +304,11 @@ class Item
 
   def title
     title = attribute_get(:title)
+    if title and not title.valid_encoding?
+      puts "Invalid Encoding title(#{title.inspect})!"
+      title = title.force_encoding('ISO-8859-1').encode('UTF-8')
+      raise 'Broken Encoding!' if not title.valid_encoding?
+    end
     return nil if not title or title.empty?
     super
   end
