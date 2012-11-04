@@ -2,6 +2,7 @@
 // Includes
 //
 @import "norm";
+@import "isotope";
 
 //
 // Colors \o/
@@ -299,7 +300,10 @@ nav {
 //
 // Item Lists
 //
-.items li {
+.items {
+    margin: 0 auto 20px;
+}
+.items .item {
     list-style-type: none;
     display: inline-block;
     background: $boxground;
@@ -331,7 +335,6 @@ nav {
 .item-meta {
     width: 200px;
     margin: 10px 0;
-    height: 25px;
     overflow: hidden;
 
     ul.taglist {

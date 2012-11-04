@@ -115,24 +115,15 @@ jQuery(function(){
         $('.fancybox')[index].click();
         //$.fancybox.open($('.fancybox')[index]);
     }
-        
-    // limit default tag list length on index view
-    $('.taglist').livequery(function() {
-        $(this).expander({
-            collapseTimer:  5000,
-            slicePoint:     300,
-            expandPrefix:   '',
-            expandText:     '&raquo;',
-            userCollapse:   false,
-            collapseTimer:  '10000',
-            afterExpand:    function($element) {
-                $element.parent().css({'overflow': 'visible', 'height': 'auto'});
-            },
-            onCollapse:     function($element) {
-                $element.parent().css({'overflow': 'hidden', 'height': '25px'});
-            }
-        });
+
+    // isotope
+    $('.items').isotope({
+        itemSelector: '.item',
+        layoutMode: 'masonry', // (default)
+        masonry: {
+        }
     });
+
 
     // Search
     $.ajaxSetup({ type: 'post' });

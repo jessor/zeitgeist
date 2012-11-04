@@ -1,8 +1,8 @@
 
 - if @items
-  %ul.items
+  .items
     - @items.each do |item|
-      %li
+      .item
         - if item.nsfw and not show_nsfw?
           %img{ :src => '/images/nsfw_placeholder.png', 
             :alt => (item.title || item.source),
@@ -44,6 +44,8 @@
             %input{ :type => 'hidden', :name => 'id', :value => "#{item.id}" }
             %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
             %input.tagpush{ :type => 'submit', :value => 'X' }
+
+  %div.clear
 
   #pagination  
     = pagination
