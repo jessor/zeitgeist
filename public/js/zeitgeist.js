@@ -234,6 +234,7 @@ jQuery(function(){
                         var tagshort = tagname.substr(0, 11) + (tagname.length > 11 ? '...' : '');
                         taglist.append('<li><a href="/show/tag/' + escape(tagname) + '">' + tagshort + '</a></li>');
                     });
+                    $('.items').isotope('reLayout');
                 },
                 resetForm:  true,
                 clearForm:  true
