@@ -49,7 +49,6 @@ jQuery(function(){
                 13 : 'left', // enter
                 34 : 'up',   // page down
                 39 : 'left', // right arrow
-                40 : 'up'    // down arrow
             },
             prev: {
                 75: 'right', // vim K
@@ -57,7 +56,6 @@ jQuery(function(){
                 8  : 'right',  // backspace
                 33 : 'down',   // page up
                 37 : 'right',  // left arrow
-                38 : 'down'    // up arrow
             }
         },
         helpers: {
@@ -71,6 +69,7 @@ jQuery(function(){
         },
         afterLoad: function (current, previous) {
             var max = this.group.length - 1;
+
             if (previous && current.index == max && previous.index == 0) {
                 if (randomPage) {
                     window.location.href = '/random#autoload=last';
@@ -101,11 +100,8 @@ jQuery(function(){
                 $.fancybox.close();
                 return;
             }
+        },
 
-            //var taglist = $('.item-meta', $(current.element).parent())[0].outerHTML;
-            ////var tagform = $('form.tag', $(current.element).parent())[0].outerHTML;
-            //this.inner.prepend( '<div class="fancybox-tagging">' + taglist + tagform + '</div>' );
-        }
     });
     // autoload parameter:
     var hash = window.location.hash;
