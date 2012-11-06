@@ -49,7 +49,6 @@ jQuery(function(){
                 13 : 'left', // enter
                 34 : 'up',   // page down
                 39 : 'left', // right arrow
-                40 : 'up'    // down arrow
             },
             prev: {
                 75: 'right', // vim K
@@ -57,7 +56,6 @@ jQuery(function(){
                 8  : 'right',  // backspace
                 33 : 'down',   // page up
                 37 : 'right',  // left arrow
-                38 : 'down'    // up arrow
             }
         },
         helpers: {
@@ -72,39 +70,15 @@ jQuery(function(){
         afterLoad: function (current, previous) {
             var max = this.group.length - 1;
             if (previous && current.index == max && previous.index == 0) {
-                if (randomPage) {
-                    window.location.href = '/random#autoload=last';
-                    window.location.reload(true);
-                }
-                else if ($('div#pagination .previous a').length) {
-                    window.location.href = $('div#pagination .previous a').attr('href') + '#autoload=last';
-                }
-                else {
-                    alert ('That\'s it for now!');
-                    return false;
-                }
-                $.fancybox.close();
-                return;
+                return false;
             }
-            else if (previous && current.index == 0 && previous.index == max) {
-                if (randomPage) {
-                    window.location.href = '/random#autoload=first';
-                    window.location.reload(true);
+            if (current) {
+                $(current.element).scrollintoview();
+                var threshold = 8;
+                if (current.index >= max - threshold) {
+                    $('.items').infinitescroll('retrieve');
                 }
-                else if ($('div#pagination .next a').length) {
-                    window.location.href = $('div#pagination .next a').attr('href') + '#autoload=first';
-                }
-                else {
-                    alert ('That\'s it for now!');
-                    return false;
-                }
-                $.fancybox.close();
-                return;
             }
-
-            //var taglist = $('.item-meta', $(current.element).parent())[0].outerHTML;
-            ////var tagform = $('form.tag', $(current.element).parent())[0].outerHTML;
-            //this.inner.prepend( '<div class="fancybox-tagging">' + taglist + tagform + '</div>' );
         }
     });
     // autoload parameter:
@@ -113,16 +87,31 @@ jQuery(function(){
         var max = $('.fancybox[rel=gallery]').length - 1;
         var index = hash.substr(10) == 'first' ? 0 : max;
         $('.fancybox')[index].click();
-        //$.fancybox.open($('.fancybox')[index]);
     }
 
     // isotope
     $('.items').isotope({
+        sortBy: 'original-order',
         itemSelector: '.item',
         layoutMode: 'masonry', // (default)
         masonry: {
         }
     });
+    // infinitescroll
+    $('.items').infinitescroll({
+        navSelector  : '#pagination ul',    // selector for the paged navigation 
+        nextSelector : '#pagination ul li.next a',  // selector for the NEXT link (to page 2)
+        itemSelector : '.item',     // selector for all items you'll retrieve
+        loading: {
+            finishedMsg: 'No more pages to load.',
+            img: '/images/ajax-loader.gif'
+        }
+    },
+    // call Isotope as a callback
+    function( newElements ) {
+        $('.items').isotope( 'appended', $( newElements ) ); 
+    }
+    );
 
 
     // Search
