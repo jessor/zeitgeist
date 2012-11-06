@@ -544,7 +544,7 @@ helpers do
   end
 
   def api_request?
-    request.accept == ['application/json'] or request.xhr?
+    request.accept.include? 'application/json'
   end
 
   def fileprefix
