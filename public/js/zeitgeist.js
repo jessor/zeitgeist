@@ -69,6 +69,7 @@ jQuery(function(){
         },
         afterLoad: function (current, previous) {
             var max = this.group.length - 1;
+
             if (previous && current.index == max && previous.index == 0) {
                 return false;
             }
