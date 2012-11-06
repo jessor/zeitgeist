@@ -32,6 +32,10 @@ jQuery(function(){
         });
     };
 
+    // globals for fancybox <-> isotope <-> infinitescroll
+    var fb2Instance;
+    var itemsLoading = false;
+
     // fancybox <3
     var randomPage = window.location.href.indexOf('/random') !== -1;
     $('.fancybox').fancybox({
@@ -42,6 +46,7 @@ jQuery(function(){
         padding: 0,
         margin: [20, 60, 20, 60], // Increase left/right margin
         preload: 6,
+        loop: false,
         keys: {
             next: {
                 74: 'left', // vim J
@@ -76,8 +81,11 @@ jQuery(function(){
             if (current) {
                 $(current.element).scrollintoview();
                 var threshold = 8;
-                if (current.index >= max - threshold) {
+                if (!itemsLoading && current.index >= max - threshold) {
+                    fb2Instance = this;
+                    // load next page of items
                     $('.items').infinitescroll('retrieve');
+                    itemsLoading = true;
                 }
             }
         }
@@ -111,6 +119,21 @@ jQuery(function(){
     // call Isotope as a callback
     function( newElements ) {
         $('.items').isotope( 'appended', $( newElements ) ); 
+
+        // manually update fancybox group array structure
+        if (fb2Instance) {
+            for (var i = 0, l = newElements.length; i < l; i++) {
+                var element = $(newElements[i]), link = $('a', element);
+                fb2Instance.group.push({
+                    element: element,
+                    href: link.attr('data-fancybox-href'),
+                    title: link.attr('data-fancybox-title'),
+                    isDom: true,
+                    type: link.hasClass('fancybox.ajax') ? 'ajax' : 'image'
+                });
+            }
+        }
+        itemsLoading = false;
     }
     );
 
