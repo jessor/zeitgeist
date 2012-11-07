@@ -2,7 +2,7 @@
 - if @items
   .items
     - @items.each do |item|
-      .item
+      .item{:data => {'id' => item.id}}
         - if item.nsfw and not show_nsfw?
           %img{ :src => '/images/nsfw_placeholder.png', 
             :alt => (item.title || item.source),
@@ -14,7 +14,7 @@
             :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
             :data => {'fancybox-title' => item.html_title,
             'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image)},
-            :title => (item.title || item.source),
+            :title => "#{item.id} - #{item.title || item.source}",
             :rel => 'gallery' }
             - if item.type == 'video'
               %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }

@@ -100,10 +100,17 @@ jQuery(function(){
 
     // isotope
     $('.items').isotope({
-        sortBy: 'original-order',
+        sortBy: 'id',
         itemSelector: '.item',
         layoutMode: 'masonry', // (default)
         masonry: {
+        },
+        sortAscending : false,
+        getSortData: {
+            id: function (elem) {
+                console.log( $(elem).data('id') );
+                return $(elem).data('id');
+            }
         }
     });
     // infinitescroll
@@ -112,6 +119,7 @@ jQuery(function(){
         nextSelector : '#pagination ul li.next a',  // selector for the NEXT link (to page 2)
         itemSelector : '.item',     // selector for all items you'll retrieve
         loading: {
+            msgText: '<em>loading more</em>',
             finishedMsg: 'No more pages to load.',
             img: '/images/ajax-loader.gif'
         }
@@ -147,18 +155,20 @@ jQuery(function(){
         $(this).focus()
     });
     // redirect tab to focus next/previous input[type=text] field
-    $(':input').keydown(function(e) {
-        var keycode = e.keycode || e.which;
-        // shift+tab
-        if(keycode == 9 && e.shiftKey) {
-            e.preventDefault();
-            $(this).focusInputField('prev');
-        }
-        // only tab
-        else if(keycode == 9) {
-            e.preventDefault();
-            $(this).focusInputField('next');
-        }
+    $(':input').livequery(function () {
+        $(this).keydown(function(e) {
+            var keycode = e.keycode || e.which;
+            // shift+tab
+            if(keycode == 9 && e.shiftKey) {
+                e.preventDefault();
+                $(this).focusInputField('prev');
+            }
+            // only tab
+            else if(keycode == 9) {
+                e.preventDefault();
+                $(this).focusInputField('next');
+            }
+        });
     });
     // hide default value on focus
     $('input#searchquery').livequery(function() {
