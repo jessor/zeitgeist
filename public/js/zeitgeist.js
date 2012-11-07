@@ -113,37 +113,52 @@ jQuery(function(){
         }
     });
     // infinitescroll
+    // define our own zeitgeist behavior
+    $.extend($.infinitescroll.prototype,{
+        // callback when new items are loaded (as html currently):
+        _callback_zeitgeist: function infscr_callback_zeitgeist (newElements) {
+            //$(this).masonry('appended',$(newElements));
+            $('.items').isotope( 'appended', $( newElements ) ); 
+
+            // manually update fancybox group array structure
+            if (fb2Instance) {
+                for (var i = 0, l = newElements.length; i < l; i++) {
+                    var element = $(newElements[i]), link = $('a', element);
+                    fb2Instance.group.push({
+                        element: element,
+                        href: link.attr('data-fancybox-href'),
+                        title: link.attr('data-fancybox-title'),
+                        isDom: true,
+                        type: link.hasClass('fancybox.ajax') ? 'ajax' : 'image'
+                    });
+                }
+            }
+            itemsLoading = false;
+        },
+
+        // find the number to increment in the path
+        _determinepath_zeitgeist: function infscr_determinepath_zeitgeist (path) {
+            var match = path.match(/^(.*?page=).*(.*|$)/);
+            if (match) {
+                return match.slice(1);
+            }
+            else if (path.match(/\/random/)) {
+                return ['/random#'];
+            }
+            return false;
+        }
+    });
     $('.items').infinitescroll({
-        navSelector  : '#pagination ul',    // selector for the paged navigation 
-        nextSelector : '#pagination ul li.next a',  // selector for the NEXT link (to page 2)
-        itemSelector : '.item',     // selector for all items you'll retrieve
+        behavior: 'zeitgeist',
+        navSelector: '#pagination ul',
+        nextSelector: '#pagination ul li.next a',
+        itemSelector: '.item',
         loading: {
             msgText: '<em>loading more</em>',
             finishedMsg: 'No more pages to load.',
             img: '/images/ajax-loader.gif'
         }
-    },
-    // call Isotope as a callback
-    function( newElements ) {
-        $('.items').isotope( 'appended', $( newElements ) ); 
-
-        // manually update fancybox group array structure
-        if (fb2Instance) {
-            for (var i = 0, l = newElements.length; i < l; i++) {
-                var element = $(newElements[i]), link = $('a', element);
-                fb2Instance.group.push({
-                    element: element,
-                    href: link.attr('data-fancybox-href'),
-                    title: link.attr('data-fancybox-title'),
-                    isDom: true,
-                    type: link.hasClass('fancybox.ajax') ? 'ajax' : 'image'
-                });
-            }
-        }
-        itemsLoading = false;
-    }
-    );
-
+    });
 
     // Search
     $.ajaxSetup({ type: 'post' });
