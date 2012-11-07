@@ -1,12 +1,16 @@
 #content
 
-  = partial(:_items)
+  .filter_random
+    show random
+    %a{:href => '/random/video'} video,
+    %a{:href => '/random/audio'} audio,
+    %a{:href => '/random/image'} images
 
-  %i{:style => 'display: block;text-align: center'} please moar tagging ;)
+  = partial(:_items)
 
   #pagination
     %ul.pager
       %li.next.jump
-        %a{:href => '/random'} more random
+        %a{:href => "/random#{@type ? '/'+@type : ''}"} more random
 
 

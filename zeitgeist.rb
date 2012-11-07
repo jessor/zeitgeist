@@ -552,7 +552,7 @@ helpers do
   end
 
   def pagination
-    return if not @items or not @items.class.method_defined? :pager
+    return if not @items or not @items.class.method_defined? :pager or not @items.pager
     @items.pager.to_html(request.url, :size => 5)
   end
 
@@ -606,7 +606,14 @@ helpers do
     size
   end
 
+  def sqlite_adapter?
+    defined? DataMapper::Adapters::SqliteAdapter and 
+      repository(:default).adapter.class == DataMapper::Adapters::SqliteAdapter
+  end
 
+  def raw_sql(sql)
+    repository(:default).adapter.select(sql)
+  end
 
 end
 
@@ -657,7 +664,6 @@ get '/' do
   end
 
   @items = Item.page(params[:page], args)
-  pagination
 
   if api_request?
     content_type :json
@@ -694,22 +700,17 @@ get '/similar/:type/:value' do
   end
 end
 
-get '/random' do
-  @items = []
-  
-  item_count = Item.count
-  return if item_count == 0
-  max_id = Item.max(:id)
-  per_page = settings.items_per_page
-  per_page = item_count if per_page > item_count
-
-  while @items.length < per_page
-    ids = (0...per_page-@items.length).to_a.map { rand(max_id) }
-
-    Item.all(:id => ids).each do |item|
-      @items << item if not @items.include? item
-    end
+get '/random/?:type?' do
+  @type = %w{image video audio}.include?(params[:type]) ? params[:type] : nil
+  sql = 'SELECT id FROM items'
+  sql << " WHERE type = '#{@type}'" if @type
+  if sqlite_adapter?
+    sql << ' ORDER BY RANDOM()'
+  else
+    sql << ' ORDER BY RAND()'
   end
+  sql << " LIMIT #{settings.items_per_page}"
+  @items = Item.all(:id => raw_sql(sql))
 
   if api_request?
     content_type :json
@@ -752,7 +753,6 @@ get '/gallery/:user/?' do
     args.merge!(:conditions => ['items.id > ?', params[:after]])
   end
   @items = Item.page(params[:page], args)
-  pagination
 
   if api_request?
     content_type :json
@@ -780,8 +780,6 @@ get '/show/:type' do
     raise 'show what?'
   end
 
-  pagination
-
   if api_request?
     content_type :json
     {:items => @items}.to_json
@@ -807,7 +805,6 @@ get '/show/tag/:tag' do
   end
 
   @items = Item.page(params[:page], args)
-  pagination
 
   if api_request?
     content_type :json
@@ -825,7 +822,6 @@ get '/show/dimensions/:dimensions' do
                      :per_page => settings.items_per_page,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
-  pagination
 
   if api_request?
     content_type :json
@@ -856,7 +852,6 @@ get '/show/ratio/:ratio' do
                      :per_page => settings.items_per_page,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
-  pagination
 
   if api_request?
     content_type :json
@@ -1003,7 +998,6 @@ get '/search' do
     end
 
     @items = Item.page(params[:page], args)
-    pagination
 
     if api_request?
       content_type :json
@@ -1037,7 +1031,6 @@ post '/search' do
   end
 
   @items = Item.page(params[:page], args)
-  pagination
 
   content_type :json
   {:type => type, :tags => Tag.all(:tagname.like => "%#{query}%")}.to_json
@@ -1253,14 +1246,10 @@ end
 
 get '/stats.json' do
   logger.debug 'Generating stats json object'
-  def raw_sql(sql)
-    repository(:default).adapter.select(sql)
-  end
 
   def count_by(date)
     counts = []
-    if defined? DataMapper::Adapters::SqliteAdapter and 
-        repository(:default).adapter.class == DataMapper::Adapters::SqliteAdapter
+    if sqlite_adapter?
       format_sql = 'strftime("%s", created_at)' % date
     else
       format_sql = "DATE_FORMAT(created_at, '%s')" % date

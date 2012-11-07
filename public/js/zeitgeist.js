@@ -143,7 +143,7 @@ jQuery(function(){
                 return match.slice(1);
             }
             else if (path.match(/\/random/)) {
-                return ['/random#'];
+                return [path + '#'];
             }
             return false;
         }
