@@ -108,7 +108,6 @@ jQuery(function(){
         sortAscending : false,
         getSortData: {
             id: function (elem) {
-                console.log( $(elem).data('id') );
                 return $(elem).data('id');
             }
         }
