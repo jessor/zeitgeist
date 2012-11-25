@@ -25,6 +25,10 @@ module Sinatra::Carrier
         FileUtils.mv(temp.image, image_local)
         FileUtils.mv(temp.thumbnail, thumbnail_local)
 
+        # fix permissions
+        File.chmod(0664, image_local)
+        File.chmod(0664, thumbnail_local)
+
         # this returns the string to store in the database,
         # the base class returns the identifier with the name
         # of this storage(<store:local>) (@see retrieve!)
