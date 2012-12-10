@@ -13,7 +13,7 @@ database:
 
 items_per_page: 10
 pagespeed: true
-fingerprint_threshold: 10
+fingerprint_threshold: 7
 
 # temporary path for remote file/media downloading
 remote_temp: '/tmp'
