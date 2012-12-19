@@ -1163,7 +1163,7 @@ post '/update' do
   @item = Item.get(id)
   raise "item with id #{id} not found!" if not @item
 
-  if params.has_key? :title
+  if params.has_key? 'title'
     title = params[:title]
     @item.update(:title => title)
   end
@@ -1186,7 +1186,7 @@ post '/claim' do
 
   id = params[:id]
   item = Item.get(id)
-  raise "item with id #{id} not found!" if not @item
+  raise "item with id #{id} not found!" if not item
 
   if item.dm_user_id
     user = User.get(item.dm_user_id)
