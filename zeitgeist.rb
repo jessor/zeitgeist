@@ -1176,6 +1176,30 @@ post '/update' do
   end
 end
 
+# claim ownership of an anonymously posted item
+post '/claim' do
+  raise 'needs authentication' if not logged_in?
+
+  id = params[:id]
+  item = Item.get(id)
+  raise "item with id #{id} not found!" if not @item
+
+  if item.dm_user_id
+    user = User.get(item.dm_user_id)
+    raise "item already owned by #{item.dm_user_id} #{user.username}"
+  end
+  
+  item.update(:dm_user_id => current_user.id)
+
+  if api_request?
+    content_type :json
+    {:id => id}.to_json
+  else
+    flash[:notice] = "Item ##{id} claimed."
+    redirect params['return_to']
+  end
+end
+
 post '/delete' do
   item = Item.get(params[:id])
   raise 'item not found' if not item
