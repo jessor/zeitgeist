@@ -125,7 +125,6 @@ configure do
     use Rack::PageSpeed, :public => 'public' do
       store :disk => 'public'
       combine_javascripts
-      minify_javascripts
     end
   end
 end
