@@ -1153,7 +1153,7 @@ get '/:id' do
   end
 end
 
-# adds or removes tags from an item
+# adds or removes tags from an item, update items title
 post '/update' do
   id = params[:id]
   add_tags = (params[:add_tags] || '').split(',')
@@ -1162,6 +1162,11 @@ post '/update' do
   # get the item to edit
   @item = Item.get(id)
   raise "item with id #{id} not found!" if not @item
+
+  if params.has_key? :title
+    title = params[:title]
+    @item.update(:title => title)
+  end
 
   # add tags (create them if not exists)
   added_tags = @item.add_tags(add_tags)
