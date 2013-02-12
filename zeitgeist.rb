@@ -664,6 +664,8 @@ get '/' do
 
   @items = Item.page(params[:page], args)
 
+  last_modified @items.first.created_at
+
   if api_request?
     content_type :json
     {:items => @items}.to_json
