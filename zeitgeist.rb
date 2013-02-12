@@ -614,6 +614,16 @@ helpers do
     repository(:default).adapter.select(sql)
   end
 
+  def per_page
+    if params.has_key? 'per_page' and params[:per_page].match /^\d+$/
+      per_page = params[:per_page].to_i
+      per_page = 200 if per_page > 200
+    else
+      per_page = settings.items_per_page
+    end
+    per_page
+  end
+
 end
 
 #
@@ -651,7 +661,7 @@ end
 
 get '/' do
   args = {
-    :per_page => settings.items_per_page,
+    :per_page => per_page,
     :order => [:created_at.desc]
   }
 
@@ -710,7 +720,7 @@ get '/random/?:type?' do
   else
     sql << ' ORDER BY RAND()'
   end
-  sql << " LIMIT #{settings.items_per_page}"
+  sql << " LIMIT #{per_page}"
   @items = Item.all(:id => raw_sql(sql))
 
   if api_request?
@@ -743,7 +753,7 @@ get '/gallery/:user/?' do
   raise 'no user found with this username' if not user
 
   args = {
-    :per_page => settings.items_per_page,
+    :per_page => per_page,
     :dm_user_id => user.id,
     :order => [:created_at.desc]
   }
@@ -769,13 +779,13 @@ get '/show/:type' do
   if %w{video audio image}.include? type
     @title = "#{type.capitalize}s at #{settings.pagetitle}"
     @items = Item.page(params[:page],
-                       :per_page => settings.items_per_page,
+                       :per_page => per_page,
                        :type => type,
                        :order => [:created_at.desc]) 
   elsif type == 'nsfw'
     @title = "nsfw at #{settings.pagetitle}"
     @items = Item.page(params[:page],
-                       :per_page => settings.items_per_page,
+                       :per_page => per_page,
                        :order => [:created_at.desc])
   else
     raise 'show what?'
@@ -793,7 +803,7 @@ get '/show/tag/:tag' do
   tag = unescape params[:tag]
   @title = "#{tag} at #{settings.pagetitle}"
   args = {
-    :per_page => settings.items_per_page,
+    :per_page => per_page,
     Item.tags.tagname => tag,
     :order => [:created_at.desc]
   }
@@ -820,7 +830,7 @@ get '/show/dimensions/:dimensions' do
   @title = "#{dimensions} at #{settings.pagetitle}"
   @items = Item.page(params[:page],
                      :type => 'image',
-                     :per_page => settings.items_per_page,
+                     :per_page => per_page,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
 
@@ -850,7 +860,7 @@ get '/show/ratio/:ratio' do
   @title = "#{ratio} at #{settings.pagetitle}"
   @items = Item.page(params[:page],
                      :type => 'image',
-                     :per_page => settings.items_per_page,
+                     :per_page => per_page,
                      :dimensions => dimensions,
                      :order => [:created_at.desc])
 
@@ -978,7 +988,7 @@ get '/search' do
 
     @title = "Search for #{@type.capitalize} with #{@query} at #{settings.pagetitle}"
     args = {
-      :per_page => settings.items_per_page,
+      :per_page => per_page,
       :order => [:created_at.desc]
     }
 
@@ -1019,7 +1029,7 @@ end
 post '/search' do
   query = params['q']
   args = {
-    :per_page => settings.items_per_page,
+    :per_page => per_page,
     :order => [:created_at.desc],
     Item.tags.tagname.like => "%#{query}%"
   }
