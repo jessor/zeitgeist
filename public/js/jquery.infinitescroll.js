@@ -223,7 +223,7 @@
 
         // Console log wrapper
         _debug: function infscr_debug() {
-			if (true !== this.options.debug) {
+			if (this.options && true !== this.options.debug) {
 				return;
 			}
 
