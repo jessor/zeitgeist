@@ -1159,6 +1159,14 @@ post '/update' do
   add_tags = (params[:add_tags] || '').split(',')
   del_tags = (params[:del_tags] || '').split(',')
 
+  # move add tags beginning with - to del_tags
+  add_tags.each do |tag|
+    if tag.match /^-(.*)$/
+      del_tags << $1
+      add_tags.delete tag
+    end
+  end
+
   # get the item to edit
   @item = Item.get(id)
   raise "item with id #{id} not found!" if not @item
