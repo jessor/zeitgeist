@@ -103,6 +103,7 @@ jQuery(function(){
         sortBy: 'id',
         itemSelector: '.item',
         layoutMode: 'masonry', // (default)
+        transformsEnabled: false, // broken in ff
         masonry: {
         },
         sortAscending : false,
@@ -148,6 +149,7 @@ jQuery(function(){
             return false;
         }
     });
+
     $('.items').infinitescroll({
         behavior: 'zeitgeist',
         navSelector: '#pagination ul',
