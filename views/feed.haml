@@ -21,8 +21,12 @@
             -# &= item.embed 
             -# or the preview image with a link to the original content
             -# (no embedding):
-            :escaped
-              <a href="#{item.source}"><img src="#{@base+item.image.thumbnail}" alt="#{item.title || item.source}" /></a>
+            - if item.type == 'video'
+              :escaped
+                <a href="#{item.source}"><img src="#{@base+item.image.thumbnail}" alt="#{item.title || item.source}" /></a>
+            - else
+              :escaped
+                <a href="#{item.source}">#{item.title || item.source}</a>
           - if item.tags and not item.tags.empty?
             &= "<br/>tagged: "
             - item.tags.each do |tag|
