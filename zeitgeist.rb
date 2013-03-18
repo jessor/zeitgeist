@@ -799,11 +799,11 @@ get '/show/:type' do
 end
 
 get '/show/tag/:tag' do
-  tag = unescape params[:tag]
-  @title = "#{tag} at #{settings.pagetitle}"
+  @tag = unescape params[:tag]
+  @title = "#{@tag} at #{settings.pagetitle}"
   args = {
     :per_page => per_page,
-    Item.tags.tagname => tag,
+    Item.tags.tagname => @tag,
     :order => [:created_at.desc]
   }
 
@@ -1332,6 +1332,17 @@ get '/stats.json' do
     :video => Item.count(:type => 'video'),
     :user => user_stats
   }.to_json
+end
+
+get '/feed/tag/:tag' do
+  tag = unescape params[:tag]
+  @title = "#{tag} at #{settings.pagetitle}"
+  @base = request.url.chomp(request.path_info)
+
+  @items = Item.all(:limit => 10, Item.tags.tagname => tag, :order => [:created_at.desc])
+
+  content_type :xml
+  haml :feed, :layout => false, :format => :xhtml
 end
 
 get %r{/feed(/nsfw)?} do

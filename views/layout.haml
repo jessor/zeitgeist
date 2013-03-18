@@ -8,6 +8,8 @@
     %link{ :rel => 'shortcut icon', :href => '/images/favicon.png' }
     %link{ :rel => 'alternate', :href => '/feed', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items" }
     %link{ :rel => 'alternate', :href => '/feed/nsfw', :type => 'application/rss+xml', :title => "#{settings.pagetitle} New items (NSFW!)" }
+    - if @tag
+      %link{ :rel => 'alternate', :href => "/feed/tag/#{@tag}", :type => 'application/rss+xml', :title => "#{settings.pagetitle} Tagged items: #{@tag}" }
     %script{ :src => '/js/jquery-1.7.2.js' }
     %script{ :src => '/js/ui/jquery-ui-1.8.21.custom.js' }
 
