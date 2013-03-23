@@ -236,14 +236,14 @@ class Item
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
 
         # duplication check
-        if defined? Phashion and self.type == 'image'
+        if not self.fingerprint and defined? Phashion and self.type == 'image'
           self.fingerprint = self.generate_fingerprint(tempfile)
           if (item = Item.first(:fingerprint => self.fingerprint))
             raise DuplicateError.new(item.id)
           end
           items = Item.similar(self.fingerprint)
           if (items.length >= 1)
-            puts "fingerprint distance for #{items[0][0]}: #{items[0][2]}"
+            puts "fingerprint (#{self.fingerprint}) distance for #{items[0][0]}: #{items[0][2]}"
             raise DuplicateError.new(items[0][0])
           end
         else #just use md5 checksum as a fallback
@@ -1063,6 +1063,7 @@ post '/new' do
   remotes = params.has_key?('remote_url') ? params['remote_url'] : []
   titles = params.has_key?('title') ? params['title'] : []
   announce = params.has_key?('announce') ? (params['announce'] == 'true' ? true : false) : false
+  fingerprint = params.has_key?('ignore_fingerprint') ? (params['ignore_fingerprint'] == 'true' ? 1 : nil) : nil
 
   # legacy (api) / depricated api
   if uploads.class != Array and uploads.class == Hash # just to make sure
@@ -1099,6 +1100,7 @@ post '/new' do
       item = Item.new(:title => title,
                       :image => image, 
                       :source => source, 
+                      :fingerprint => fingerprint,
                       :dm_user_id => (logged_in?) ? current_user.id : nil)
       if item.save
         item.add_tags(tags)
