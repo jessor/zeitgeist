@@ -236,15 +236,21 @@ class Item
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
 
         # duplication check
-        if not self.fingerprint and defined? Phashion and self.type == 'image'
-          self.fingerprint = self.generate_fingerprint(tempfile)
-          if (item = Item.first(:fingerprint => self.fingerprint))
-            raise DuplicateError.new(item.id)
-          end
-          items = Item.similar(self.fingerprint)
-          if (items.length >= 1)
-            puts "fingerprint (#{self.fingerprint}) distance for #{items[0][0]}: #{items[0][2]}"
-            raise DuplicateError.new(items[0][0])
+        if defined? Phashion and self.type == 'image'
+          fp = self.generate_fingerprint(tempfile)
+          puts "fingerprint generated #{fp}"
+          if not self.fingerprint
+            self.fingerprint = fp
+            if (item = Item.first(:fingerprint => self.fingerprint))
+              raise DuplicateError.new(item.id)
+            end
+            items = Item.similar(self.fingerprint)
+            if (items.length >= 1)
+              puts "fingerprint (#{self.fingerprint}) distance for #{items[0][0]}: #{items[0][2]}"
+              raise DuplicateError.new(items[0][0])
+            end
+          else
+            self.fingerprint = fp # store the fingerprint regardless
           end
         else #just use md5 checksum as a fallback
           item = Item.first(:checksum => self.checksum)
