@@ -252,10 +252,11 @@ class Item
           else
             self.fingerprint = fp # store the fingerprint regardless
           end
-        else #just use md5 checksum as a fallback
-          item = Item.first(:checksum => self.checksum)
-          raise DuplicateError.new(item.id) if item
         end
+
+        # always check for checksum duplicates (db constraint)
+        item = Item.first(:checksum => self.checksum)
+        raise DuplicateError.new(item.id) if item
 
         # store file in configured storage
         self.image = localtemp.store!
