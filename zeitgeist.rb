@@ -1348,7 +1348,7 @@ get '/feed/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   @base = request.url.chomp(request.path_info)
 
-  @items = Item.all(:limit => 10, Item.tags.tagname => tag, :order => [:created_at.desc])
+  @items = Item.all(:limit => settings.feed_max, Item.tags.tagname => tag, :order => [:created_at.desc])
 
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
@@ -1360,9 +1360,9 @@ get %r{/feed(/nsfw)?} do
   @base = request.url.chomp(request.path_info)
 
   if nsfw
-    @items = Item.all(:limit => 10, :order => [:created_at.desc])
+    @items = Item.all(:limit => settings.feed_max, :order => [:created_at.desc])
   else
-    @items = Item.all(:limit => 10, :nsfw => false, :order => [:created_at.desc])
+    @items = Item.all(:limit => settings.feed_max, :nsfw => false, :order => [:created_at.desc])
   end
 
   content_type :xml
