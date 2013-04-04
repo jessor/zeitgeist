@@ -647,13 +647,10 @@ before do
   # subdomains that specify a username constrain the items displayed
   @subdomain_user = nil
   if settings.subdomain_users
-    if not request.host.match /^[\d\.]+$/ and # no IP
-      request.host.match /^([^\.]+)\.(.*)/
-
-        username = $1
-        domain = $2
-        @subdomain_user = User.get(:conditions => ['UPPER(username) = ?', username.upcase])
-        redirect "#{request.scheme}://#{domain}:#{request.port}" if not @subdomain_user
+    if request.host.match /^([^\.]+)\.#{settings.domain}$/
+      username = $1
+      @subdomain_user = User.get(:conditions => ['UPPER(username) = ?', username.upcase])
+      redirect "#{request.scheme}://#{settings.domain}:#{request.port}" if not @subdomain_user
     end
   end
  
