@@ -925,7 +925,7 @@ get '/list/dimensions/?:ratio?' do
   @title = "Image dimensions of #{settings.pagetitle}"
   dimensions = Item.all(:type => 'image').aggregate(:dimensions, :all.count)
   dimensions.delete_if do |dimension|
-    true if dimension.last < 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
+    true if dimension.last <= 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
   end
 
   # show only dimensions of the current subdomain user
