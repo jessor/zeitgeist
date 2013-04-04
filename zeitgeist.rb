@@ -805,6 +805,14 @@ get '/show/:type' do
     } 
     args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
     @items = Item.page(params[:page], args)
+  elsif type == 'nsfw'
+    @title = "nsfw at #{settings.pagetitle}"
+    args = {
+      :per_page => per_page,
+      :order => [:created_at.desc]
+    }
+    args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+    @items = Item.page(params[:page], args)
   else
     raise 'show what?'
   end
