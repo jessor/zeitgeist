@@ -516,7 +516,7 @@ class DmUser
   has n, :items
 
   # optional
-  property :username, String
+  property :username, String, :unique => true
 
   property :api_secret, String
 
@@ -641,7 +641,20 @@ before do
   logger.level = 0
 
   if request.host =~ /^www\./
-    redirect "http://#{request.host.gsub('www.', '')}:#{request.port}", 301
+    redirect "#{request.scheme}://#{request.host.gsub('www.', '')}:#{request.port}", 301
+  end
+
+  # subdomains that specify a username constrain the items displayed
+  @subdomain_user = nil
+  if settings.subdomain_users
+    if not request.host.match /^[\d\.]+$/ and # no IP
+      request.host.match /^([^\.]+)\.(.*)/
+
+        username = $1
+        domain = $2
+        @subdomain_user = User.get(:conditions => ['UPPER(username) = ?', username.upcase])
+        redirect "#{request.scheme}://#{domain}:#{request.port}" if not @subdomain_user
+    end
   end
  
   # X-Auth API authentication as specified in the documentation
@@ -678,6 +691,7 @@ get '/' do
   if params.has_key? 'after'
     args.merge!(:conditions => ['items.id > ?', params[:after]])
   end
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
 
   @items = Item.page(params[:page], args)
 
@@ -720,7 +734,10 @@ end
 get '/random/?:type?' do
   @type = %w{image video audio}.include?(params[:type]) ? params[:type] : nil
   sql = 'SELECT id FROM items'
-  sql << " WHERE type = '#{@type}'" if @type
+  where = []
+  where << " type = '#{@type}'" if @type
+  where << " dm_user_id = '#{@subdomain_user.id}'" if @subdomain_user
+  sql << " WHERE #{where.join(' and ')}" if not where.empty?
   if sqlite_adapter?
     sql << ' ORDER BY RANDOM()'
   else
@@ -784,15 +801,13 @@ get '/show/:type' do
 
   if %w{video audio image}.include? type
     @title = "#{type.capitalize}s at #{settings.pagetitle}"
-    @items = Item.page(params[:page],
-                       :per_page => per_page,
-                       :type => type,
-                       :order => [:created_at.desc]) 
-  elsif type == 'nsfw'
-    @title = "nsfw at #{settings.pagetitle}"
-    @items = Item.page(params[:page],
-                       :per_page => per_page,
-                       :order => [:created_at.desc])
+    args = {
+      :per_page => per_page,
+      :type => type,
+      :order => [:created_at.desc]
+    } 
+    args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+    @items = Item.page(params[:page], args)
   else
     raise 'show what?'
   end
@@ -813,6 +828,7 @@ get '/show/tag/:tag' do
     Item.tags.tagname => @tag,
     :order => [:created_at.desc]
   }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
 
   if params.has_key? 'before'
     args.merge!(:conditions => ['items.id < ?', params[:before]])
@@ -834,11 +850,16 @@ end
 get '/show/dimensions/:dimensions' do
   dimensions = params[:dimensions]
   @title = "#{dimensions} at #{settings.pagetitle}"
-  @items = Item.page(params[:page],
-                     :type => 'image',
-                     :per_page => per_page,
-                     :dimensions => dimensions,
-                     :order => [:created_at.desc])
+
+  args = {
+    :type => 'image',
+    :per_page => per_page,
+    :dimensions => dimensions,
+    :order => [:created_at.desc]
+  }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+
+  @items = Item.page(params[:page], args)
 
   if api_request?
     content_type :json
@@ -864,11 +885,14 @@ get '/show/ratio/:ratio' do
   end
   
   @title = "#{ratio} at #{settings.pagetitle}"
-  @items = Item.page(params[:page],
-                     :type => 'image',
-                     :per_page => per_page,
-                     :dimensions => dimensions,
-                     :order => [:created_at.desc])
+  args = {
+    :type => 'image',
+    :per_page => per_page,
+    :dimensions => dimensions,
+    :order => [:created_at.desc]
+  }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+  @items = Item.page(params[:page], args)
 
   if api_request?
     content_type :json
@@ -885,6 +909,13 @@ get '/list/tags' do
   @min = @tags.min_by {|tag| tag.count}.count
   @max = @tags.max_by {|tag| tag.count}.count
 
+  # show only tags of the current subdomain user
+  if @subdomain_user
+    @tags.delete_if do |tag|
+      true if Item.count(:dm_user_id => @subdomain_user.id, Item.tags.tagname => tag.tagname) == 0
+    end
+  end
+
   if api_request?
     content_type :json
     {:tags => @tags}.to_json
@@ -897,12 +928,21 @@ get '/list/dimensions/?:ratio?' do
   @title = "Image dimensions of #{settings.pagetitle}"
   dimensions = Item.all(:type => 'image').aggregate(:dimensions, :all.count)
   dimensions.delete_if do |dimension|
-    true if dimension.last <= 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
+    true if dimension.last < 1 or not dimension.first or not dimension.first.match /^\d+x\d+$/
   end
+
+  # show only dimensions of the current subdomain user
+  if @subdomain_user
+    dimensions.delete_if do |dimension|
+      true if Item.count(:dm_user_id => @subdomain_user.id, :dimensions => dimension.first) == 0
+    end
+  end
+
   dimensions.sort! do |a, b|
     b.last <=> a.last
   end
 
+  #TODO: bug when dimensions are empty, catch this and fail gracefully
   @min = dimensions.min_by {|dimension| dimension.last}.last
   @max = dimensions.max_by {|dimension| dimension.last}.last
 
@@ -997,6 +1037,7 @@ get '/search' do
       :per_page => per_page,
       :order => [:created_at.desc]
     }
+    args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
 
     if params.has_key? 'before'
       args.merge!(:conditions => ['items.id < ?', params[:before]])
@@ -1039,6 +1080,7 @@ post '/search' do
     :order => [:created_at.desc],
     Item.tags.tagname.like => "%#{query}%"
   }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
 
   if params.has_key? 'before'
     args.merge!(:conditions => ['items.id < ?', params[:before]])
@@ -1289,11 +1331,14 @@ end
 get '/stats' do
   # some stats in numbers
   # the rest is loaded from stats.json
+  args = {}
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+
   @stats = {
-    :total => Item.count,
-    :image => Item.count(:type => 'image'),
-    :audio => Item.count(:type => 'audio'),
-    :video => Item.count(:type => 'video'),
+    :total => Item.count(args),
+    :image => Item.count(args.merge(:type => 'image')),
+    :audio => Item.count(args.merge(:type => 'audio')),
+    :video => Item.count(args.merge(:type => 'video')),
     :user => DmUser.count
   }
 
@@ -1310,7 +1355,10 @@ get '/stats.json' do
     else
       format_sql = "DATE_FORMAT(created_at, '%s')" % date
     end
-    res = raw_sql 'SELECT %s AS date, COUNT(*) AS count FROM items GROUP BY date ORDER BY created_at asc;' % format_sql
+    sql = 'SELECT %s AS date, COUNT(*) AS count FROM items' % format_sql
+    sql << ' WHERE dm_user_id = %d' % @subdomain_user.id if @subdomain_user
+    sql << ' GROUP BY date ORDER BY created_at asc;'
+    res = raw_sql(sql)
     logger.debug('Generate stats with custom SQL returned %d results.' % res.length)
     res.each do |row|
       counts << [row.date, row.count]
@@ -1348,7 +1396,14 @@ get '/feed/tag/:tag' do
   @title = "#{tag} at #{settings.pagetitle}"
   @base = request.url.chomp(request.path_info)
 
-  @items = Item.all(:limit => settings.feed_max, Item.tags.tagname => tag, :order => [:created_at.desc])
+  args = {
+    :limit => settings.feed_max,
+    Item.tags.tagname => tag,
+    :order => [:created_at.desc]
+  }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+
+  @items = Item.all(args)
 
   content_type :xml
   haml :feed, :layout => false, :format => :xhtml
@@ -1359,10 +1414,15 @@ get %r{/feed(/nsfw)?} do
 
   @base = request.url.chomp(request.path_info)
 
+  args = {
+    :limit => settings.feed_max
+  }
+  args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
+
   if nsfw
-    @items = Item.all(:limit => settings.feed_max, :order => [:created_at.desc])
+    @items = Item.all(args.merge(:order => [:created_at.desc]))
   else
-    @items = Item.all(:limit => settings.feed_max, :nsfw => false, :order => [:created_at.desc])
+    @items = Item.all(args.merge(:nsfw => false, :order => [:created_at.desc]))
   end
 
   content_type :xml
