@@ -14,6 +14,7 @@ module Sinatra
 
 module Carrier
 
+  # some functions that help with image detection and manipulation
   module ImageProcessor
     # we want to: find the dimension, find out if this is multiple
     # frame gif, if yes collapse it and resize to fill
@@ -45,14 +46,22 @@ module Carrier
       end
     end
 
-    def image_thumbnail!(image, width=200, height=200)
+    def image_thumbnail!(image, width, &block)
       img = ::MiniMagick::Image.open(image)
 
       # NOTE: should only be used to identify the image:
-      yield(img)
+      yield(img) if block
 
       img.collapse!
       cols, rows = img['dimensions']
+      ratio = cols / rows.to_f
+
+      if width == 200
+        height = 200
+      else # 480x? in relation to aspect
+        height = width / ratio 
+      end
+
       img.combine_options do |cmd|
         if width != cols || height != rows
           scale = [width/cols.to_f, height/rows.to_f].max
@@ -90,12 +99,12 @@ module Carrier
   class LocalTemp
     include ImageProcessor
 
-    attr_reader :image, :thumbnail, :checksum, :mimetype, :dimensions, :animated
+    attr_reader :image, :thumbnails, :checksum, :mimetype, :dimensions, :animated
     attr_reader :md5obj, :created_at, :extension
 
     # created_at is used for the storage directories
     def initialize(image, created_at=Time.now)
-      @image = image
+      @image = image # image is the temporary file from upload/remote download
       @created_at = created_at
     end
 
@@ -125,38 +134,43 @@ module Carrier
       @md5obj = Digest::MD5.file(@image)
       @checksum = @md5obj.hexdigest
 
-      # create thumbnail
-      @thumbnail = image_thumbnail!(@image) do |img|
-        @dimensions = image_dimensions(img)
-        @animated = image_animated?(img)
-      end
+      # create thumbnails, the hash stores the size(as key)+temp local path
+      @thumbnails = {
+        '200' => image_thumbnail!(@image, 200) do |img|
+          @dimensions = image_dimensions(img)
+          @animated = image_animated?(img)
+        end,
+        # '480' => image_thumbnail!(@image, 480)
+      }
     end
 
     def store!
-      # using the default storage:
-      store = Storage::create settings.carrier[:store]
+      # this moves the temporary images to their final destination (see Store)
+      store = Store.new
       store.store! self
     end
 
-    # it should be ensured that this is called anyways 
+    # it should be ensured that this is always beeing called,
     # even if an error occurred!
     def cleanup!
       File.unlink @image if @image and File.exists? @image
-      File.unlink @thumbnail if @thumbnail and File.exists? @thumbnail
+      @thumbnails.values.each do |thumbnail|
+        File.unlink thumbnail if thumbnail and File.exists? thumbnail
+      end if @thumbnails
     end
   end
 
   # register carrier as a sinatra plugin
   def self.registered(app)
-    app.set :carrier => {
-      # temporary directory, used for thumbnail creation:
-      :temp => '/tmp',
-      :store => 'local',
-      :local => {
-        :path => './public/asset',
-        :url_base => '/asset'
-      }
-    }
+    # app.set :carrier => {
+    #   # temporary directory, used for thumbnail creation:
+    #   :temp => '/tmp',
+    #   :store => 'local',
+    #   :local => {
+    #     :path => './public/asset',
+    #     :url_base => '/asset'
+    #   }
+    # }
   end
 
 end # Carrier

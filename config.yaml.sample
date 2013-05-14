@@ -32,13 +32,11 @@ qrcode:
 carrier:
   # temporary directory, used for thumbnail creation:
   temp: '/tmp'
-  # local storage is the only supported one right now
-  store: 'local'
-  local:
-    # absolute path to item files:
-    path: './public/asset'
-    # public url base the store is accessible:
-    url_base: '/asset'
+
+  # local path to assets:
+  local_path: './public/asset'
+  # web/public url to assets:
+  web_path: '/asset'
 
 # uses rbot remote interface for this (drb)
 irc_announce:

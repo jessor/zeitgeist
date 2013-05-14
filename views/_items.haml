@@ -10,15 +10,15 @@
             :height => '200',
             :class => 'thumbnail' }
         - else
-          %a{ :href => (item.type=='image' ? item.image : item.source), 
+          %a{ :href => (item.type=='image' ? item.image.web : item.source), 
             :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
             :data => {'fancybox-title' => item.html_title,
-            'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image)},
+            'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image.web)},
             :title => "#{item.id} - #{item.title || item.source}",
             :rel => 'gallery' }
             - if item.type == 'video'
               %img{ :src => '/images/video-overlay.png', :class => 'overlay', :alt => 'audio' }
-            %img{ :src => (item.image ? item.image.thumbnail : "/images/#{item.type}.png"), 
+            %img{ :src => (item.image ? item.image.thumbnail(200).web : "/images/#{item.type}.png"), 
               :alt => (item.title || item.source),
               :width => '200',
               :height => '200',

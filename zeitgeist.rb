@@ -222,7 +222,10 @@ class Item
       end
     end
 
-    if tempfile # temporary fileupload
+    # here we move the temporary file (from the file upload *or* remote
+    #  download) to their final destination (/asset directory), we also
+    #  create thumbnails and the image fingerprint.
+    if tempfile
       begin
         localtemp = Sinatra::Carrier::LocalTemp.new(tempfile, @created_at)
         localtemp.process! # creates thumbnail, verify image
@@ -271,41 +274,24 @@ class Item
 
   after :destroy do
     # get and destory file storage
-    identifier = attribute_get(:image)
-    return if not identifier
-    store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
-    store.destroy! identifier
+    store = Sinatra::Carrier::Store.new
+    store.destroy! image.to_s
   end
 
-  # the image property should return the URI for thumbnail
-  # and full-sized image
+  # returns the Carrier::Image object for this item
   def image
-    # this creates a storage object, which one is based on the
-    # identification, this means the store can be switched in an
-    # running installation. New images will be stored in the new
-    # storage, but old not mitigated ones are still available.
     if not @image_obj
-      identifier = attribute_get(:image)
-      return nil if not identifier
-      store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
-      @image_obj = store.retrieve! identifier # this returns an Image object for view
+      image_path = attribute_get(:image)
+      return if not image_path
+      # migration for old style identifiers:
+      # <store:local>/200709/zg.uezk.jpeg|/200709/zg.uezk_200.jpeg
+      if image_path.match /<[^>]+>([^\|]+)\|/
+        image_path = $1
+      end
+      store = Sinatra::Carrier::Store.new
+      @image_obj = store.retrieve! image_path
     end
     @image_obj
-  end
-
-  # returns an Image object with the local absolute paths
-  # this only works for local storages
-  def image_local
-    if not @image_local_obj
-      identifier = attribute_get(:image)
-      return nil if not identifier
-      store = Sinatra::Carrier::Storage::create_by_identifier(identifier)
-      if store.class != Sinatra::Carrier::Storage::LocalStore
-        return nil
-      end
-      @image_local_obj = store.retrieve_local! identifier # this returns an Image object for view
-    end
-    @image_local_obj
   end
 
   def title
@@ -1185,7 +1171,7 @@ post '/new' do
   rescue Exception => e
 
     logger.error "create error: #{e.class.to_s} #{e.to_s}"
-    logger.error e.backtrace.join('\n')
+    logger.error e.backtrace.join("\n")
 
     # only allow our own exceptions to be publicized
     return if not [RuntimeError, Exception, DuplicateError, RemoteError].include? e.class
