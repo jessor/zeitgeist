@@ -36,7 +36,7 @@ module Sinatra::Carrier
     end
 
     def to_json(options)
-      {:image => @image}.to_json
+      {:image => web, :thumbnail => thumbnail(300).web}.to_json
     end
   end
 

@@ -1199,7 +1199,7 @@ get '/:id' do
     content_type :json
     {:item => @item}.to_json
   elsif @item.type == 'image'
-    redirect @item.image
+    redirect @item.image.web
   else
     remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
     remoteplugin.embed # returns html code for embedding
