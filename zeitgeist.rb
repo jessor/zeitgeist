@@ -1198,11 +1198,13 @@ get '/:id' do
   if api_request? 
     content_type :json
     {:item => @item}.to_json
-  elsif @item.type == 'image'
-    redirect @item.image.web
   else
-    remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
-    remoteplugin.embed # returns html code for embedding
+    # create html code for embedding
+    if %w{video audio}.include? @item.type
+      remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
+      @embed = remoteplugin.embed
+    end
+    haml :item
   end
 end
 

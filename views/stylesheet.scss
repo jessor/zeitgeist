@@ -318,19 +318,11 @@ nav {
     border: 3px solid $border;
     position: relative;
 
-    .overlay {
-        position: absolute;
-    }
-
     .thumbnail {
         display: block;
         margin: 0 auto;
     }
 
-    .overlay:hover,
-    .thumbnail:hover {
-        @include hovershadow($comp1);
-    }
 }
 
 .clear {
@@ -340,7 +332,8 @@ nav {
 
 .item-meta {
     width: 200px;
-    margin: 10px 0;
+    height: 25px;
+    margin: 5px 0;
     overflow: hidden;
 
     ul.taglist {
@@ -733,13 +726,64 @@ footer {
 }
 
 .title-overlay {
-    @include rounded(0px 0px 3px 5px);
     padding: 3px;
     color: #1A90E1;
-    top: 196px;
     position: absolute;
-    font-size: 11px;
+    font-size: 13px;
     background-color: #272526;
     width: 194px;
+    top: 0px;
 }
+
+/* single item panel */
+#panel {
+    margin: auto;
+    width: 700px;
+    .item {
+        width: 480px;
+        padding: 5px;
+        background: #171717;
+        border: 3px solid $border;
+        h1 {
+            color: $comp1;
+            margin: 0px 0px 0px 0px;
+            font-size: 20px;
+            a {
+                &:hover {
+                    text-decoration: none;
+                }
+            }
+        }
+    }
+}
+
+.overlay_wrapper {
+    position: relative;
+    .overlay { /* overlays are 64x64 */
+        display: inline-block;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin: -25px 0 0 -25px;
+        opacity: 0.3;
+        filter: alpha(opacity=30);
+    }
+    &:hover {
+        .overlay {
+            opacity: 0.8;
+            filter: alpha(opacity=80);
+        }
+    }
+}
+
+/*
+.overlay {
+    position: absolute;
+}
+.overlay:hover,
+.thumbnail:hover {
+    @include hovershadow($comp1);
+}
+*/
+
 

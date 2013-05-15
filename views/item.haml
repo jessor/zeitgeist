@@ -1,0 +1,39 @@
+
+#wrapper
+  #panel
+    // left-side, title, thumbnail, meta line tags
+    .item
+      - if @item.title
+        %h1
+          %a{ :href => (@item.type=='image' ? @item.image.web : @item.source), 
+            :title => "#{@item.id} - #{@item.title || @item.source}"} #{@item.title}
+
+      // display preview image 480p thumbnail
+      %a{ :href => (@item.type=='image' ? @item.image.web : @item.source), 
+        :class => 'fancybox' + (@item.type != 'image' ? ' fancybox.ajax' : ''), 
+        :data => {'fancybox-title' => @item.html_title,
+        'fancybox-href' => (@item.type != 'image' ? ('/embed/%d' % @item.id) : @item.image.web)},
+        :title => "#{@item.id} - #{@item.title || @item.source}",
+        :rel => 'gallery' }
+
+        %div.overlay_wrapper
+          - if @item.dimensions and @item.dimensions.split('x').first.to_i > 480
+            %img{ :src => @item.image.thumbnail(480).web }
+          - elsif @item.type == 'audio'
+            %img{ :src => '/images/audio.png' }
+          - else
+            %img{ :src => @item.image.web }
+
+          - if @item.type == 'video'
+            .overlay 
+              %img{ :src => '/images/overlay_video.png' }
+
+    // right-side: next/prev items, similar items
+    // .left
+    //   .navigation
+    //     %a.prev Previous
+    //     %a.next Next
+    //   .similar
+    //     %h2 Mock Similar Items
+
+
