@@ -46,21 +46,20 @@ module Carrier
       end
     end
 
-    def image_thumbnail!(image, width, &block)
+    def image_thumbnail!(image, width, height=nil)
       img = ::MiniMagick::Image.open(image)
-
-      # NOTE: should only be used to identify the image:
-      yield(img) if block
 
       img.collapse!
       cols, rows = img['dimensions']
       ratio = cols / rows.to_f
 
-      if width == 200
-        height = 200
-      else # 480x? in relation to aspect
+      if not height # set height in relation to aspect
         height = width / ratio 
+        height = rows if height > rows
       end
+
+      # no thumbnail (image is smaller than thumb)
+      return nil if width > cols
 
       img.combine_options do |cmd|
         if width != cols || height != rows
@@ -134,13 +133,15 @@ module Carrier
       @md5obj = Digest::MD5.file(@image)
       @checksum = @md5obj.hexdigest
 
+      # figure out dimensions&animation
+      img = ::MiniMagick::Image.open(image)
+      @dimensions = image_dimensions(img)
+      @animated = image_animated?(img)
+
       # create thumbnails, the hash stores the size(as key)+temp local path
       @thumbnails = {
-        '200' => image_thumbnail!(@image, 200) do |img|
-          @dimensions = image_dimensions(img)
-          @animated = image_animated?(img)
-        end,
-        # '480' => image_thumbnail!(@image, 480)
+        '200' => image_thumbnail!(@image, 200, 200), # 200 squared
+        '480' => image_thumbnail!(@image, 480) # sets height based on ratio
       }
     end
 
@@ -162,15 +163,6 @@ module Carrier
 
   # register carrier as a sinatra plugin
   def self.registered(app)
-    # app.set :carrier => {
-    #   # temporary directory, used for thumbnail creation:
-    #   :temp => '/tmp',
-    #   :store => 'local',
-    #   :local => {
-    #     :path => './public/asset',
-    #     :url_base => '/asset'
-    #   }
-    # }
   end
 
 end # Carrier

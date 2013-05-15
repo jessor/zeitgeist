@@ -30,9 +30,16 @@ module Sinatra::Carrier
       File.exists?(local.to_s)
     end
 
+    def unlink!
+      File.unlink(local.to_s) if exists?
+      Dir[thumbnail('*').local.to_s].each do |file|
+        File.unlink file
+      end
+    end
+
     # thumbnail version of the image
     def thumbnail(width)
-      Image.new(@image.gsub(/\.(\w+)$/, '_%d.\1' % width))
+      Image.new(@image.gsub(/\.(\w+)$/, '_%s.\1' % width))
     end
 
     def to_json(options)
@@ -42,16 +49,14 @@ module Sinatra::Carrier
 
   # stores image files from a temporary location
   class Store
-    def initialize
+    # moves the temporary image 
+    def store!(temp)
       # make sure local storage directory exists
       path = settings.carrier[:local_path]
       if not Dir.exists? path
         Dir.mkdir path
       end
-    end
 
-    # moves the temporary image 
-    def store!(temp)
       image = gen_filename(temp)
 
       # move temporary files:
@@ -75,11 +80,7 @@ module Sinatra::Carrier
 
     def destroy!(image_path)
       image = Image.new image_path
-
-      File.unlink image.local.to_s if File.exists? image.local.to_s
-      [200, 480].each do |width|
-        File.unlink image.thumbnail(width).local.to_s if File.exists? image.thumbnail(width).local.to_s
-      end
+      image.unlink!
     end
 
     private
