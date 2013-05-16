@@ -32,9 +32,9 @@
 
       .meta
         %ul.middot_list
-          %li.first #{@item.type == 'image' ? @item.mimetype : @item.type}
-          %li
+          %li.first
             %a{:href => '/%d' % @item.id} #{@item.id}
+          %li #{@item.type == 'image' ? @item.mimetype : @item.type}
           %li posted #{@item.created_at.strftime('%e %B %Y, %H:%M %Z')}
           - if @item.source
             %li

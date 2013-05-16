@@ -26,9 +26,9 @@
                 :height => '200',
                 :class => 'thumbnail' }
 
-              - if item.type == 'video'
+              - if %w{video link}.include? item.type
                 .overlay
-                  %img{ :src => '/images/overlay_video.png' }
+                  %img{ :src => "/images/overlay_#{item.type}.png" }
 
             - if item.title
               .title-overlay
@@ -39,7 +39,6 @@
                   #{truncate(item.title, 52)}
 
             %a.single_link{:href => '/%d' % item.id}
-              permalink:
               %strong #{item.id}
               %img{:src => '/images/link.png', :width => 16, :height => 16}
 
