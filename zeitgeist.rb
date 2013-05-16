@@ -202,6 +202,8 @@ class Item
         if $? == 0 and tmp and File.exists?(tmp.chomp!)
           tempfile = tmp
           self.size = nil
+        else
+          raise RemoteError.new('unable to create screenshot', @source)
         end
       elsif @plugin.type == 'image'
         # plugins for image hosting providers need to return a media url,
