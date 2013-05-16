@@ -28,6 +28,25 @@
             .overlay 
               %img{ :src => '/images/overlay_video.png' }
 
+      .item-meta
+        %ul{ :id => "tagsforitem-#{@item.id}", :class => 'taglist' } 
+          - @item.tags.each do |tag|
+            %li 
+              %a{ :href => "/show/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}
+        %div.clear
+
+      %form.tag{ :action => "/update", :method => 'post', :id => "formforitem-#{@item.id}" }
+        %input{ :type => 'hidden', :name => 'id', :value => "#{@item.id}" }
+        %input{ :type => 'text', :name => 'add_tags', :size => 10, :class => 'autocomplete' }
+        %input{ :type => 'hidden', :name => 'del_tags' }
+        %input.tagpush{ :type => 'submit', :value => 'tag!' }
+
+      - if @item.dm_user_id == current_user.id or current_user.admin?
+        %form.delete{ :action => "/delete", :method => 'post' }
+          %input{ :type => 'hidden', :name => 'id', :value => "#{@item.id}" }
+          %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
+          %input.tagpush{ :type => 'submit', :value => 'delete' }
+
     // right-side: next/prev items, similar items
     // .left
     //   .navigation

@@ -31,7 +31,7 @@
               - if item.title
                 .title-overlay #{truncate(item.title, 52)}
 
-        .item-meta
+        .item-meta{:style => 'width: 200px; height: 25px;'}
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
             - item.tags.each do |tag|
               %li 
