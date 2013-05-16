@@ -65,6 +65,7 @@ module Sinatra::Carrier
       File.chmod(0664, image.local.to_s)
 
       temp.thumbnails.each_pair do |width, thumb|
+        next if not thumb
         path = image.thumbnail(width.to_i).local.to_s
         puts "moving image file: #{thumb} -> #{path}"
         FileUtils.mv(thumb, path)
