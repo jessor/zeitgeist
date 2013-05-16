@@ -10,14 +10,15 @@
             :height => '200',
             :class => 'thumbnail' }
         - else
-          %a{ :href => (item.type=='image' ? item.image.web : item.source), 
-            :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
-            :data => {'fancybox-title' => item.html_title,
-            'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image.web)},
-            :title => "#{item.id} - #{item.title || item.source}",
-            :rel => 'gallery' }
 
-            %div.overlay_wrapper
+          %div.overlay_wrapper
+            %a{ :href => (item.type=='image' ? item.image.web : item.source), 
+              :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
+              :data => {'fancybox-title' => item.html_title,
+              'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image.web)},
+              :title => "#{item.id} - #{item.title || item.source}",
+              :rel => 'gallery' }
+
               %img{ :src => (item.image ? item.image.thumbnail(200).web : "/images/#{item.type}.png"), 
                 :alt => (item.title || item.source),
                 :width => '200',
@@ -28,8 +29,11 @@
                 .overlay
                   %img{ :src => '/images/overlay_video.png' }
 
-              - if item.title
-                .title-overlay #{truncate(item.title, 52)}
+            - if item.title
+              .title-overlay #{truncate(item.title, 52)}
+
+            %a.single_link{:href => '/%d' % item.id}
+              %img{:src => '/images/link.png', :width => 16, :height => 16}
 
         .item-meta{:style => 'width: 200px; height: 25px;'}
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 

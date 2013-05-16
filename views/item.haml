@@ -47,12 +47,37 @@
           %input{ :type => 'hidden', :name => 'return_to', :value => request.fullpath }
           %input.tagpush{ :type => 'submit', :value => 'delete' }
 
-    // right-side: next/prev items, similar items
-    // .left
-    //   .navigation
+    .right
+      .navigation
+        .prev
+          - if @prev
+            %a{ :href => '/%d' % @prev.id } &laquo; Previous
+            %a{ :href => '/%d' % @prev.id }
+              %img{ :src => (@prev.image ? @prev.image.thumbnail(200).web : "/images/#{@prev.type}.png"), 
+                :alt => (@prev.title || @prev.source),
+                :width => '150',
+                :height => '150',
+                :class => 'thumbnail' }
+        .next
+          - if @next
+            %a{ :href => '/%d' % @next.id } Next &raquo;
+            %a{ :href => '/%d' % @next.id }
+              %img{ :src => (@next.image ? @next.image.thumbnail(200).web : "/images/#{@next.type}.png"), 
+                :alt => (@next.title || @next.source),
+                :width => '150',
+                :height => '150',
+                :class => 'thumbnail' }
+
+
+
+
     //     %a.prev Previous
     //     %a.next Next
     //   .similar
     //     %h2 Mock Similar Items
+    // - if @next
+    //   %p Next: #{@next.id}
+    // - if @prev
+    //   %p Prev: #{@prev.id}
 
 

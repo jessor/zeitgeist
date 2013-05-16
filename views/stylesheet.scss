@@ -734,8 +734,9 @@ footer {
 /* single item panel */
 #panel {
     margin: auto;
-    width: 700px;
+    width: 830px;
     .item {
+        float: left;
         width: 480px;
         padding: 5px;
         background: #171717;
@@ -751,6 +752,27 @@ footer {
             }
         }
     }
+    .right {
+        float: right;
+        background: #171717;
+        border: 3px solid $border;
+        .prev {
+            float: left;
+        }
+        .next {
+            float: right;
+            text-align: right;
+        }
+        .prev, .next {
+            width: 150px;
+            margin: 5px;
+            a {
+                display:block;
+                font-size: 15px;
+                font-weight: bold;
+            }
+        }
+    }
 }
 
 .overlay_wrapper {
@@ -761,25 +783,30 @@ footer {
         left: 50%;
         top: 50%;
         margin: -25px 0 0 -25px;
-        opacity: 0.3;
-        filter: alpha(opacity=30);
+        opacity: 0.8;
+        filter: alpha(opacity=80);
+    }
+    .single_link {
+        right: 0;
+        display: none;
+        padding: 3px 8px;
+        position: absolute;
+        bottom: 0px;
+        &:hover {
+            background-color: #272526;
+        }
     }
     &:hover {
         .overlay {
-            opacity: 0.8;
-            filter: alpha(opacity=80);
+            opacity: 0.3;
+            filter: alpha(opacity=30);
+        }
+        .single_link {
+            display: inline-block;
         }
     }
 }
 
-/*
-.overlay {
-    position: absolute;
-}
-.overlay:hover,
-.thumbnail:hover {
-    @include hovershadow($comp1);
-}
-*/
+
 
 

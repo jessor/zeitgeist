@@ -1204,6 +1204,11 @@ get '/:id' do
       remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
       @embed = remoteplugin.embed
     end
+
+    # next/prev items:
+    @next = Item.all(:id.gt => @item.id, :order => [:id.asc]).first
+    @prev = Item.all(:id.lt => @item.id, :order => [:id.desc]).first
+
     haml :item
   end
 end
