@@ -15,7 +15,10 @@
       - else
         %div.overlay_wrapper
           %a{ :href => (@item.type=='image' ? @item.image.web : @item.source), 
-            :title => "#{@item.id} - #{@item.title || @item.source}" }
+              :class => 'fancybox',
+              :data => {'fancybox-title' => @item.html_title,
+              'fancybox-href' => @item.image.web},
+              :title => "#{@item.id} - #{@item.title || @item.source}" }
             - if @item.image.thumbnail(480).exists?
               %img{ :src => @item.image.thumbnail(480).web }
             - elsif @item.type == 'audio'
