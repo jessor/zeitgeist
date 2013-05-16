@@ -814,6 +814,31 @@ footer {
     }
 }
 
+ul.middot_list {
+  list-style-type: none;
+  padding: 0px;
+  margin: 0px;
+  li {
+    display: inline;
+    &:before {
+      padding: 0px 4px 0px 0px;
+        content: "\00b7"
+        }
+      }
+    li.first {
+    &:before {
+      padding: 0px;
+        content: "";
+        }
+      }
+  }
+
+
+.meta {
+    font-family: Verdana, Geneva, sans-serif;
+    font-size: 11px;
+}
+
 
 
 

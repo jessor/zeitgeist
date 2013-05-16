@@ -27,6 +27,16 @@
               .overlay 
                 %img{ :src => '/images/overlay_video.png' }
 
+      .meta
+        %ul.middot_list
+          %li.first #{@item.type == 'image' ? @item.mimetype : @item.type}
+          %li
+            %a{:href => '/%d' % @item.id} #{@item.id}
+          %li posted #{@item.created_at.strftime('%e %B %Y, %H:%M %Z')}
+          - if @item.source
+            %li
+              %a{:href => @item.source, :title => @item.title} source
+
       .item-meta
         %ul{ :id => "tagsforitem-#{@item.id}", :class => 'taglist' } 
           - @item.tags.each do |tag|
