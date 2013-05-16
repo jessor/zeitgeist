@@ -742,6 +742,8 @@ footer {
         background: #171717;
         border: 3px solid $border;
         h1 {
+            word-wrap: break-word;
+            font-weight: normal;
             color: $comp1;
             margin: 0px 0px 0px 0px;
             font-size: 20px;
@@ -835,8 +837,8 @@ ul.middot_list {
 
 
 .meta {
-    font-family: Verdana, Geneva, sans-serif;
-    font-size: 11px;
+    font: x-small verdana,arial,helvetica,sans-serif;
+    color: #aaa;
 }
 
 
