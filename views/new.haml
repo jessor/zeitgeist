@@ -22,5 +22,8 @@
       %li
         %label{ :for => 'ignore_fingerprint', :style => 'display: inline' } omit duplication check
         %input#ignore_fingerprint{ :type => 'checkbox', :name => 'ignore_fingerprint', :value => 'true' }
+      %li
+        %label{ :for => 'link', :style => 'display: inline' } submit link
+        %input#link{ :type => 'checkbox', :name => 'link', :value => 'true' }
       %li.last      
         %input{ :type => 'submit', :value => 'make it so!' }

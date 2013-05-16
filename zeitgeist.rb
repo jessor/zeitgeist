@@ -178,10 +178,11 @@ class Item
     self.title = nil if self.title and self.title.empty?
 
     if not tempfile and @source # remote upload!
-      @plugin = Sinatra::Remote::Plugins::Loader::create(@source)
+      link = self.type == 'link'
+      @plugin = Sinatra::Remote::Plugins::Loader::create(@source, link ? 'Generic' : nil)
       raise 'invalid url!' if not @plugin
 
-      if @plugin.url
+      if @plugin.url and not link
         puts "Download remote content from url: #{@plugin.url}"
         downloader = Sinatra::Remote::Downloader.new(@plugin.url)
         begin
@@ -191,6 +192,16 @@ class Item
         else
           tempfile = downloader.tempfile
           self.size = downloader.filesize
+        end
+      elsif link
+        # take a snapshot of the website
+        webshot = File.join(File.dirname(__FILE__), 'extra/webshot.sh')
+        io = IO.popen([webshot, @source], 'r+')
+        tmp = io.readlines.last
+        io.close
+        if $? == 0 and tmp and File.exists?(tmp.chomp!)
+          tempfile = tmp
+          self.size = nil
         end
       elsif @plugin.type == 'image'
         # plugins for image hosting providers need to return a media url,
@@ -233,7 +244,7 @@ class Item
         self.dimensions = localtemp.dimensions
         self.mimetype = localtemp.mimetype
         self.checksum = localtemp.checksum
-        self.size = localtemp.filesize if not @plugin
+        self.size = localtemp.filesize if not @plugin or not self.size
     
         # animated autotagging
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
@@ -1099,6 +1110,7 @@ post '/new' do
   uploads = params.has_key?('image_upload') ? params['image_upload'] : []
   remotes = params.has_key?('remote_url') ? params['remote_url'] : []
   titles = params.has_key?('title') ? params['title'] : []
+  link = params.has_key?('link') ? (params['link'] == 'true' ? true : false) : false
   announce = params.has_key?('announce') ? (params['announce'] == 'true' ? true : false) : false
   fingerprint = params.has_key?('ignore_fingerprint') ? (params['ignore_fingerprint'] == 'true' ? 1 : nil) : nil
 
@@ -1137,6 +1149,7 @@ post '/new' do
       item = Item.new(:title => title,
                       :image => image, 
                       :source => source, 
+                      :type => link ? 'link' : nil,
                       :fingerprint => fingerprint,
                       :dm_user_id => (logged_in?) ? current_user.id : nil)
       if item.save

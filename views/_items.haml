@@ -12,10 +12,11 @@
         - else
 
           %div.overlay_wrapper
-            %a{ :href => (item.type=='image' ? item.image.web : item.source), 
-              :class => 'fancybox' + (item.type != 'image' ? ' fancybox.ajax' : ''), 
+            - image_link = %w{image link}.include?(item.type)
+            %a{ :href => (image_link ? item.image.web : item.source), 
+              :class => 'fancybox' + ((not image_link) ? ' fancybox.ajax' : ''), 
               :data => {'fancybox-title' => item.html_title,
-              'fancybox-href' => (item.type != 'image' ? ('/embed/%d' % item.id) : item.image.web)},
+              'fancybox-href' => ((not image_link) ? ('/embed/%d' % item.id) : item.image.web)},
               :title => "#{item.id} - #{item.title || item.source}",
               :rel => 'gallery' }
 

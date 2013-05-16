@@ -185,8 +185,8 @@ module Plugins
   class Loader
     @@loaded_plugins = nil
 
-    def self.create(url)
-      return nil if not url =~ URI::regexp
+    def self.create(url, plugin_name=nil)
+      return nil if not url =~ URI::regexp 
 
       if not @@loaded_plugins
         @@loaded_plugins = []
@@ -214,10 +214,11 @@ module Plugins
 
       # select and return the plugin to use based on the pattern
       @@loaded_plugins.each do |plugin|
+        return plugin.new(url) if plugin_name and plugin_name == plugin.name.split('::').last
         pattern = plugin.const_get 'PATTERN' rescue nil
         if pattern
           next if not Plugin::pattern_test(pattern, url)
-        else
+        elsif plugin.name != 'Generic'
           puts "warning! plugin without PATTERN ignored!"
           next
         end
