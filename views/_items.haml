@@ -39,6 +39,7 @@
                   #{truncate(item.title, 52)}
 
             %a.single_link{:href => '/%d' % item.id}
+              #{item.id}
               %img{:src => '/images/link.png', :width => 16, :height => 16}
 
         .item-meta{:style => 'width: 200px; height: 25px;'}

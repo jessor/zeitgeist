@@ -90,7 +90,7 @@ a {
 }
 
 a:hover {
-    text-decoration: underline;
+    text-decoration: none; /* underline; */
     color: $white;
 }
 
@@ -787,13 +787,20 @@ footer {
         filter: alpha(opacity=80);
     }
     .single_link {
-        right: 0;
+        width: 184px;
         display: none;
         padding: 3px 8px;
         position: absolute;
         bottom: 0px;
+        background-color: #272526;
+        text-align: right;
+        font-size: 11px;
+        img {
+            vertical-align: bottom;
+        }
         &:hover {
-            background-color: #272526;
+            text-decoration: none;
+            background-color: lighten(#272526, 20%);
         }
     }
     &:hover {
