@@ -323,10 +323,10 @@ class Item
   end
 
   # returns the embed code for this item
-  def embed
+  def embed(width=640, height=385)
     return if self.type == 'image'
     remoteplugin = Sinatra::Remote::Plugins::Loader::create(self.source)
-    remoteplugin.embed # returns html code for embedding
+    remoteplugin.embed(width, height) # returns html code for embedding
   end
 
   def add_tags(tags)
@@ -998,10 +998,7 @@ end
 
 get '/embed/:id' do
   item = Item.get(params['id'])
-  url = item.source
-
-  remoteplugin = Sinatra::Remote::Plugins::Loader::create(url)
-  remoteplugin.embed # returns html code for embedding
+  item.embed
 end
 
 get '/search' do
@@ -1199,12 +1196,6 @@ get '/:id' do
     content_type :json
     {:item => @item}.to_json
   else
-    # create html code for embedding
-    if %w{video audio}.include? @item.type
-      remoteplugin = Sinatra::Remote::Plugins::Loader::create(@item.source)
-      @embed = remoteplugin.embed
-    end
-
     # next/prev items:
     @next = Item.all(:id.gt => @item.id, :order => [:id.asc]).first
     @prev = Item.all(:id.lt => @item.id, :order => [:id.desc]).first

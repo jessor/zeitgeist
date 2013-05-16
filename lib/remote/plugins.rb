@@ -72,8 +72,8 @@ module Plugins
       false
     end
 
-    def embed
-      OEmbed::Providers.get(@orig_url).html
+    def embed(width=640, height=385)
+      OEmbed::Providers.get(@orig_url, :maxwidth=>width, :maxheight=>height).html
     end
 
     private

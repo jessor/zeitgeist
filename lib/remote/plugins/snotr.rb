@@ -15,10 +15,10 @@ class Snotr < Plugin
     og_search 'title'
   end
 
-  def embed
+  def embed(width=400, height=330)
     <<snotr
     <iframe src="http://www.snotr.com/embed/#{video_id}"
-      width="400" height="330" frameborder="0"></iframe>
+      width="#{width}" height="#{height}" frameborder="0"></iframe>
 snotr
   end
 

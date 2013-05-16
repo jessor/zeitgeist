@@ -9,24 +9,23 @@
             :title => "#{@item.id} - #{@item.title || @item.source}"} #{@item.title}
 
       // display preview image 480p thumbnail
-      %a{ :href => (@item.type=='image' ? @item.image.web : @item.source), 
-        :class => 'fancybox' + (@item.type != 'image' ? ' fancybox.ajax' : ''), 
-        :data => {'fancybox-title' => @item.html_title,
-        'fancybox-href' => (@item.type != 'image' ? ('/embed/%d' % @item.id) : @item.image.web)},
-        :title => "#{@item.id} - #{@item.title || @item.source}",
-        :rel => 'gallery' }
 
+      - if %w{audio video}.include? @item.type
+        #{@item.embed(480, 288)}
+      - else
         %div.overlay_wrapper
-          - if @item.dimensions and @item.dimensions.split('x').first.to_i > 480
-            %img{ :src => @item.image.thumbnail(480).web }
-          - elsif @item.type == 'audio'
-            %img{ :src => '/images/audio.png' }
-          - else
-            %img{ :src => @item.image.web }
+          %a{ :href => (@item.type=='image' ? @item.image.web : @item.source), 
+            :title => "#{@item.id} - #{@item.title || @item.source}" }
+            - if @item.image.thumbnail(480).exists?
+              %img{ :src => @item.image.thumbnail(480).web }
+            - elsif @item.type == 'audio'
+              %img{ :src => '/images/audio.png' }
+            - else
+              %img{ :src => @item.image.web }
 
-          - if @item.type == 'video'
-            .overlay 
-              %img{ :src => '/images/overlay_video.png' }
+            - if @item.type == 'video'
+              .overlay 
+                %img{ :src => '/images/overlay_video.png' }
 
       .item-meta
         %ul{ :id => "tagsforitem-#{@item.id}", :class => 'taglist' } 

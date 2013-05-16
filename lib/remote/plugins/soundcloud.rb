@@ -15,8 +15,8 @@ class Soundcloud < Plugin
     search '.tag-list a .tag/text()'
   end
 
-  def embed
-    OEmbed::Provider.new('http://soundcloud.com/oembed').get(@orig_url).html
+  def embed(width=640, height=385)
+    OEmbed::Provider.new('http://soundcloud.com/oembed').get(@orig_url, :maxwidth=>width, :maxheight=>height).html
   end
 end
 
