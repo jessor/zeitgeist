@@ -31,7 +31,12 @@
                   %img{ :src => '/images/overlay_video.png' }
 
             - if item.title
-              .title-overlay #{truncate(item.title, 52)}
+              .title-overlay
+                - if item.type != 'image'
+                  %a{ :href => item.source, 
+                    :title => "#{item.id} - #{item.title || item.source}"} #{truncate(item.title, 52)} 
+                - else
+                  #{truncate(item.title, 52)}
 
             %a.single_link{:href => '/%d' % item.id}
               %img{:src => '/images/link.png', :width => 16, :height => 16}
