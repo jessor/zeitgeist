@@ -36,7 +36,7 @@ Hash.send(:include, HashExtensions)
 
 class Exception
   # custom to_json method that defines the default for the Zeitgeist API
-  def api_to_json(child_obj={})
+  def api_to_json(child_obj={}, d=nil)
     {
       :type => self.class.to_s,
       :message => self.message
@@ -197,13 +197,15 @@ class Item
         # take a snapshot of the website
         webshot = File.join(File.dirname(__FILE__), 'extra/webshot.sh')
         io = IO.popen([webshot, @source], 'r+')
-        tmp = io.readlines.last
+        tmp = io.readlines
+        puts tmp.join("\n")
+        tmp_path = tmp.last
         io.close
-        if $? == 0 and tmp and File.exists?(tmp.chomp!)
-          tempfile = tmp
+        if $? == 0 and tmp_path and File.exists?(tmp_path.chomp!)
+          tempfile = tmp_path
           self.size = nil
         else
-          raise RemoteError.new('unable to create screenshot', @source)
+          raise RemoteError.new('unable to create screenshot (%d)' % $?, @source)
         end
       elsif @plugin.type == 'image'
         # plugins for image hosting providers need to return a media url,
