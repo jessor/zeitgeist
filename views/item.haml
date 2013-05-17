@@ -42,6 +42,9 @@
 
       .item-meta
         %ul{ :id => "tagsforitem-#{@item.id}", :class => 'taglist' } 
+          - if @item.username
+            %li.user 
+              %a{ :href => "/gallery/#{@item.username}", :class => 'taglink' }> #{h shorten(@item.username)}
           - @item.tags.each do |tag|
             %li 
               %a{ :href => "/show/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}

@@ -351,6 +351,10 @@ nav {
                 text-decoration: none;
             }
         }
+        li.user {
+            background: $background url('/images/user.png') left center no-repeat;
+            padding-left: 23px;
+        }
     }
 
     .read-more {
@@ -826,7 +830,7 @@ ul.middot_list {
     display: inline;
     &:before {
       padding: 0px 4px 0px 0px;
-        content: "\00b7"
+        content: "-" // "\00b7"
         }
       }
     li.first {
