@@ -31,16 +31,17 @@
                   %img{ :src => "/images/overlay_#{item.type}.png" }
 
             - if item.title
-              .title-overlay
+              .title_overlay
                 - if item.type != 'image'
                   %a{ :href => item.source, 
                     :title => "#{item.id} - #{item.title || item.source}"} #{truncate(item.title, 52)} 
                 - else
                   #{truncate(item.title, 52)}
 
-            %a.single_link{:href => '/%d' % item.id}
-              %strong #{item.id}
-              %img{:src => '/images/link.png', :width => 16, :height => 16}
+            %a.permalink_overlay{:href => '/%d' % item.id}
+              %span
+                %strong #{item.id}
+                %img{:src => '/images/link.png', :width => 16, :height => 16}
 
         .item-meta{:style => 'width: 200px; height: 25px;'}
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
