@@ -784,6 +784,7 @@ footer {
         filter: alpha(opacity=80);
     }
     .title_overlay {
+        width: 194px; // kludge
         padding: 3px;
         color: #1A90E1;
         position: absolute;
