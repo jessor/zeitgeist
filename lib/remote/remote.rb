@@ -56,7 +56,8 @@ class Downloader
               "download error, header indicated content length is too " +
               "large (#{content_length}, max: #{settings.remote_max_filesize})")
         end
-      end
+      end,
+      'User-Agent' => settings.agent
     }
     # TODO: should also check the received content type
 

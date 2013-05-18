@@ -90,6 +90,7 @@ module Plugins
             settings.remote_proxy_pass 
           )
         end
+        @agent.user_agent = settings.agent
       end
       @agent
     end

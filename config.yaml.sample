@@ -24,6 +24,9 @@ feed_max: 45
 # temporary path for remote file/media downloading
 remote_temp: '/tmp'
 
+# user agent used for remote crawling
+agent: 'Mozilla/5.0 (compatible; Zeitgeist/git; +http://zeitgeist.li/about)'
+
 # show api secret as a qrcode, (for use in the android app)
 qrcode:
   active: false

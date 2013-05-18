@@ -196,7 +196,7 @@ class Item
       elsif link
         # take a snapshot of the website
         webshot = File.join(File.dirname(__FILE__), 'extra/webshot.sh')
-        io = IO.popen([webshot, @source], 'r+')
+        io = IO.popen([webshot, @source, settings.agent], 'r+')
         tmp = io.readlines
         puts tmp.join("\n")
         tmp_path = tmp.last
