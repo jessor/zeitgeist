@@ -67,21 +67,30 @@
         .prev
           - if @prev
             %a{ :href => '/%d' % @prev.id } &laquo; Previous
-            %a{ :href => '/%d' % @prev.id }
-              %img{ :src => (@prev.image ? @prev.image.thumbnail(200).web : "/images/#{@prev.type}.png"), 
-                :alt => (@prev.title || @prev.source),
-                :width => '150',
-                :height => '150',
-                :class => 'thumbnail' }
+            %div.overlay_wrapper{:style=>'width:150px'}
+              %a{ :href => '/%d' % @prev.id }
+                %img{ :src => (@prev.image ? @prev.image.thumbnail(200).web : "/images/#{@prev.type}.png"), 
+                  :alt => (@prev.title || @prev.source),
+                  :width => '150',
+                  :height => '150',
+                  :class => 'thumbnail' }
+                - if %w{video link}.include? @prev.type
+                  .overlay
+                    %img{ :src => "/images/overlay_#{@prev.type}.png" }
+
         .next
           - if @next
             %a{ :href => '/%d' % @next.id } Next &raquo;
-            %a{ :href => '/%d' % @next.id }
-              %img{ :src => (@next.image ? @next.image.thumbnail(200).web : "/images/#{@next.type}.png"), 
-                :alt => (@next.title || @next.source),
-                :width => '150',
-                :height => '150',
-                :class => 'thumbnail' }
+            %div.overlay_wrapper{:style=>'width:150px'}
+              %a{ :href => '/%d' % @next.id }
+                %img{ :src => (@next.image ? @next.image.thumbnail(200).web : "/images/#{@next.type}.png"), 
+                  :alt => (@next.title || @next.source),
+                  :width => '150',
+                  :height => '150',
+                  :class => 'thumbnail' }
+                - if %w{video link}.include? @next.type
+                  .overlay
+                    %img{ :src => "/images/overlay_#{@next.type}.png" }
 
 
 
