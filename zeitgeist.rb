@@ -114,6 +114,7 @@ configure do
   use Rack::Flash
 
   set :haml, {:format => :html5}
+  set :protection, :except => :frame_options
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
   set :sinatra_authentication_view_path, 'views/auth_'
   # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
