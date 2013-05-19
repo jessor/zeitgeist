@@ -1031,7 +1031,7 @@ get '/search' do
     # search results
     @query = params['q']
     @type = 'tags'
-    if params.has_key? 'type' and %w{tags source title}.include? params['type']
+    if params.has_key? 'type' and %w{tags source title reverse}.include? params['type']
       @type = params['type']
     end
 
@@ -1056,6 +1056,14 @@ get '/search' do
       args.merge!(:source.like => "%#{@query}%")
     when 'title'
       args.merge!(:title.like => "%#{@query}%")
+    when 'reverse'
+      if @query.match /^\d+$/ # ID
+        args.merge!(:id => @query.to_i)
+      elsif @query.match /(20\d{4}\/zg\.[^\.]+?)(?:_\d+)?(\.)(png|jpeg|gif)/
+        args.merge!(:image.like => "%#{$~.captures.join}%")
+      else
+        args.merge!(:source.like => "%#{@query}%")
+      end
     end
 
     @items = Item.page(params[:page], args)
