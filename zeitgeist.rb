@@ -177,6 +177,7 @@ class Item
   before :create do
     tempfile = @image
     self.title = nil if self.title and self.title.empty?
+    self.type = 'image' if not self.type
 
     if not tempfile and @source # remote upload!
       link = self.type == 'link'
