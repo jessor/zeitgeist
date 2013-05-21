@@ -8,7 +8,7 @@ class Dropbox < Plugin
   end
 
   def url
-    og_search 'image'
+    search_one '#default_content_download_button/@href'
   end
 end
 
