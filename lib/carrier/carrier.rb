@@ -53,13 +53,13 @@ module Carrier
       cols, rows = img['dimensions']
       ratio = cols / rows.to_f
 
+      # no thumbnail (image is smaller than thumb)
+      return nil if width > cols and width != height
+
       if not height # set height in relation to aspect
         height = width / ratio 
         height = rows if height > rows
       end
-
-      # no thumbnail (image is smaller than thumb)
-      return nil if width > cols
 
       img.combine_options do |cmd|
         if width != cols || height != rows
