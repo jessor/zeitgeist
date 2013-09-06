@@ -43,7 +43,7 @@ class Exception
     }.merge(child_obj).to_json
   end
 
-  def to_json
+  def to_json(*args)
     api_to_json
   end
 end
@@ -319,7 +319,11 @@ class Item
       raise 'Broken Encoding!' if not title.valid_encoding?
     end
     return nil if not title or title.empty?
-    super
+    if attribute_get(:nsfw)
+      return '[NSFW] ' + title
+    else
+      return title
+    end
   end
 
   # build html title/alternate text
@@ -799,7 +803,7 @@ end
 get '/show/:type' do
   type = params[:type]
 
-  if %w{video audio image}.include? type
+  if %w{video audio image link}.include? type
     @title = "#{type.capitalize}s at #{settings.pagetitle}"
     args = {
       :per_page => per_page,
