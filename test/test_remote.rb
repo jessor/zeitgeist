@@ -70,6 +70,33 @@ class TestRemotePlugins < Test::Unit::TestCase
     assert(plugin.tags.length > 0)
   end  
 
+  def test_twitter
+    [
+      'https://twitter.com/derPUPE/status/216162269489401856/photo/1',
+      'https://twitter.com/abitofcode/status/219950547212578817/photo/1/large',
+      'https://twitter.com/G33KatWork/status/222906687642800128/photo/1',
+      'https://twitter.com/bpwned/status/223084380632006656/photo/1/large',
+      'https://twitter.com/mdaoudi/status/223159077302312960/photo/1/large',
+      'https://twitter.com/gerkeno/status/223886763045818368/photo/1',
+      'https://twitter.com/e2b/status/224293729354268672/photo/1',
+      'https://twitter.com/Freddy2805/status/225256579300204546/photo/1',
+      'https://twitter.com/ninagarcia/status/224162888317796353/photo/1/large',
+      'https://twitter.com/spacejunkienet/status/226246540111532033/photo/1/large',
+      'https://twitter.com/littlewisehen/status/227031812013170688/photo/1',
+      'https://twitter.com/littlewisehen/status/227031812013170688/photo/1',
+      'https://twitter.com/littlewisehen/status/227031812013170688/photo/1'
+    ].each do |url|
+      puts '------------'
+      puts url
+      plugin = Loader::create url
+      assert_match(%r{twimg.com/media}, plugin.url)
+      assert(!plugin.title.empty?)
+
+      puts " Image URL: #{plugin.url}"
+      puts " Text: #{plugin.title}"
+    end
+  end  
+
   def test_imagenetz
     plugin = Loader::create 'http://www.imagenetz.de/f7a20f74f/test_42x42.png.html'
     assert_match(plugin.url, %r{imagenetz\.de/img\.php\?file=})

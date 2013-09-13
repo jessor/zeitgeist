@@ -4,11 +4,13 @@ class Twitter < Plugin
   PATTERN = %r{http[s]?://(www)?twitter\.com/.*status/\d+}
 
   def url
-    search_one('.media-slideshow-image/@src')
+    image = search_one('.media-slideshow-image/@src').to_s
+    image = search_one('.media-thumbnail/@data-url').to_s if not image or image.empty?
+    image
   end
 
   def title
-    search_one('p.tweet-text').map(&:content)
+    search_one('p.tweet-text').content
   end
 end
 
