@@ -319,6 +319,10 @@ class Item
       raise 'Broken Encoding!' if not title.valid_encoding?
     end
     return nil if not title or title.empty?
+    title.gsub!(/\n/, '')
+    title.gsub!(/\r/, '')
+    title = title.split.join ' '
+    title = CGI.escapeHTML(title)
     if attribute_get(:nsfw)
       return '[NSFW] ' + title
     else
@@ -1227,9 +1231,11 @@ get '/:id' do
     content_type :json
     {:item => @item}.to_json
   else
+    args = (not show_nsfw?) ? {:nsfw => false} : {}
+
     # next/prev items:
-    @next = Item.all(:id.gt => @item.id, :order => [:id.asc]).first
-    @prev = Item.all(:id.lt => @item.id, :order => [:id.desc]).first
+    @next = Item.all(args.merge(:id.gt => @item.id, :order => [:id.asc])).first
+    @prev = Item.all(args.merge(:id.lt => @item.id, :order => [:id.desc])).first
 
     haml :item
   end
