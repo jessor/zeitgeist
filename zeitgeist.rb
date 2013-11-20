@@ -334,6 +334,7 @@ class Item
   def html_title
     html_title = "#{self.id}: "
     title = (self.title || self.source)
+    return '' if not title
     if self.source =~ /^http/
       html_title += '<a href="%s">%s</a>' % [self.source, title]
     else
