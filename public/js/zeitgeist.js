@@ -36,6 +36,24 @@ jQuery(function(){
     var fb2Instance;
     var itemsLoading = false;
 
+    function fb_tags_overlay(item) {
+      console.log(item)
+        var taglist = $('.item-meta .taglist', item);
+        for (var i = 0; i < taglist.length; i++) {
+          console.log(taglist[i])
+        }
+        $('.fancybox-tags .child').append(taglist.clone());
+        $('.fancybox-tags .child ul').addClass('middot_list');
+        $('.fancybox-tags .child ul li:first').addClass('first'); // TODO: uhhh what?! that works?
+    }
+    $(window).keydown(function (e) {
+        var keycode = e.keycode || e.which;
+        if (keycode == 84) {
+            if ($('.fancybox-overlay').length > 0) {
+            }
+        }
+    });
+
     // fancybox <3
     var randomPage = window.location.href.indexOf('/random') !== -1;
     $('.fancybox').fancybox({
@@ -69,11 +87,17 @@ jQuery(function(){
                 tpl: '<div id="fancybox-buttons"><ul style="width:128px"><li><a class="btnPrev" title="Previous (J/H/Left/Up)" href="javascript:;"></a></li><li><a class="btnPlay" title="Start slideshow (Space)" href="javascript:;"></a></li><li><a class="btnNext" title="Next (K/L/Right/Down)" href="javascript:;"></a></li><li><a class="btnToggle" title="Toggle size (f)" href="javascript:;"></a></li></ul></div>' 
             }
         },
+        tpl: {
+            wrap: '<div class="fancybox-wrap" tabIndex="-1"><div class="fancybox-skin"><div class="fancybox-outer"><div class="fancybox-inner"></div></div><div class="fancybox-tags fancybox-title-float-wrap"><span class="child"></span></div></div></div>'
+            //wrap: '<div class="fancybox-wrap" tabIndex="-1"><div class="fancybox-skin"><div class="fancybox-outer"><div class="fancybox-inner"></div></div><div class="fancybox-tags fancybox-title-float-wrap"><span class="child"><span class="tags-help">(press t to edit tags)</span></span></div></div></div>'
+        },
         ajax: {
             type: 'GET'
         },
         afterLoad: function (current, previous) {
             var max = this.group.length - 1;
+
+            fb_tags_overlay($('.items .item')[current.index]);
 
             if (previous && current.index == max && previous.index == 0) {
                 return false;
