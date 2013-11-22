@@ -179,6 +179,7 @@ jQuery(function(){
         navSelector: '#pagination ul',
         nextSelector: '#pagination ul li.next a',
         itemSelector: '.item',
+        bufferPx: 350,
         loading: {
             msgText: '<em>loading more</em>',
             finishedMsg: 'No more pages to load.',
