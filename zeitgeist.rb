@@ -121,13 +121,6 @@ configure do
   disable :show_exceptions
   disable :dump_errors
   disable :raise_errors 
-
-  if settings.pagespeed
-    use Rack::PageSpeed, :public => 'public' do
-      store :disk => 'public'
-      combine_javascripts
-    end
-  end
 end
 
 #

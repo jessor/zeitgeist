@@ -24,13 +24,16 @@
     %script{ :src => '/js/jquery.infinitescroll.js' }
 
     %script{ :src => '/js/jquery.mousewheel.js' }
-    %link{ :rel => 'stylesheet', :href => '/fancybox/jquery.fancybox.css' }
-    %link{ :rel => 'stylesheet', :href => '/fancybox/helpers/jquery.fancybox-buttons.css' }
+
     %script{ :src => '/fancybox/jquery.fancybox.js' }
     %script{ :src => '/fancybox/helpers/jquery.fancybox-buttons.js' }
 
-    %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
     %script{ :src => '/js/zeitgeist.js' }
+
+    %link{ :rel => 'stylesheet', :href => '/fancybox/jquery.fancybox.css' }
+    %link{ :rel => 'stylesheet', :href => '/fancybox/helpers/jquery.fancybox-buttons.css' }
+
+    %link{ :rel => 'stylesheet', :href => '/stylesheet.css' }
 
   %body
     - if flash[:error]

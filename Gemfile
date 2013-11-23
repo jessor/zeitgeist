@@ -13,7 +13,6 @@ gem "haml"
 gem "sass"
 gem "rack"
 gem "rack-flash3", :require => "rack-flash"
-gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
 gem "sinatra-authentication"
 
 gem "thin"
