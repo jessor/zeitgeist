@@ -7,7 +7,7 @@ gem "dm-timestamps"
 gem "dm-migrations"
 gem "dm-serializer"
 
-gem "sinatra"
+gem "sinatra", "<= 1.3.3"
 gem "shotgun"
 gem "haml"
 gem "sass"
@@ -15,6 +15,8 @@ gem "rack"
 gem "rack-flash3", :require => "rack-flash"
 gem "rack-pagespeed", :git => 'git://github.com/jessor/rack-pagespeed.git'
 gem "sinatra-authentication"
+
+gem "thin"
 
 gem "builder", ">= 2.1.2"
 gem "ruby-filemagic", :require => "filemagic" 
