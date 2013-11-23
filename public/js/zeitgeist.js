@@ -37,14 +37,10 @@ jQuery(function(){
     var itemsLoading = false;
 
     function fb_tags_overlay(item) {
-      console.log(item)
         var taglist = $('.item-meta .taglist', item);
-        for (var i = 0; i < taglist.length; i++) {
-          console.log(taglist[i])
-        }
         $('.fancybox-tags .child').append(taglist.clone());
         $('.fancybox-tags .child ul').addClass('middot_list');
-        $('.fancybox-tags .child ul li:first').addClass('first'); // TODO: uhhh what?! that works?
+        $('.fancybox-tags .child ul li:nth-child(1)').addClass('first'); // TODO: uhhh what?! that works?
     }
     $(window).keydown(function (e) {
         var keycode = e.keycode || e.which;
@@ -426,7 +422,6 @@ $(document).ready(function() {
             data: {nsfw: flag},
             dataType: 'json',
             success: function (data) {
-                console.log(data)
                 // reload page
                 location.reload();
             }
