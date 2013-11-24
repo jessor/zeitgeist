@@ -83,7 +83,13 @@ class Downloader
           raise RemoteException.new("cannot read from remote url")
         end
         IMAGE_SIGNATURE.each_pair do |mime, sig|
-          if sigcontent[0...sig.length] == sig
+          header = sigcontent[0...sig.length]
+          begin #only effects 2.0.0
+          header.force_encoding('ASCII-8BIT')
+          sig.force_encoding('ASCII-8BIT')
+          rescue
+          end
+          if header == sig
             @mimetype = mime
             break
           end
