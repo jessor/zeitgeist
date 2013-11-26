@@ -183,6 +183,8 @@ class Item
         begin
           downloader.download!
         rescue Exception => e
+          puts $!
+          puts $@.join("\n")
           raise RemoteError.new(e, @source)
         else
           tempfile = downloader.tempfile
@@ -1161,13 +1163,21 @@ post '/new' do
       # skip empty ones
       next if not image and source.empty?
 
+      user_id = (logged_in?) ? current_user.id : nil
+      if logged_in? and current_user.admin? and params.has_key?('as_username')
+        user = User.get(:username => params['as_username'])
+        if user
+          user_id = user.id
+        end
+      end
+
       # the hook will perform the remote downloading and image processing
       item = Item.new(:title => title,
                       :image => image, 
                       :source => source, 
                       :type => link ? 'link' : nil,
                       :fingerprint => fingerprint,
-                      :dm_user_id => (logged_in?) ? current_user.id : nil)
+                      :dm_user_id => user_id)
       if item.save
         item.add_tags(tags)
         items << item
