@@ -8,7 +8,7 @@ class Imgur < Plugin
   end
 
   def title
-    title = search_one('.panel h2[1]/text()')
+    title = search_one('#image-title/text()')
     if not title or title.chomp == 'Images'
       super
     else
