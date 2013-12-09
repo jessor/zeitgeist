@@ -865,6 +865,10 @@ ul.middot_list {
     color: #aaa;
 }
 
+.disable-hover,
+.disable-hover * {
+    pointer-events: none !important;
+}
 
 
 
