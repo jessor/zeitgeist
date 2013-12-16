@@ -5,6 +5,12 @@ class Xkcd < Plugin
     search_one('#comic/img/@src') || super
   end
   def title
-    search_one('#ctitle/text()') || super
+    ctitle = search_one('#ctitle/text()')
+    alt = search_one('#comic/img/@title')
+    if ctitle and alt
+      ctitle+': '+alt
+    else
+      super
+    end
   end
 end
