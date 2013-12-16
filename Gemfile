@@ -1,6 +1,6 @@
 source :rubygems
 
-gem "dm-core"
+gem "dm-core", "1.2.1"
 gem "dm-pager"
 gem "dm-validations"
 gem "dm-timestamps"
