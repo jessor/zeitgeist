@@ -37,19 +37,13 @@ Current Features
 Development
 -----------
 
-* fork (on github)
-* (install [rvm](http://rvm.beginrescueend.com/) and use the 1.9.2 ruby)
-* rvm use 1.9.2
-* rvm gemset create zeitgeist
-* git clone git@github.com:username/zeitgeist.git
-* rvm rvmrc trust zeitgeist/.rvmrc
-* cd zeitgeist
-* gem install bundler && bundle install
-* cp config.yaml.sample config.yaml
-* shotgun -E production config.ru
-
-Ignore "DataObjects::URI.new with arguments is deprecated", it's not our bug, see [dm-do-adapter/issues/4](https://github.com/datamapper/dm-do-adapter/issues/4)
-
+* Use rvm or similar to install ruby 2.0.0
+* `git clone https://github.com/jessor/zeitgeist.git zeitgeist/`
+* `cd zeitgeist/`
+* `gem install bundler`
+* `bundle install` Install requirements, this step requires some system libraries.
+* `cp config.yaml.sample config.yaml`
+* `ruby zeitgeist.rb` Or use shotgun, thin, or similar.
 
 Acknowledgements
 ----------------
