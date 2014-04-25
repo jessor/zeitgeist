@@ -93,7 +93,8 @@ jQuery(function(){
         afterLoad: function (current, previous) {
             var max = this.group.length - 1;
 
-            fb_tags_overlay($('.items .item')[current.index]);
+            console.log('fb_tags_overlay with current index = ' + current.index);
+            fb_tags_overlay($('.items .item .fancybox').eq(current.index).parents('.item'));
 
             if (previous && current.index == max && previous.index == 0) {
                 return false;
