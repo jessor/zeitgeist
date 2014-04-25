@@ -1189,11 +1189,21 @@ post '/new' do
 
     # announce in irc:
     irc_settings = settings.irc_announce
-    if irc_settings[:active] and announce
-      rbot = DRbObject.new_with_uri(irc_settings[:uri])
-      login = "remote login #{irc_settings[:username]} #{irc_settings[:password]}"
-      id = rbot.delegate(nil, login)[:return]
-      rbot.delegate(id, "dispatch zg announce #{items.first.id}")
+    if irc_settings[:active] and announce and items.length > 0
+      begin
+        agent = Mechanize.new
+        unless irc_settings[:ssl_verify]
+          agent.agent.http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+        args = {
+          'username' => irc_settings[:username],
+          'password' => irc_settings[:password],
+          'command' => 'zg announce %d' % items.first.id
+        }
+        agent.post('%s/dispatch' % irc_settings[:uri], args)
+      rescue
+        logger.warn 'unable to announce in IRC: ' + $!.to_s
+      end
     end
 
     if api_request?

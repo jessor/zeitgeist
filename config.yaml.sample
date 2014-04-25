@@ -40,11 +40,15 @@ carrier:
   # web/public url to assets:
   web_path: '/asset'
 
-# uses rbot remote interface for this (drb)
+# uses rbot integrated webservice to announce new items,
+# this uses my rbot-fork (github.com/4poc/rbot) and the
+# zg plugin for rbot, create a user for it like this:
+#  user create zgeist changeme
 irc_announce:
   active: false
-  uri: 'druby://127.0.0.1:7268'
-  username: 'zeitgeist'
+  uri: 'https://localhost:7260'
+  ssl_verify: true
+  username: 'zgeist'
   password: 'changeme'
 
 # environment dependent configuration, merged based on env
