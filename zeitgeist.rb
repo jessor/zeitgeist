@@ -566,7 +566,7 @@ helpers do
 
   def pagination
     return if not @items or not @items.class.method_defined? :pager or not @items.pager
-    @items.pager.to_html(request.url, :size => 5)
+    @items.pager.to_html(request.fullpath, :size => 5)
   end
 
   def shorten(str)
@@ -686,7 +686,7 @@ end
 get '/' do
   args = {
     :per_page => per_page,
-    :order => [:created_at.desc]
+    :order => [:id.desc]
   }
 
   if params.has_key? 'before'
