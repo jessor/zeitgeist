@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org'
 
 gem "dm-core", "1.2.1"
 gem "dm-pager"
@@ -21,7 +21,7 @@ gem "builder", ">= 2.1.2"
 gem "ruby-filemagic", :require => "filemagic" 
 gem "mini_magick"
 gem "mechanize"
-gem "ruby-oembed", :require => "oembed" #, :git => 'git://github.com/jessor/ruby-oembed.git'
+gem "ruby-oembed", :require => "oembed"
 
 # qrencoder and phashion are optional features use
 #   bundle install --without qrencoder/phashion if you don't want it
