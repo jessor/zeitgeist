@@ -832,12 +832,9 @@ get '/show/:type' do
   end
 end
 
-get '/show/tag/:tag' do
-  @tag = unescape params[:tag]
+get '/show/tag/:tags' do
   @title = "#{@tag} at #{settings.pagetitle}"
   args = {
-    :per_page => per_page,
-    Item.tags.tagname => @tag,
     :order => [:created_at.desc]
   }
   args.merge!(:dm_user_id => @subdomain_user.id) if @subdomain_user
@@ -849,7 +846,15 @@ get '/show/tag/:tag' do
     args.merge!(:conditions => ['items.id > ?', params[:after]])
   end
 
-  @items = Item.page(params[:page], args)
+  tags = unescape params[:tags]
+  if tags.include? '^'
+    args.merge!(Item.tags.tagname => tags.split('^'))
+    @items = Item.page(params[:page], args.merge(:per_page => per_page))
+  else
+    @items = tags.split(';').inject(Item.all) { |q, tag|
+      q & Item.all(args.merge(Item.tags.tagname => tag))
+    }.page(params[:page], :per_page => per_page)
+  end
 
   if api_request?
     content_type :json
