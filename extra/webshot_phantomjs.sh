@@ -1,6 +1,7 @@
 #!/bin/bash
 # Script to create a screenshot of a given website URL
 # Requires: phantomjs (http://phantomjs.org/)
+#           rasterize.js (https://raw.githubusercontent.com/ariya/phantomjs/master/examples/rasterize.js)
 #           pngquant (https://github.com/pornel/improved-pngquant)
 
 # the script finishes with 0 if it worked, and the absolute path to the image
