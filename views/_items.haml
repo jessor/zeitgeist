@@ -47,7 +47,7 @@
           %ul{ :id => "tagsforitem-#{item.id}", :class => 'taglist' } 
             - item.tags.each do |tag|
               %li 
-                %a{ :href => "/show/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h tag.tagname}
+                %a{ :href => "/show/tag/#{escape tag.tagname}", :class => 'taglink' }> #{h shorten(tag.tagname)}
           %div.clear
 
         %form.tag{ :action => "/update", :method => 'post', :id => "formforitem-#{item.id}" }
