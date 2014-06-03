@@ -31,7 +31,7 @@ class Youtube < Plugin
   def embed(width=640, height=385)
     <<yt
     <iframe class="youtube-player" type="text/html" width="#{width}" height="#{height}" 
-            src="http://www.youtube.com/embed/#{video_id}" 
+            src="//www.youtube.com/embed/#{video_id}" 
             frameborder="0">
     </iframe>
 yt
