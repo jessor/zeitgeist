@@ -250,6 +250,7 @@ class Item
     
         # animated autotagging
         self.tags << Tag.first_or_create(:tagname => 'animated') if localtemp.animated
+        self.tags << Tag.first_or_create(:tagname => 'webm') if self.mimetype == 'video/webm'
 
         # duplication check
         if defined? Phashion and self.type == 'image'
