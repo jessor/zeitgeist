@@ -254,8 +254,8 @@ class Item
 
         # duplication check
         if defined? Phashion and self.type == 'image'
-          if self.mimetype == 'video/webm'
-            fp = self.generate_fingerprint(localtemp.thumbnails['480'])
+          if self.mimetype == 'video/webm' and localtemp.thumbnails.length > 0
+            fp = self.generate_fingerprint(localtemp.thumbnails.values.first)
           else
             fp = self.generate_fingerprint(tempfile)
           end
@@ -433,7 +433,6 @@ html5
   # returns nil if an error occured or if item is not an image
   def generate_fingerprint(path=nil)
     return nil if type != 'image'
-    path = image_local.to_s if not path
     temp_path = nil
 
     if mimetype.include? 'png'
