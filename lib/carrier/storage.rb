@@ -39,7 +39,11 @@ module Sinatra::Carrier
 
     # thumbnail version of the image
     def thumbnail(width)
-      Image.new(@image.gsub(/\.(\w+)$/, '_%s.\1' % width))
+      if @image.match /webm$/
+        Image.new(@image.gsub(/\.(\w+)$/, '_%s.jpeg' % width))
+      else
+        Image.new(@image.gsub(/\.(\w+)$/, '_%s.\1' % width))
+      end
     end
 
     def to_json(options)

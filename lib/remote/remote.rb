@@ -34,6 +34,7 @@ class Downloader
   IMAGE_SIGNATURE = {
     'image/jpeg' => "\xFF\xD8",
     'image/gif' => "\x47\x49\x46",
+    'video/webm' => "\x1A\x45\xDF\xA3",
     'image/png' => "\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
   }
 
@@ -78,17 +79,18 @@ class Downloader
         # first read the image header/signature to verify image
         # very preliminary test, but doesnt really matter
         max_sigsize = IMAGE_SIGNATURE.values.max { |a, b| a.length <=> b.length }.length
-        sigcontent = input.read(max_sigsize)
-        if not sigcontent
+        input_sig = input.read(max_sigsize)
+        if not input_sig
           raise RemoteException.new("cannot read from remote url")
         end
         IMAGE_SIGNATURE.each_pair do |mime, sig|
-          header = sigcontent[0...sig.length]
           begin #only effects 2.0.0
-          header.force_encoding('ASCII-8BIT')
           sig.force_encoding('ASCII-8BIT')
+          input_sig.force_encoding('ASCII-8BIT')
           rescue
           end
+
+          header = input_sig[0...sig.length]
           if header == sig
             @mimetype = mime
             break
@@ -99,9 +101,9 @@ class Downloader
         end
 
         # read/write remote image in chunks to temp file
-        @filesize = sigcontent.length
+        @filesize = input_sig.length
         temp = open(@tempfile, 'wb')
-        temp.write(sigcontent)
+        temp.write(input_sig)
         while chunk = input.read(settings.remote_chunk)
           @filesize += temp.write(chunk)
           if @filesize > settings.remote_max_filesize

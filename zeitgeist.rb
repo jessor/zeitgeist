@@ -116,7 +116,7 @@ configure do
   set :sessions, :expire_after => 315360000
   set :haml, {:format => :html5}
   set :protection, :except => :frame_options
-  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
+  set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif', 'video/webm']
   set :sinatra_authentication_view_path, 'views/auth_'
   # NOTE: _must_ be disabled otherwise our custom error handler does not work correctly 
   disable :show_exceptions
@@ -253,7 +253,11 @@ class Item
 
         # duplication check
         if defined? Phashion and self.type == 'image'
-          fp = self.generate_fingerprint(tempfile)
+          if self.mimetype == 'video/webm'
+            fp = self.generate_fingerprint(localtemp.thumbnails['480'])
+          else
+            fp = self.generate_fingerprint(tempfile)
+          end
           puts "fingerprint generated #{fp}"
           if not self.fingerprint
             self.fingerprint = fp
@@ -276,6 +280,11 @@ class Item
 
         # store file in configured storage
         self.image = localtemp.store!
+
+        # change/hack for webm, supposed to be video type:
+        if self.mimetype == 'video/webm'
+          self.type = 'video'
+        end
       rescue Exception => e
         raise e
       ensure
@@ -347,8 +356,20 @@ class Item
   # returns the embed code for this item
   def embed(width=640, height=385)
     return if self.type == 'image'
-    remoteplugin = Sinatra::Remote::Plugins::Loader::create(self.source)
-    remoteplugin.embed(width, height) # returns html code for embedding
+    if self.mimetype == 'video/webm'
+=begin NOTE: unsure about this
+      self.dimensions.match /^(\d+)x(\d+)$/
+      w = $1
+      h = $2
+=end
+      <<html5
+    <video src="#{self.image.web}" width="#{width}" height="#{height}" autoplay controls>
+    </video>
+html5
+    else
+      remoteplugin = Sinatra::Remote::Plugins::Loader::create(self.source)
+      remoteplugin.embed(width, height) # returns html code for embedding
+    end
   end
 
   def add_tags(tags)

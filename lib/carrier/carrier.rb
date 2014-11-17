@@ -14,6 +14,35 @@ module Sinatra
 
 module Carrier
 
+  module VideoProcessor
+    # returns a <width>x<height> string of the video dimensions
+    def video_dimensions(file)
+      dimensions = nil
+      IO.popen('ffmpeg -i %s 2>&1' % file, 'r') do |io|
+        io.each do |line|
+          if line.match /Video: .* (\d+x\d+)/
+            dimensions = $1
+          end
+        end
+      end
+      return dimensions
+    end
+
+    # returns the (temporary) thumbnail of the video generated using ffmpeg
+    def video_thumbnail(file)
+      # generate temp name for thumbnail
+      begin
+        thumbnail = "#{settings.carrier[:temp]}/zg-carrier-" + 
+          "#{Time.now.strftime("%y%m%d%H%M%S")}-#{rand(100)}.jpg"
+      end while File.exists? thumbnail
+
+      IO.popen('ffmpeg -i %s -vframes 1 %s 2>&1' % [file, thumbnail], 'r') do |io|
+        io.readlines
+      end
+      thumbnail
+    end
+  end
+
   # some functions that help with image detection and manipulation
   module ImageProcessor
     # we want to: find the dimension, find out if this is multiple
@@ -97,6 +126,7 @@ module Carrier
   # regardless of the storage engine used later
   class LocalTemp
     include ImageProcessor
+    include VideoProcessor
 
     attr_reader :image, :thumbnails, :checksum, :mimetype, :dimensions, :animated
     attr_reader :md5obj, :created_at, :extension
@@ -133,15 +163,26 @@ module Carrier
       @md5obj = Digest::MD5.file(@image)
       @checksum = @md5obj.hexdigest
 
-      # figure out dimensions&animation
-      img = ::MiniMagick::Image.open(image)
-      @dimensions = image_dimensions(img)
-      @animated = image_animated?(img)
+      # video/webm needs some special handling:
+      if @mimetype == 'video/webm'
+        @dimensions = video_dimensions(@image)
+        @animated = true
+
+        # creates a video thumbnail using ffmpeg:
+        thumbnail_base = video_thumbnail(@image)
+      else
+        # figure out dimensions&animation
+        img = ::MiniMagick::Image.open(image)
+        @dimensions = image_dimensions(img)
+        @animated = image_animated?(img)
+
+        thumbnail_base = @image
+      end
 
       # create thumbnails, the hash stores the size(as key)+temp local path
       @thumbnails = {
-        '200' => image_thumbnail!(@image, 200, 200), # 200 squared
-        '480' => image_thumbnail!(@image, 480) # sets height based on ratio
+        '200' => image_thumbnail!(thumbnail_base, 200, 200), # 200 squared
+        '480' => image_thumbnail!(thumbnail_base, 480) # sets height based on ratio
       }
     end
 
