@@ -648,8 +648,8 @@ input#user_username {
 //
 // Fancybox
 //
-#fancybox-outer {
-    background: $background;
+.fancybox-outer {
+    background: black;
 }
 .fancybox-nav {
     width: 60px !important;

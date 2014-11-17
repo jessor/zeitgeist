@@ -50,8 +50,27 @@ module Carrier
     
     # return mimetype and file extension
     def image_mimetype(image)
-      mimetype = FileMagic.new(FileMagic::MAGIC_MIME).file(image)
-      mimetype = mimetype.slice 0...mimetype.index(';')
+      mimetype = nil
+      image_signature = Sinatra::Remote::Downloader::IMAGE_SIGNATURE
+
+      max_sigsize = image_signature.values.max { |a, b| a.length <=> b.length }.length
+      input_sig = nil
+      File.open(image) do |file|
+        input_sig = file.read(max_sigsize)
+      end
+      image_signature.each do |mime, sig|
+        begin #only effects 2.0.0
+        sig.force_encoding('ASCII-8BIT')
+        input_sig.force_encoding('ASCII-8BIT')
+        rescue
+        end
+        header = input_sig[0...sig.length]
+
+        if header == sig
+          mimetype = mime
+          break
+        end
+      end
       raise 'invalid mimetype' if not settings.allowed_mime.include? mimetype
       [mimetype, mimetype.split('/').last]
     end
