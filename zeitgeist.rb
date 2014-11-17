@@ -113,6 +113,7 @@ configure do
   enable :logging
   use Rack::Flash
 
+  set :sessions, :expire_after => 315360000
   set :haml, {:format => :html5}
   set :protection, :except => :frame_options
   set :allowed_mime, ['image/png', 'image/jpeg', 'image/gif']
