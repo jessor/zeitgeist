@@ -260,7 +260,8 @@ class Item
             fp = self.generate_fingerprint(tempfile)
           end
           puts "fingerprint generated #{fp}"
-          if not self.fingerprint
+          # do not compare bugged out fingerprint:
+          if not self.fingerprint and fp != 0 and fp != 54086765383280
             self.fingerprint = fp
             if (item = Item.first(:fingerprint => self.fingerprint))
               raise DuplicateError.new(item.id)
