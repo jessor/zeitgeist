@@ -8,7 +8,16 @@ class Instagram < Plugin
   end
 
   def title
-    og_search 'description'
+    def clean(str)
+      str = str.gsub(/^([^#]*)#.*$/, '\\1')
+        .gsub(/^\W+/,'')
+        .gsub(/\W+$/,'').strip if str
+      str if str and not str.empty?
+    end
+
+    title = clean(og_search 'title')
+    description = clean(og_search 'description')
+    description or title
   end
 end
 

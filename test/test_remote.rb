@@ -31,7 +31,6 @@ class TestRemotePlugins < Test::Unit::TestCase
       'Flickr'     => ['http://www.flickr.com/photos/kintel/5693336211/'],
       'Fukung'     => ['http://fukung.net/v/6873/catparrot.jpg'],
       'Imagenetz'  => ['http://www.imagenetz.de/f7a20f74f/test_42x42.png.html'],
-      'Imageshack' => ['http://imageshack.us/photo/my-images/20/test42x42.png/'],
       'Imgur'      => ['http://imgur.com/vXUwn'],
       'Picpaste'   => ['http://picpaste.com/test_42x42.png'],
       'Soundcloud' => ['http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'],
@@ -53,20 +52,20 @@ class TestRemotePlugins < Test::Unit::TestCase
 
   def test_abload
     plugin = Loader::create 'http://www.abload.de/image.php?img=test_42x42nupq.png'
-    assert_match(plugin.url, %r{abload\.de/img/test_42x42nupq\.png})
+    assert_match(%r{abload\.de/img/test_42x42nupq\.png}, plugin.url)
 
     test_remote_file plugin.url
   end
 
   def test_flickr
     plugin = Loader::create 'http://www.flickr.com/photos/dcdead/6072830085/?f=hp'
-    assert_match(plugin.url, /staticflickr\.com/)
-    assert_equal(plugin.title, 'Path To Light')
+    assert_match(/staticflickr\.com/, plugin.url)
+    assert_equal('Path To Light', plugin.title)
   end
 
   def test_fukung
     plugin = Loader::create 'http://fukung.net/v/6873/catparrot.jpg'
-    assert_equal(plugin.url, 'http://media.fukung.net/images/6873/catparrot.jpg')
+    assert_equal('http://media.fukung.net/imgs/catparrot.jpg', plugin.url)
     assert(plugin.tags.length > 0)
   end  
 
@@ -97,83 +96,67 @@ class TestRemotePlugins < Test::Unit::TestCase
     end
   end  
 
-  def test_imagenetz
-    plugin = Loader::create 'http://www.imagenetz.de/f7a20f74f/test_42x42.png.html'
-    assert_match(plugin.url, %r{imagenetz\.de/img\.php\?file=})
-
-    test_remote_file plugin.url
-  end
-
-  def test_imageshack
-    plugin = Loader::create 'http://imageshack.us/photo/my-images/20/test42x42.png/'
-    assert_match(plugin.url, %r{imageshack\.us/[^/]+/[^/]+/test42x42\.png})
-
-    test_remote_file plugin.url
-  end
-
   def test_imgur
     plugin = Loader::create 'http://imgur.com/vXUwn'
-    assert_equal(plugin.url, 'http://i.imgur.com/vXUwn.png')
+    assert_equal('http://i.imgur.com/vXUwn.png', plugin.url)
   end
 
 =begin they delete images after a few weeks anyway
   def test_picpaste
     plugin = Loader::create 'http://picpaste.com/test_42x42.png'
-    assert_match(plugin.url, %r{http://picpaste.com/pics/test_42x42.\d+.png})
+    assert_match(%r{http://picpaste.com/pics/test_42x42.\d+.png}, plugin.url)
   end  
 =end
 
   def test_soundcloud
     plugin = Loader::create 'http://soundcloud.com/flux-pavilion/flux-pavilion-the-story-of-shadrok/'
-    assert_equal(plugin.title, "Flux Pavilion - The Story Of Shadrok")
-    assert_match(plugin.embed, %r{<iframe})
+    assert_equal("Flux Pavilion - The Story Of Shadrok", plugin.title)
+    assert_match(%r{<iframe}, plugin.embed)
     plugin = Loader::create 'http://soundcloud.com/shlohmo/shell-of-light-shlohmo-remix'
-    assert(plugin.tags.include?("remix"), 
-          "tags not scraped correctly? #{plugin.tags.inspect}")
   end
 
   def test_soupasset
-    plugin = Loader::create 'http://a.asset.soup.io/asset/2353/1306_3150_20.png'
-    assert_equal(plugin.url, 'http://a.asset.soup.io/asset/2353/1306_3150.png')
-
-    test_remote_file plugin.url
-  end
-
-  def test_twitpic
-    plugin = Loader::create 'http://twitpic.com/8rfe1u'
-    # assert_match(%r{^http://s3\.amazonaws\.com/twitpic/photos/full/}, plugin.url)
-    plugin = Loader::create 'http://twitpic.com/8rfe1u/full'
-    # assert_match(%r{^http://s3\.amazonaws\.com/twitpic/photos/full/}, plugin.url)
-    # (deactivated for now, the url is unpredictable)
-
-    assert_equal(plugin.title, "Hey #Piraten, Club Mate war gestern, heute ist... - via @kungler")
-
-    #test_remote_file plugin.url
+    plugin = Loader::create 'http://asset-6.soup.io/asset/10373/6349_6e2b_520.jpeg'
+    assert_equal('http://asset-6.soup.io/asset/10373/6349_6e2b.jpeg', plugin.url)
   end
 
   def test_vimeo
     plugin = Loader::create 'http://vimeo.com/26134306'
-    assert_equal(plugin.title, "Eclectic Method - The Dark Side")
-    assert_match(plugin.embed, %r{<iframe src="http://player.vimeo.com})
+    assert_equal("Eclectic Method - The Dark Side", plugin.title)
+    assert_match(%r{<iframe src="https?://player.vimeo.com}, plugin.embed)
   end
 
   def test_xkcd
     plugin = Loader::create 'http://xkcd.com/420/'
-    assert_equal(plugin.url, 'http://imgs.xkcd.com/comics/jealousy.png')
-    assert_equal(plugin.title, 'Jealousy')
+    assert_equal('http://imgs.xkcd.com/comics/jealousy.png', plugin.url)
+    assert_equal("Jealousy: Oh, huh, so you didn't know that story?", plugin.title)
   end
 
   def test_yfrog
     plugin = Loader::create 'http://yfrog.com/gywkzgj'
-    assert_match(plugin.url, %r{yfrog\.com/img\d+/\d+/})
+    assert_match(%r{yfrog\.com/img\d+/\d+/}, plugin.url)
   end
 
   def test_youtube
     plugin = Loader::create 'http://www.youtube.com/watch?v=PXRX47L_3yE&feature=feedbul'
-    assert_equal(plugin.title, "Medal of Honor Cat")
-    assert_match(plugin.embed, %r{embed/PXRX47L_3yE})
-    assert(plugin.tags.include?("freddiyw"), 
-          "tags not scraped correctly? #{plugin.tags.inspect}")
+    assert_equal("Medal of Honor Cat", plugin.title)
+    assert_match(%r{embed/PXRX47L_3yE}, plugin.embed)
+  end
+
+  def test_imgurwebm
+    plugin = Loader::create 'http://i.imgur.com/ose0MfD.gifv'
+    assert_equal("This is bad, i guess.", plugin.title)
+    assert_match(%r{.webm$}, plugin.url)
+    plugin = Loader::create 'http://i.imgur.com/ose0MfD.gif'
+    assert_equal("This is bad, i guess.", plugin.title)
+    assert_match(%r{.webm$}, plugin.url)
+  end
+
+  def test_instagram
+    plugin = Loader::create 'https://instagram.com/p/yQPOEVDkHX/'
+    assert_equal('Klaus on Instagram', plugin.title)
+    plugin = Loader::create 'https://instagram.com/p/0Dyn9HjkMt/'
+    assert_equal('An other steelwool experiment w/ the guy in the dark', plugin.title)
   end
 
   private
